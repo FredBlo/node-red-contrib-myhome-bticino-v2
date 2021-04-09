@@ -67,6 +67,26 @@ If you currently use the [node-red-contrib-myhome-bticino](https://flows.nodered
 
 Therefore, for these 2 node types, do not forget to copy information before uninstalling the other version. After installing this one all these nodes will not be available and you will have to re-create them manually with similar configuration.
 
+To install, 2 possible ways :
+- Using the **Node-RED UI**
+	1. Backup all your flows (using export to a local file)
+	2. Remove all content (otherwise removal of previous version is disallowed)
+	3. In your palette, **uninstall** `node-red-contrib-myhome-bticino`
+	4. In your palette, **install** `node-red-contrib-myhome-bticino-v2`
+	5. Restart your Node-RED server
+	6. Import back for backed up flows
+	7. Replace erroneous 'switches' and 'covers' nodes by 'lights' and 'shutters'
+	8. Deploy
+
+- Using the console (bash)
+	1. **Uninstall** previous version `node-red-contrib-myhome-bticino` (nodes dependencies are not checked in this case)
+      npm uninstall node-red-contrib-myhome-bticino
+	2. **Install** `node-red-contrib-myhome-bticino-v2`
+			npm install node-red-contrib-myhome-bticino-v2
+	3. Restart your Node-RED server
+	4. Replace erroneous 'switches' and 'covers' nodes by 'lights' and 'shutters'
+	5. Deploy
+
 ### 3.2 Install
 - Easy approach when **Node-RED is installed**
 	If you have Node-RED already installed the recommended install method is to use the editor. To do this, select `Manage Pallette` from the Node-RED menu (top right), and then select `install` tab in the pallette. Search for and install this node (`node-red-contrib-myhome-bticino-v2`).
