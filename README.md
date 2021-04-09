@@ -93,7 +93,7 @@ After that you have to change the **IP address in the Gateway** configuration an
 Add a **Light node** on your flow and set the light number (`A=1 PL=5` becomes `15`, also be aware the format is 4 digits when A>9 or PL>9, e.g. `A=11 PL=5` becomes `1105`, `A=1 PL=15` becomes `0115`) within its configuration. Configure your Gateway if not configured yet.
 Test the Light injecting payload boolean message `true` (or `false`) and setting `Topic` property as `cmd/`**`topic`** where topic is the Switch Topic.
 
-### 3.3.3 Tips : How to discover device
+#### 3.3.3 Tips : How to discover device
  1. Put `myhome-eventsession Node` connect to a `Debug Node` on your flow
  2. Deploy the project and open `Debug messages window`
  3. Turn on the light *(physically I mean :-) )* you want to know the number
