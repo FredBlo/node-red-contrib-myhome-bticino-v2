@@ -94,12 +94,12 @@ Add a **Light node** on your flow and set the light number (`A=1 PL=5` becomes `
 Test the Light injecting payload boolean message `true` (or `false`) and setting `Topic` property as `cmd/`**`topic`** where topic is the Switch Topic.
 
 #### 3.3.3 Tips : How to discover device
- 1. Put `myhome-eventsession Node` connect to a `Debug Node` on your flow
+ 1. Add a `MH Monitoring` node on your flow and connect a `Debug Node` to it
  2. Deploy the project and open `Debug messages window`
- 3. Turn on the light *(physically I mean :-) )* you want to know the number
- 4. Watch the debug window to see the message generated to discover the MyHome light number  
+ 3. Turn on the light *(physically I mean :-) )* you want to find the MyHome light/shutter number
+ 4. Watch the debug window to see the message generated to discover the MyHome light/shutter number  
 
-> Remember that the message will be as **`*1*1*xx##`** if on or **`*1*0*xx##`** if off, where **xx** is the number of the light point you are trying to discover
+> Remember that, for lights, the message will be as **`*1*1*xx##`** if on or **`*1*0*xx##`** if off, where **xx** is the number (A/PL) you are trying to discover
 
 ## 4. Bticino Gateway & OpenWebNet
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
