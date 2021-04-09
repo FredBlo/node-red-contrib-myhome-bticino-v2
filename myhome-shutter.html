@@ -1,0 +1,167 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-shutter',{
+    category: 'Bticino MyHome',
+    color: '#a6bbcf',
+    defaults: {
+      shutterid: { value: '', required: true, validate: RED.validators.number() },
+      isgroup: { value: false , required: false},
+      topic: { value: '', required: true},
+      gateway: { type: 'myhome-gateway', required: true },
+      name: { value: '', required: true },
+      skipevents: { value: false , required: false},
+      isstatusrequest: { value: false , required: false},
+      output2_name: { value: 'On' , required: false},
+      output2_type: { value: 'boolean' , required: false}
+    },
+    inputs:1,
+    outputs:2,
+    outputLabels: function(index) {
+            if (index === 0) {
+              return 'payload';
+            } else if (index === 1) {
+              return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + "=" + ((this.output2_type === 'boolean') ? 'true/false' : 'OPEN/CLOSE/STOP');
+            }
+            return '';
+    },
+    icon: function() {
+      if (this.isgroup) {
+        return 'mh-shutters-group.svg';
+      } else {
+        return 'font-awesome/fa-align-justify';
+      }
+    },
+    paletteLabel: function() {
+      return 'MH Shutter';
+    },
+    label: function() {
+      return this.name || 'MH Shutter';
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-shutter">
+  <div class="form-row">
+      <label for="node-input-shutterid"><i class="fa fa-align-justify"></i> Shutter</label>
+      <input type="text" id="node-input-shutterid" placeholder="32 for shutter 3.2 or group 32" />
+  </div>
+  <div class="form-row">
+      <label><i class="fa"></i></label>
+      <label for="node-input-isgroup" style="width:70%">
+        <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;" />This is a group reference
+      </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
+      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+      <input type="text" id="node-input-gateway" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name" placeholder="Shutter name" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
+      <label for="node-input-skipevents" style="width:70%">
+        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
+        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
+      </label>
+  </div>
+  <div class="form-row">
+        <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
+        <label for="node-input-isstatusrequest" style="width:70%">
+          <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current shutter status
+          &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (being 'OPEN', 'CLOSE', or whatever) is ignored and a status request is sent to allow knowing current shutter state without applying any change."></i>
+        </label>
+    </div>
+    <div class="form-tips form-row" style="background:#EFEFEF">
+      <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
+      <br>
+      You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
+      <br>
+      <div class="form-row">
+        <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
+        <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
+        <label for="node-input-output2_name" style="width:15px">
+          &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
+        </label>
+      </div>
+      <div class="form-row">
+        <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
+        <select id="node-input-output2_type" style="width:55%">
+          <option value="boolean">Boolean (true / false)</option>
+          <option value="text_state">String (OPEN / CLOSE / STOP)</option>
+        </select>
+      </div>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="myhome-shutter">
+<p>Adds a MyHome Shutter Node to your flow.</p>
+  <ul>
+    <li><strong>Shutter</strong> is the address of the shutter in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
+      <ul>
+      <li><strong>This is a group reference</strong> is to be checked when the shutter address defined has to be used as a group-call address instead of a single shutter (point-to-point call)</li>
+      </ul>
+    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
+    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Read-only</strong> : when enabled, the received payload (being 'OPEN', 'CLOSE', or whatever) is ignored and a status request is sent to gather current shutter state without applying any change.</li>
+  </ul>
+
+<h3>Inputs</h3>
+  <p><code>msg.payload</code> can be of 2 types</p>
+    <ul>
+      <li>A simple value</li>
+        <ul>
+          <li>a simple <em>string</em> being either 'OPEN', 'CLOSE' or 'STOP'</li>
+          <li>a simple <em>boolean</em> being either 'true' (for open) or 'false' (for close)</li>
+        </ul>
+      <li>An Object</li>
+        <ul>
+          <li> <code>payload.state</code> <em>[string]</em> value must be 'OPEN', 'CLOSE' or 'STOP'</li>
+          <li> <code>payload.On</code> <em>[boolean]</em> value must be 'true' (for open) or 'false' (for close)<br>
+            (is a fallback when .state is undefined)</li>
+        </ul>
+    </ul>
+  <p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
+
+<h3>Outputs</h3>
+  <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[string]</em> value is 'OPEN', 'CLOSE' or 'STOP'</li>
+      <li> <code>payload.command_sent</code> <em>[string]</em> when the node was triggered from Node-RED (i.e. a command was sent to the MyHome gateway), contains the command which was sent in OpenWebNet protocol (e.g. <em>'*2*1*15##'</em> to open shutter 1.5)</li>
+      <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured shutter), contains the command which was read in OpenWebNet protocol (ex: <em>'*2*2*25##'</em> means shutter 2.5 'close' action was started)</li>
+      <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+    </ul>
+
+  <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector
+    <br>
+    <u>Samples:</u>
+  </p>
+    <ul>
+      <li><strong>HUEMagic</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being a boolean (true/false)</li>
+          <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
+        </ul>
+      </li>
+      <li><strong>Homekit-bridge</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+        </ul>
+        <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
+      </li>
+      <li><strong>MyHome</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+        </ul>
+      </li>
+    </ul>
+
+</script>

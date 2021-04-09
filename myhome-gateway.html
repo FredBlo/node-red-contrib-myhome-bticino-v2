@@ -1,0 +1,120 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-gateway',{
+    category: 'config',
+    color: '#a6bbcf',
+    defaults: {
+      name: { value: "", required: true },
+      host: { value: "", required: true },
+      port: { value: "20000", required: true },
+      pass: { value: "12345", required: false },
+      timeout: { value: "600", required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
+      log_in_lights: { value: false , required: false},
+      log_in_shutters: { value: false , required: false},
+      log_in_temperature: { value: false , required: false},
+      log_in_energy: { value: false , required: false},
+      log_in_others: { value: false , required: false},
+      log_out_cmd: { value: false , required: false}
+    },
+    label: function() {
+      return this.name;
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-gateway">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="F-455">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-host"><i class="fa fa-server"></i> IP address</label>
+    <input type="text" id="node-config-input-host" placeholder="192.168.1.110">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-port"><i class="fa fa-server"></i> Port</label>
+    <input type="text" id="node-config-input-port" placeholder="20000">
+  </div>
+  <div class="form-row">
+    <label for="node-config-input-pass"><i class="fa fa-unlock-alt"></i> Password</label>
+    <input type="text" id="node-config-input-pass" placeholder="12345">
+  </div>
+  <div class="form-row">
+      <label for="node-config-input-timeout" title="Interval in seconds between time requests to ensure connection is kept alive (minimum is 15s, leave to 0 to disable 'keep alive' mechanism)"><i class="fa fa-repeat"></i> Keep alive</label>
+      <input type="text" id="node-config-input-timeout" placeholder="Send a 'keep alive' message to BUS every ... seconds">
+  </div>
+  <div class="form-tips form-row" style="background:#EFEFEF">
+      <i class="fa fa-window-restore"></i> <b>Advanced BUS tracking logging options</b>
+      <br>
+      By default, all the OpenWebNet commands received through the MyHome BUS are not logged.
+      If needed for test/tracking reasons, you can enable some of them. Be aware number of logged lines can grow quite fast, mainly When
+      energy management elements are enabled on the BUS.
+      <br>
+      When enabled, logging level of such output is set to 'info'.
+      <h4>Incoming commands</h4>
+      <div class="form-row">
+          <label for="node-config-input-log_in_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> Lights</label>
+          <label for="node-config-input-log_in_lights" style="width:70%" title="OpenWebNet WHO=1">
+            <input type="checkbox" id="node-config-input-log_in_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All lights events
+          </label>
+      </div>
+      <div class="form-row">
+          <label for="node-config-input-log_in_shutters">&nbsp;<i class="fa fa-align-justify"></i> Shutters</label>
+          <label for="node-config-input-log_in_shutters" style="width:70%" title="OpenWebNet WHO=2">
+            <input type="checkbox" id="node-config-input-log_in_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All shutters events
+          </label>
+      </div>
+      <div class="form-row">
+          <label for="node-config-input-log_in_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
+          <label for="node-config-input-log_in_temperature" style="width:70%" title="OpenWebNet WHO=4">
+            <input type="checkbox" id="node-config-input-log_in_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
+          </label>
+      </div>
+      <div class="form-row">
+          <label for="node-config-input-log_in_energy">&nbsp;<i class="fa fa-bolt"></i> Energy</label>
+          <label for="node-config-input-log_in_energy" style="width:70%" title="OpenWebNet WHO=18">
+            <input type="checkbox" id="node-config-input-log_in_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All energy management events
+          </label>
+      </div>
+      <div class="form-row">
+          <label for="node-config-input-log_in_others">&nbsp;<i class="fa fa-download"></i> Others</label>
+          <label for="node-config-input-log_in_others" style="width:70%">
+            <input type="checkbox" id="node-config-input-log_in_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All all OTHER events
+          </label>
+      </div>
+      <h4>Outgoing commands</h4>
+      <div class="form-row">
+          <label for="node-config-input-log_out_cmd">&nbsp;<i class="fa fa-upload"></i> Sent</label>
+          <label for="node-config-input-log_out_cmd" style="width:70%" tit>
+            <input type="checkbox" id="node-config-input-log_out_cmd" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All commands sent by flows
+          </label>
+      </div>
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="myhome-gateway">
+  <p>The Gateway configuration Node</p>
+  <ul>
+    <li><strong>Name, IP Address, Port</strong> ... quite self explanatory :-)</li>
+    <li><strong>Password</strong> can be set :</li>
+      <ul>
+        <li><em>empty</em> : password is not necessary when the Node-RED server is running on an IP address configured as 'local address' on the gateway</li>
+        <li><em>numerical</em> : for basic authentication (OpenWebNet passwords)</li>
+        <li><em>alphanumeric</em> : for advanced authentication (HMAC-1 (SHA-1) or HMAC-2 (SHA-2 / 256)</li>
+      </ul>
+    <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
+      <br>
+      During my test phases, I found most gateways worked very fine without it (i.e. simply set it to '0') :
+      <ul>
+        <li><em>F-455</em> : did close the connection every hour. Using a 'keep alive' of 600 (i.e. every 10 minutes) is fine.</li>
+        <li><em>MH202</em> : did not close the connection automatically</li>
+        <li><em>F-459</em> : did not close the connection automatically</li>
+        <li><em>myHOMEServer1</em> : did not close the connection automatically</li>
+      </ul>
+      <i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i>
+    </li>
+  </ul>
+
+  <h3>BUS logging options</h3>
+    <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>
+    <p>When outgoing commands are logged, the full connection stack is logged too, for every command sent.</p>
+</script>

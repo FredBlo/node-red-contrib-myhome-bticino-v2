@@ -1,0 +1,174 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-light',{
+    category: 'Bticino MyHome',
+    color: '#a6bbcf',
+    defaults: {
+      lightid: { value: '', required: true, validate: RED.validators.number() },
+      isgroup: { value: false , required: false},
+      topic: { value: '', required: true},
+      gateway: { type: 'myhome-gateway', required: true },
+      name: { value: '', required: true },
+      skipevents: { value: false , required: false},
+      isstatusrequest: { value: false , required: false},
+      output2_name: { value: 'On' , required: false},
+      output2_type: { value: 'boolean' , required: false}
+    },
+    inputs:1,
+    outputs:2,
+    outputLabels: function(index) {
+            if (index === 0) {
+              return 'payload';
+            } else if (index === 1) {
+              return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + "=" + ((this.output2_type === 'boolean') ? 'true/false' : 'ON/OFF');
+            }
+            return '';
+    },
+    icon: function() {
+      if (this.isgroup) {
+        return 'mh-lightbulb-group.svg';
+      } else {
+        return 'font-awesome/fa-lightbulb-o';
+      }
+    },
+    paletteLabel: function() {
+      return 'MH Light';
+    },
+    label: function() {
+      // Force default values for newly added fields (when never edited before, after upgarde to v2)
+      if (this.output2_name === undefined) {this.output2_name = 'On'}
+      if (this.output2_type === undefined) {this.output2_type = 'boolean'}
+      // Return the label itself
+      return this.name || 'MH Light';
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-light">
+  <div class="form-row">
+      <label for="node-input-lightid"><i class="fa fa-lightbulb-o"></i> Light</label>
+      <input type="text" id="node-input-lightid" placeholder="32 (for light 3.2 or group 32)" />
+  </div>
+  <div class="form-row">
+      <label><i class="fa"></i></label>
+      <label for="node-input-isgroup" style="width:70%">
+        <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;" />This is a group reference
+      </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
+      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+      <input type="text" id="node-input-gateway" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name" placeholder="Light name" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
+      <label for="node-input-skipevents" style="width:70%">
+        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
+        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
+      </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
+      <label for="node-input-isstatusrequest" style="width:70%">
+        <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current load status
+        &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change."></i>
+      </label>
+  </div>
+  <div class="form-tips form-row" style="background:#EFEFEF">
+    <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
+    <br>
+    You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
+    <br>
+    <div class="form-row">
+      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
+      <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
+      <label for="node-input-output2_name" style="width:15px">
+        &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
+      </label>
+    </div>
+    <div class="form-row">
+      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
+      <select id="node-input-output2_type" style="width:55%">
+        <option value="boolean">Boolean (true / false)</option>
+        <option value="text_state">String (ON / OFF)</option>
+      </select>
+    </div>
+  </div>
+</script>
+
+
+
+<script type="text/x-red" data-help-name="myhome-light">
+<p>Adds a MyHome Light Node to your flow.</p>
+  <ul>
+    <li><strong>Light</strong> is the address of the load in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
+      <ul>
+      <li><strong>This is a group reference</strong> is to be checked when the load address defined has to be used as a group-call address instead of a single load (point-to-point call)</li>
+      </ul>
+    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
+    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Read-only</strong> : when enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change.</li>
+  </ul>
+
+<h3>Inputs</h3>
+  <p><code>msg.payload</code> can be of 2 types</p>
+    <ul>
+      <li>A simple value</li>
+        <ul>
+          <li>a simple <em>string</em> being either 'ON' or 'OFF'</li>
+          <li>a simple <em>boolean</em> being either 'true' or 'false'</li>
+        </ul>
+      <li>An Object</li>
+        <ul>
+          <li> <code>payload.state</code> <em>[string]</em> value must be 'ON' or 'OFF'</li>
+          <li> <code>payload.On</code> <em>[boolean]</em> value must be 'True' or 'False'<br>
+            (is a fallback when .state is undefined)</li>
+          <li> <code>payload.brightness</code> <em>[integer]</em> (optional, for dimmers only) represents brightness percentage being applied to load, ranging from 20 to 100</li>
+        </ul>
+    </ul>
+  <p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
+
+<h3>Outputs</h3>
+  <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[string]</em> value is 'ON' or 'OFF'</li>
+      <li> <code>payload.brightness</code> <em>[integer]</em> (returned for dimmers only) represents current brightness percentage of the load</li>
+      <li> <code>payload.command_sent</code> <em>[string]</em> when the node was triggered from Node-RED (i.e. a command was sent to the MyHome gateway), contains the command which was sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
+      <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: <em>'*1*5*25##'</em> means load 2.5 was turned on at 50% brightness)</li>
+      <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+    </ul>
+
+  <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector
+    <br>
+    <u>Samples:</u>
+  </p>
+    <ul>
+      <li><strong>HUEMagic</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being a boolean (true/false)</li>
+          <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
+        </ul>
+      </li>
+      <li><strong>Homekit-bridge</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+        </ul>
+        <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
+      </li>
+      <li><strong>MyHome</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+        </ul>
+      </li>
+    </ul>
+</script>

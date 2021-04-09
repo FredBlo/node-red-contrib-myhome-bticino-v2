@@ -1,0 +1,28 @@
+{
+  "name": "node-red-contrib-myhome-bticino-v2",
+  "version": "2.0.0"
+  "description": "Control Bticino / Legrand MyHome components from Node-RED",
+  "homepage": "https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2#readme",
+  "license": "MIT",
+  "dependencies": {},
+  "keywords": [
+    "node-red",
+    "BTicino",
+    "Legrand",
+    "MyHome",
+    "OpenWebNet",
+    "OWN",
+    "SCS"
+  ],
+  "bundleDependencies": false,
+  "deprecated": false,
+  "node-red": {
+    "nodes": {
+      "myhome-gateway": "myhome-gateway.js",
+      "myhome-eventsession": "myhome-eventsession.js",
+      "myhome-commandsession": "myhome-commandsession.js",
+      "myhome-light": "myhome-light.js",
+      "myhome-shutter": "myhome-shutter.js"
+    }
+  }
+}

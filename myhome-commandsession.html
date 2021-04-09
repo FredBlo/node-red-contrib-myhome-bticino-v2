@@ -1,0 +1,48 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-commandsession',{
+    category: 'Bticino MyHome',
+    color: '#a6bbcf',
+    defaults: {
+      gateway: { type:"myhome-gateway", required: true },
+      name: { value:"", required: true }
+    },
+    inputs:1,
+    outputs:1,
+    icon: "font-awesome/fa-terminal",
+    paletteLabel: function() {
+      return 'MH Inject';
+    },
+    label: function() {
+      return this.name || 'MH Inject';
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-commandsession">
+    <div class="form-row">
+        <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+        <input type="text" id="node-input-gateway" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="event session identifier" />
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="myhome-commandsession">
+  <p>MyHome Inject Node to send any supported OpenWebNet command to the MyHome system.</p>
+    <ul>
+      <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+      <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    </ul>
+
+  <h3>Inputs</h3>
+    <p><code>msg.payload</code> must contain the command to be sent, in OpenWebNet format (i.e. '*WHO*WHAT*WHERE##')</p>
+
+  <h3>Output</h3>
+    <p>The <strong>output</strong> is a JSON object <code>msg.payload</code> with</p>
+      <ul>
+        <li> <code>payload.command_sent</code> <em>[string]</em> contains the command which was sent in OpenWebNet protocol (e.g. '*1*1*15##' to turn on load 1.5)</li>
+        <li> <code>payload.command_responses</code> <em>[array of strings]</em> will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+      </ul>
+</script>
