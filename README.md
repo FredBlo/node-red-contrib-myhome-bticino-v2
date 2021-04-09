@@ -81,11 +81,11 @@ To install, 2 possible ways :
 - Using the console (bash)
 	1. **Uninstall** previous version `node-red-contrib-myhome-bticino` (nodes dependencies are not checked in this case)
 
-        npm uninstall node-red-contrib-myhome-bticino
+        	npm uninstall node-red-contrib-myhome-bticino
 
 	2. **Install** `node-red-contrib-myhome-bticino-v2`
 
-        npm install node-red-contrib-myhome-bticino-v2
+        	npm install node-red-contrib-myhome-bticino-v2
 
 	3. Restart your Node-RED server
 	4. Replace erroneous 'switches' and 'covers' nodes by 'lights' and 'shutters'
