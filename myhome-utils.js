@@ -133,6 +133,7 @@ function executeCommand (callingNode, command, gateway, success, error) {
       let m = sdata.match (/(\*.+?##)(.*)/) || [];
       let packet = m[1] || '';
       sdata = m[2] || '';
+      callingNode.debug ("mhutils.executeCommand('" + command + "'), parsing response #" + cmd_responses.length + " (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" +data.toString() + "')");
 
       if (persistentObj.state !== 'connected') {
         // As long as initial connection is not OK, all packets are transmitted to a central function managing this
@@ -154,15 +155,13 @@ function executeCommand (callingNode, command, gateway, success, error) {
         if (packet !== ACK) {
           // Command was sent, but we still did not receive an acknowledged receipt, it means the socket is still emitting results of command sent
           cmd_responses.push (packet);
-          return;
         } else {
           // Command was sent, ACK received, calling callback in success mode with all results
+          client.destroy();
           success (packet, command, cmd_responses);
         }
       }
     }
-    client.destroy();
-    return;
   });
 
   client.on ('close', function() {
