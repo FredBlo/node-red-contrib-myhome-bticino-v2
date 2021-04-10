@@ -133,7 +133,7 @@ function executeCommand (callingNode, command, gateway, success, error) {
       let m = sdata.match (/(\*.+?##)(.*)/) || [];
       let packet = m[1] || '';
       sdata = m[2] || '';
-      callingNode.debug ("mhutils.executeCommand('" + command + "'), parsing response #" + cmd_responses.length + " (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" +data.toString() + "')");
+      callingNode.debug ("mhutils.executeCommand('" + command + "'), collecting response(s) [#" + cmd_responses.length + "] (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" + data.toString() + "')");
 
       if (persistentObj.state !== 'connected') {
         // As long as initial connection is not OK, all packets are transmitted to a central function managing this
