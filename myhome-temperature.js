@@ -30,8 +30,26 @@ module.exports = function (RED) {
       }
       let payload = msg.payload;
 
-      let msg2 = {};
-      node.send ([msg, msg2]);
+      // Check whether received command is linked to current configured node shutter group/id
+      // From OpenWebNetDoc : *#4*where*12*T*3##
+      //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
+      //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
+      let m = packet.match ('^\\*\\#4\\*' + config.zoneid + '\\*0\\*\\d(\\d\\d\\d)##');
+      if (m === null) {
+        return;
+      }
+
+
+      let curTemp = parseInt (m[1]) / 10;
+      node.status ({fill: 'grey', shape: 'ring', text: curTemp & '°C'});
+
+      // Additional info : include initial SCS/BUS message which was read in payload
+      payload.command_received = packet;
+      // Build secondary payload
+//      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
+
+      msg.topic = 'state/' + config.topic;
+      node.send(msg);
     };
 
     // Function called when a message (payload) is received from the node-RED flow
@@ -45,5 +63,5 @@ module.exports = function (RED) {
         done();
       });
     }
-    RED.nodes.registerType ('myhome-light', MyHomeTemperatureNode);
+    RED.nodes.registerType ('myhome-temperature', MyHomeTemperatureNode);
   };

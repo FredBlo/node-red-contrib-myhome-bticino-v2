@@ -22,7 +22,8 @@
       "myhome-eventsession": "myhome-eventsession.js",
       "myhome-commandsession": "myhome-commandsession.js",
       "myhome-light": "myhome-light.js",
-      "myhome-shutter": "myhome-shutter.js"
+      "myhome-shutter": "myhome-shutter.js",
+      "myhome-temperature": "myhome-temperature.js"
     }
   }
 }

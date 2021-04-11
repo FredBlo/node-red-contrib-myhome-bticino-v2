@@ -33,7 +33,7 @@ module.exports = function (RED) {
       // Build the light point name. If node is configured as being a group, add '#' as prefix
       let shuttergroupid = ((config.isgroup) ? '#' : '') + config.shutterid;
 
-      // CHeck whether received command is linked to current configured node shutter group/id
+      // Check whether received command is linked to current configured node shutter group/id
       let m = packet.match ('^\\*2\\*(\\d+)\\*(' + shuttergroupid + '|0)##');
       if (m === null) {
         return;
