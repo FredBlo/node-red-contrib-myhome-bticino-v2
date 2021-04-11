@@ -1,0 +1,34 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-temperature',{
+    category: 'Bticino MyHome',
+    color: '#a6bbcf',
+    defaults: {
+      gateway: { type:'myhome-gateway', required: true },
+      name: { value:'', required: true }
+    },
+    inputs:1,
+    outputs:1,
+    icon: 'font-awesome/fa-thermometer-half',
+    paletteLabel: function() {
+      return 'MH Temperature';
+    },
+    label: function() {
+      return this.name || 'MH Temperature';
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-temperature">
+    <div class="form-row">
+        <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+        <input type="text" id="node-input-gateway" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="temperature identifier" />
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="myhome-commandsession">
+  <p>MyHome Temperature Node to monitor a temperature-controlled zone.</p>
+</script>
