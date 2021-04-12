@@ -33,14 +33,14 @@ module.exports = function (RED) {
       });
 
       node.client.on ('error', function () {
-        internalError ('', 'socket error connecting to ' + node.host + ':' + node.port);
+        internalError ('', '', 'socket error connecting to ' + node.host + ':' + node.port);
       });
 
       node.client.on ('close', function() {
-        internalError ('', 'socket connection closed');
+        internalError ('', '', 'socket connection closed');
       });
 
-    function internalError (packet, errorMsg) {
+    function internalError (command, packet, errorMsg) {
       // In case of error / disconnection / close, try automated restart
       node.warn ("gateway connection issue (" + errorMsg + "): last known state was '" + persistentObj.state + "', trying to re-connect...");
       node.disconnect (RESTART_CONNECT_TIMEOUT);
@@ -80,16 +80,37 @@ module.exports = function (RED) {
       }
     }
 
+var wouldHaveCrashed = 0; //DEBUG
+var lastReadPacketInfo = ''; // DEBUG
     function parsePacket (data) {
       let sdata = data.toString();
       let bufferedReadCount = 0;
 
-      while (sdata.length > 0) {
-        bufferedReadCount++;
+let packet = '';
+while (sdata.length > 0) {
+  bufferedReadCount++;
 
-        let m = sdata.match (/(\*.+?##)(.*)/) || [];
-        let packet = m[1] || '';
-        sdata = m[2] || '';
+  if (wouldHaveCrashed) {    // DEBUG
+    console.warn ("Would have crashed " + wouldHaveCrashed + " packets ago. Now received '" + sdata + "', buffered index=" + bufferedReadCount);    // DEBUG
+    wouldHaveCrashed++;    // DEBUG
+
+    if (wouldHaveCrashed >> 5) {    // DEBUG
+      //Reset
+      wouldHaveCrashed = 0;    // DEBUG
+    }    // DEBUG
+  }    // DEBUG
+  let m = sdata.match (/(\*.+?##)(.*)/) ;// || []; DEBUG
+  if (m === null) { // DEBUG
+    wouldHaveCrashed = 1; // DEBUG
+    console.warn ("Would have crashed on packet : '" + sdata + "', previous packet '" + lastReadPacketInfo + "' buffered index=" + bufferedReadCount);    // DEBUG
+    return;
+  } else {   // DEBUG
+    // let packet = m[1] || ''; // CORRRECT LINE
+    packet = m[1] || ''; // DEBUG
+    lastReadPacketInfo = packet + '(Buffer=' + bufferedReadCount + ')'; // DEBUG
+    sdata = m[2] || '';
+    // node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" + data.toString() + "')"); // To include in final version but to test
+  }
 
         if (persistentObj.state !== 'connected') {
           // As long as initial connection is not OK, all packets are transmitted to a central function managing this
@@ -100,7 +121,7 @@ module.exports = function (RED) {
           return;
         } else if (packet === NACK) {
           // When we have a non acknowledged return, always generate an internal error
-          internalError (packet, 'Command not acknowledged (NACK) when already connected');
+          internalError (START_MONITOR, packet, 'Command not acknowledged (NACK) when already connected');
         } else {
           // Connexion is OK, running in MONITORING mode
           failedConnectionAttempts = 0;
