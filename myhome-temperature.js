@@ -14,6 +14,7 @@ module.exports = function (RED) {
     node.setTemp = '?';
     node.localOffset_TechValue = '?';
     node.localOffset = '?';
+    node.operationMode_TechValue = '?';
     node.operationMode = '?';
 
     // Register node for updates
@@ -41,7 +42,7 @@ module.exports = function (RED) {
       let packetMatch;
       // Checks 1 : current temp and set objective (OpenWebNet doc) :
       //  - current temperature (master probe) : *#4*where*0*T##
-      //  - current temperature goal set : *#4*where*14*T*3##
+      //  - current temperature goal set (included adjust by local offset) : *#4*where*14*T*3##
       //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
       //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
       packetMatch = packet.match ('^\\*\\#4\\*' + config.zoneid + '\\*(0|14)\\*\\d(\\d\\d\\d)(\\*3|)##');
@@ -54,40 +55,47 @@ module.exports = function (RED) {
           node.setTemp = parseInt (packetMatch[2]) / 10;
         }
       }
-      // Checks 2 : Local offset acquire frame (OpenWebNet doc) : *#4*where*13*OL## with OL = Local Offset (knob status):
+      // Checks 2 : Zone operation mode frame (OpenWebNet doc) : *4*what*where##
+      // where being : 0 = Conditioning / 1 = Heating / 102 = Antifreeze / 202 = Thermal Protection / 303 = Generic OFF
+      if (packetMatch === null) {
+        packetMatch = packet.match ('^\\*4\\*(\\d+)\\*' + config.zoneid + '##');
+        if (packetMatch !== null) {
+          node.operationMode_TechValue = packetMatch[1];
+          let operationMode_List = [];
+          operationMode_List[0] = ['0' , 'Conditioning'];
+          operationMode_List[1] = ['1' , 'Heating'];
+          operationMode_List[2] = ['102' , 'Antifreeze'];
+          operationMode_List[3] = ['202' , 'Thermal Protection'];
+          operationMode_List[4] = ['303' , 'Generic OFF'];
+          for (let i = 0; i < operationMode_List.length; i++) {
+            if (operationMode_List[i][0] == node.operationMode_TechValue) {
+              node.operationMode = operationMode_List[i][1];
+              break;
+            }
+          }
+        }
+      }
+      // Checks 3 : Local offset acquire frame (OpenWebNet doc) : *#4*where*13*OL## with OL = Local Offset (knob status):
       // 00 = 0 / 01 = +1° / 02 = +2° / 03 = +3° / 11 = -1° / 12 = -2° / 13 = -3° / 4 = Local OFF / 5 = Local protection
       if (packetMatch === null) {
         packetMatch = packet.match ('^\\*\\#4\\*' + config.zoneid + '\\*(13)\\*(\\d\\d)##');
         if (packetMatch !== null) {
           node.localOffset_TechValue = packetMatch[2];
-          switch (node.localOffset_TechValue) {
-            case '00':
-              node.localOffset = 0;
+          let localOffset_List = [];
+          localOffset_List[0] = ['00' , 0];  // +0°C
+          localOffset_List[1] = ['01' , 1];  // +1°C
+          localOffset_List[2] = ['02' , 2];  // +2°C
+          localOffset_List[3] = ['03' , 3];  // +3°C
+          localOffset_List[4] = ['11' , -1]; // -1°C
+          localOffset_List[5] = ['12' , -2]; // -2°C
+          localOffset_List[6] = ['13' , -3]; // -3°C
+          localOffset_List[7] = ['4' , 'Local OFF'];
+          localOffset_List[8] = ['5' , 'Local protection'];
+          for (let i = 0; i < localOffset_List.length; i++) {
+            if (localOffset_List[i][0] == node.operationMode_TechValue) {
+              node.localOffset = localOffset_List[i][1];
               break;
-            case '01':
-              node.localOffset = 1;
-              break;
-            case '02':
-              node.localOffset = 2;
-              break;
-            case '03':
-              node.localOffset = 3;
-              break;
-            case '11':
-              node.localOffset = -1;
-              break;
-            case '12':
-              node.localOffset = -2;
-              break;
-            case '13':
-              node.localOffset = -3;
-              break;
-            case '4':
-              node.localOffset = 'Local OFF';
-              break;
-            case '5':
-              node.localOffset = 'Local Protection';
-              break;
+            }
           }
         }
       }
@@ -100,8 +108,10 @@ module.exports = function (RED) {
 
       payload.state = node.curTemp;
       payload.state_setTemperature = node.setTemp;
-      payload.state_operationMode = node.operationMode; // TODO
+      payload.state_operationMode = node.operationMode;
+      payload.state_operationMode_TechValue = node.operationMode_TechValue;
       payload.state_localOffset = node.localOffset;
+      payload.state_localOffset_TechValue = node.localOffset_TechValue;
       msg.topic = 'state/' + config.topic;
       node.send(msg);
     };
