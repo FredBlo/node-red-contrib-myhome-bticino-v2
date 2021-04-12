@@ -21,7 +21,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     if (logEnabled) {callingNode.log ('gateway connection : NACK command received, abording.');}
     let errorMsg = "Gateway connection/authentication failed (NACK). Last reached state was '" + persistentObj.state + "'";
     persistentObj.state = 'disconnected';
-    error (packet, errorMsg); // error callback to stop function
+    error (startCommand, packet, errorMsg); // error callback to stop function
   }
 
   // The connection procedure differs based on how authentication is defined
@@ -92,7 +92,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     } else {
       if (logEnabled) {callingNode.warn ('gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, abording...');}
       netSocket.write (NACK);
-      error (packet, 'HMAC authetication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
+      error (startCommand, packet, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
     }
   }
   if (persistentObj.state === 'authenticating') {
@@ -108,20 +108,24 @@ function executeCommand (callingNode, command, gateway, success, error) {
 
   let client = new net.Socket();
   let cmd_responses = [];
-  let commandSent = false;
+  let commandSent = '';
+  let commandSentCount = 0;
   let persistentObj = {};
   persistentObj.logEnabled = gateway.log_out_cmd;
+  // The function allows processing multiple commands. If command is a string, convert it to array using comma, semi-colon or space as splitter
+  let commands = (typeof(command) === 'string') ? command.split (/,|;| /) : command;
 
-  function internalError (packet, errorMsg) {
+  function internalError (command, packet, errorMsg) {
     persistentObj.state = 'disconnected';
     client.destroy();
     error (packet, command, errorMsg);
   }
 
   client.on ('error', function() {
-    internalError ('', 'Command socket error');
+    internalError (commands.join(','), '', 'Command socket error');
   });
 
+  callingNode.debug ("mhutils.executeCommand('" + commands.join(',') + "'), opening connexion to gateway...");
   client.connect (gateway.port, gateway.host, function() {
     // opening command session
   });
@@ -133,7 +137,6 @@ function executeCommand (callingNode, command, gateway, success, error) {
       let m = sdata.match (/(\*.+?##)(.*)/) || [];
       let packet = m[1] || '';
       sdata = m[2] || '';
-      callingNode.debug ("mhutils.executeCommand('" + command + "'), collecting response(s) [#" + cmd_responses.length + "] (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" + data.toString() + "')");
 
       if (persistentObj.state !== 'connected') {
         // As long as initial connection is not OK, all packets are transmitted to a central function managing this
@@ -144,22 +147,30 @@ function executeCommand (callingNode, command, gateway, success, error) {
         return;
       } else if (packet === NACK) {
         // When we have a non acknowledged return, always generate error by calling error callback
-        internalError (packet, 'Command not acknowledged (NACK) when already connected');
-      } else if (!commandSent) {
-        // We are connected, send the command now
-        commandSent = true;
-        if (persistentObj.logEnabled) {callingNode.log ("Command '" + command + "' sent using gateway...");}
-        client.write (command);
-        return;
-      } else {
+        internalError (commandSent, packet, 'Command not acknowledged (NACK) when already connected');
+      } else if (commandSent !== '') {
         if (packet !== ACK) {
           // Command was sent, but we still did not receive an acknowledged receipt, it means the socket is still emitting results of command sent
           cmd_responses.push (packet);
+          callingNode.debug ("mhutils.executeCommand('" + commandSent + "'), collecting response(s) [#" + cmd_responses.length + "] (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" + data.toString() + "')");
+        } else if (commandSentCount < commands.length) {
+          // Command was sent, ACK received but we still have command(s) to send, reset last one sent
+          callingNode.debug ("mhutils.executeCommand('" + commandSent + "'), command sent, responses gathered -if any-, acknowledgment received. This one is done.");
+          commandSent = '';
         } else {
-          // Command was sent, ACK received, calling callback in success mode with all results
+          // Command was sent, ACK received, no more command to execute. Callback in success mode with all results
+          callingNode.debug ("mhutils.executeCommand('" + commandSent + "'), last command sent, responses gathered -if any-, acknowledgment received. All are now done.");
           client.destroy();
-          success (packet, command, cmd_responses);
+          success (packet, commands, cmd_responses);
         }
+      }
+      if (commandSent === '') {
+        // We are connected, and still have command(s) to send
+        commandSent = commands[commandSentCount];
+        commandSentCount++;
+        if (persistentObj.logEnabled) {callingNode.log ("Command '" + commandSent + "' sent using gateway...");}
+        client.write (commandSent);
+        return;
       }
     }
   });
