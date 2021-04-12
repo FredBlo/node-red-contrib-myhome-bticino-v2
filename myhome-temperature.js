@@ -92,12 +92,16 @@ module.exports = function (RED) {
           localOffset_List[7] = ['4' , 'Local OFF'];
           localOffset_List[8] = ['5' , 'Local protection'];
           for (let i = 0; i < localOffset_List.length; i++) {
-            if (localOffset_List[i][0] == node.operationMode_TechValue) {
+            if (localOffset_List[i][0] == node.localOffset_TechValue) {
               node.localOffset = localOffset_List[i][1];
               break;
             }
           }
         }
+      }
+      // Checks : all done, if nothing was processed, abord (no node / flow update detected)
+      if (packetMatch === null) {
+        return;
       }
       node.status ({fill: 'grey', shape: 'ring', text: (node.curTemp + '°C (Goal: ' + node.setTemp + '°C / Offset: ' + node.localOffset + ')' )});
 
