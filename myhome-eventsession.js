@@ -9,6 +9,7 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add all listerners on gateway based on types we have to monitor
     // Define the function which is to be called on any triggered command received from the gateway
     const listenerFunction = function (packet) {

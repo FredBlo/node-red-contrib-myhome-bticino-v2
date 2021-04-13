@@ -9,11 +9,13 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Register node for updates
     node.on ('input', function (msg) {
       node.processInput (msg);
     });
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
     if (!config.skipevents) {
       const listenerFunction = function (packet) {

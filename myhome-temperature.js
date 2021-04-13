@@ -10,20 +10,26 @@ module.exports = function (RED) {
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
     // All current zone received values stored in meme from the moment node is loaded
-    node.curTemp = '?';
-    node.setTemp = '?';
-    node.localOffset_ownValue = '?';
-    node.localOffset = '?';
-    node.operationMode_ownValue = '?';
-    node.operationMode = '?';
-    node.actuatorStates = {};
-    node.actuatorStates.On = false;
+    let payloadInfo = node.payloadInfo = {};
+    payloadInfo.curTemp = '?';
+    payloadInfo.setTemperature = '?';
+    payloadInfo.localOffset_ownValue = '?';
+    payloadInfo.localOffset = '?';
+    payloadInfo.operationMode_ownValue = '?';
+    payloadInfo.operationMode = '?';
+    payloadInfo.actuatorStates = {};
+    payloadInfo.actuatorStates.On = false;
+    payloadInfo.zoneOperationMode_ownValue = '?';
+    payloadInfo.zoneOperationMode = '?';
+    node.lastPayloadInfo = JSON.stringify (payloadInfo); // kept in memory to be able to compare whether an update occurred while processing msg
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Register node for updates
     node.on ('input', function (msg) {
       node.processInput (msg);
     });
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
     if (!config.skipevents) {
       const listenerFunction = function (packet) {
@@ -48,7 +54,7 @@ module.exports = function (RED) {
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
         let packetMatch;
         // Checks 1 : current temperature and set objective frames (OpenWebNet doc) :
-        //  - current temperature (master probe) : *#4*where*0*T##
+        //  - current temperature (master probe) : *#4*where*0*T## (or *#4*where*0*T*3## if local offset included)
         //  - current temperature goal set (included adjust by local offset) : *#4*where*14*T*3##
         //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
         //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
@@ -56,10 +62,10 @@ module.exports = function (RED) {
         if (packetMatch !== null) {
           if (packetMatch[1] === '0') {
             // Current temperature from master probe
-            node.curTemp = parseInt (packetMatch[2]) / 10;
+            payloadInfo.curTemp = parseInt (packetMatch[2]) / 10;
           } else if (packetMatch[1] === '14') {
             // Current temperature objective set
-            node.setTemp = parseInt (packetMatch[2]) / 10;
+            payloadInfo.setTemperature = parseInt (packetMatch[2]) / 10;
           }
         }
         // Checks 2 : Zone operation mode frames (OpenWebNet doc) : *4*what*where##
@@ -67,7 +73,7 @@ module.exports = function (RED) {
         if (packetMatch === null) {
           packetMatch = curPacket.match ('^\\*4\\*(\\d+)\\*' + config.zoneid + '##');
           if (packetMatch !== null) {
-            node.operationMode_ownValue = packetMatch[1];
+            payloadInfo.operationMode_ownValue = packetMatch[1];
             let operationMode_List = [];
             operationMode_List[0] = ['0' , 'Conditioning'];
             operationMode_List[1] = ['1' , 'Heating'];
@@ -76,8 +82,8 @@ module.exports = function (RED) {
             operationMode_List[4] = ['303' , 'Generic OFF'];
 
             for (let i = 0; i < operationMode_List.length; i++) {
-              if (operationMode_List[i][0] == node.operationMode_ownValue) {
-                node.operationMode = operationMode_List[i][1];
+              if (operationMode_List[i][0] == payloadInfo.operationMode_ownValue) {
+                payloadInfo.operationMode = operationMode_List[i][1];
                 break;
               }
             }
@@ -90,7 +96,7 @@ module.exports = function (RED) {
           packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
           if (packetMatch !== null) {
             let curActuatorid = packetMatch[1];
-            let curActuatorState = node.actuatorStates['actuator_' + curActuatorid] = {};
+            let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
             curActuatorState.state_ownValue = packetMatch[2];
             let actuatorStates_List = [];
             actuatorStates_List[0] = ['0' , false , 'OFF'];
@@ -108,7 +114,7 @@ module.exports = function (RED) {
               if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {
                 curActuatorState.On = actuatorStates_List[i][1];
                 curActuatorState.state = actuatorStates_List[i][2];
-                node.actuatorStates.On = curActuatorState.On; // Easy way (but not 100% correct : the global state in taken from the last read actuator)
+                payloadInfo.actuatorStates.On = curActuatorState.On; // Easy way (but not 100% correct : the global state in taken from the last read actuator)
                 break;
               }
             }
@@ -119,7 +125,7 @@ module.exports = function (RED) {
         if (packetMatch === null) {
           packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d\\d)##');
           if (packetMatch !== null) {
-            node.localOffset_ownValue = packetMatch[1];
+            payloadInfo.localOffset_ownValue = packetMatch[1];
             let localOffset_List = [];
             localOffset_List[0] = ['00' , 0];  // +0°C
             localOffset_List[1] = ['01' , 1];  // +1°C
@@ -132,8 +138,33 @@ module.exports = function (RED) {
             localOffset_List[8] = ['5' , 'Local protection'];
 
             for (let i = 0; i < localOffset_List.length; i++) {
-              if (localOffset_List[i][0] == node.localOffset_ownValue) {
-                node.localOffset = localOffset_List[i][1];
+              if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
+                payloadInfo.localOffset = localOffset_List[i][1];
+                break;
+              }
+            }
+          }
+        }
+        // Checks 5 : Zone operation mode request of central unit (OpenWebNet doc) : *4*what*#where##
+        // what : 110 = Manual Heating / 210 = Manual Conditioning / 111 = Automatic Heating / 211 = Automatic Conditioning / 103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
+        // where : [#1 - #99] Request zone by Central Unit.
+        if (packetMatch === null) {
+          packetMatch = curPacket.match ('^\\*4\\*(\\d\\d\\d)\\*\\#' + config.zoneid + '##');
+          if (packetMatch !== null) {
+            payloadInfo.zoneOperationMode_ownValue = packetMatch[1];
+            let zoneOperationMode_List = [];
+            zoneOperationMode_List[0] = ['110' , 'Manual Heating'];
+            zoneOperationMode_List[1] = ['210' , 'Manual Conditioning'];
+            zoneOperationMode_List[2] = ['111' , 'Automatic Heating'];
+            zoneOperationMode_List[3] = ['211' , 'Automatic Conditioning'];
+            zoneOperationMode_List[4] = ['103' , 'Off Heating'];
+            zoneOperationMode_List[5] = ['203' , 'Off Conditioning'];
+            zoneOperationMode_List[6] = ['102' , 'Antifreeze'];
+            zoneOperationMode_List[7] = ['202' , 'Thermal Protection'];
+
+            for (let i = 0; i < zoneOperationMode_List.length; i++) {
+              if (zoneOperationMode_List[i][0] == payloadInfo.zoneOperationMode_ownValue) {
+                payloadInfo.zoneOperationMode = zoneOperationMode_List[i][1];
                 break;
               }
             }
@@ -147,23 +178,31 @@ module.exports = function (RED) {
       if (processedPackets === 0) {
         return;
       }
-      node.status ({fill: (node.actuatorStates.On && node.operationMode !== '?') ? ((node.operationMode === 'Heating') ? 'yellow' : 'blue') : 'grey', shape: 'dot', text: (node.curTemp + '°C (Goal: ' + node.setTemp + '°C / Offset: ' + node.localOffset + ')' )});
+      node.status ({fill: (payloadInfo.actuatorStates.On && payloadInfo.operationMode !== '?') ? ((payloadInfo.operationMode === 'Heating') ? 'yellow' : 'blue') : 'grey', shape: 'dot', text: (payloadInfo.curTemp + '°C (Goal: ' + payloadInfo.setTemperature + '°C / Offset: ' + payloadInfo.localOffset + ')' )});
 
       // Build secondary payload
 //      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
 
-      // Additional info : include initial SCS/BUS message which was read in payload
-      payload.command_received = packet;
-      // Add all current node stored values to payload
-      payload.state = node.curTemp;
-      payload.state_setTemperature = node.setTemp;
-      payload.state_operationMode = node.operationMode;
-      payload.state_operationMode_ownValue = node.operationMode_ownValue;
-      payload.state_localOffset = node.localOffset;
-      payload.state_localOffset_ownValue = node.localOffset_ownValue;
-      payload.actuatorStates = node.actuatorStates;
-      msg.topic = 'state/' + config.topic;
-      node.send (msg);
+      // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
+      node.newPayloadinfo = JSON.stringify (payloadInfo);
+      if (node.newPayloadinfo !== node.lastPayloadInfo || msg.topic === 'state/' + config.topic) {
+        node.lastPayloadInfo = node.newPayloadinfo;
+        // Recived command info
+        payload.command_received = packet;
+        // Add all current node stored values to payload
+        payload.state = payloadInfo.curTemp;
+        payload.state_setTemperature = payloadInfo.setTemperature;
+        payload.operationMode = payloadInfo.operationMode;
+        payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
+        payload.localOffset = payloadInfo.localOffset;
+        payload.localOffset_ownValue = payloadInfo.localOffset_ownValue;
+        payload.actuatorStates = payloadInfo.actuatorStates;
+        payload.zoneOperationMode_ownValue = payloadInfo.zoneOperationMode_ownValue;
+        payload.zoneOperationMode = payloadInfo.zoneOperationMode;
+        // Add misc info & send
+        msg.topic = 'state/' + config.topic;
+        node.send (msg);
+      }
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -174,7 +213,11 @@ module.exports = function (RED) {
         try {msg = JSON.parse(msg);} catch(error){}
       }
       // Only process input received from flow when the topic matches with configuration of nodes
-      if (msg.topic !== 'cmd/' + config.topic) {
+      let isReadOnly = config.isstatusrequest || false;
+      if (msg.topic === 'state/' + config.topic) {
+        // Running in 'state/' mode, force read-only regardless of node config mode
+        isReadOnly = true;
+      } else if (msg.topic !== 'cmd/' + config.topic) {
         return;
       }
       // Get payload and apply conversions (asked state can be set in 'msg.payload',
@@ -199,10 +242,10 @@ module.exports = function (RED) {
 
       // Build the OpenWebNet command to be sent
       let commands = [];
-      if (config.isstatusrequest) {
+      if (isReadOnly) {
         // Working in read-only mode: build a status enquiry request (no status update sent)
         // In theory (based on OpenWebNet doc), only 2 calls are required
-        // Command #1 : *#4*where## which returns (where = Zone)
+        // Command #1 : *#4*where## (where = Zone) which returns :
         //    1: *4*what*where##     : what = Zone operation mode
         //    2: *#4*where*0*T##     : T = Zone operation temperature not adjust by local offset
         //    3: *#4*where*12*T*3##  : T = Zone operation temperature with adjust by local offset
@@ -218,11 +261,16 @@ module.exports = function (RED) {
         commands.push ('*#4*' + config.zoneid + '*0##');    // to fetch Command #1.2 Works OK on F455 / MH202 / F459 / MyHOMEServer1
         commands.push ('*#4*' + config.zoneid + '*13##');   // to fetch Command #1.4 Works OK on F455 / MH202 / F459 / MyHOMEServer1
         commands.push ('*#4*' + config.zoneid + '*14##');   // to fetch Command #1.5 Works OK on F455 / MH202 (but without the '*3') / F459 / MyHOMEServer1
-        // Command #2 : *#4*where#0*20## which returns (where = Zone)
+        // Command #2 : *#4*where#0*20## (where = Zone) which returns :
         //    1: *#4*where#[1-9]*20*Val##  : Actuator #[1-9] status for current zone
-        // Test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
+        // BUT, during test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
+        // Therefore, added a second call to at least gather actuator 1 status (most systems have the first actuator assigned before the others...)
         commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-(
-        commands.push ('*#4*' + config.zoneid + '#1*20##');   // since most systems have the first actuator enabled, force refreshing it...
+        commands.push ('*#4*' + config.zoneid + '#1*20##');
+        // Command #3 : *#4*#where## (where = Zone) which returns :
+        //    1: *4*what*#where#    : what = Zone operation mode request of Central Unit
+        // Test Phase : OK on all gateways tested (F455 / MH202 / F459 / MyHOMEServer1)
+        commands.push ('*#4*#' + config.zoneid + '##');
       } else {
         // Read+Write mode
         // // // TODO // // //

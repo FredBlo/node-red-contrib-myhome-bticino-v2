@@ -26,6 +26,7 @@ module.exports = function (RED) {
     node.timeout = (Number(config.timeout) || 0)*1000; // ms
     node.setMaxListeners (100);
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.client = new net.Socket();
 
       node.client.on ('data', function (data) {
@@ -46,6 +47,7 @@ module.exports = function (RED) {
       node.disconnect (RESTART_CONNECT_TIMEOUT);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     function instanciateClient (delayBeforeRestart) {
       // Try to connect (but do not allow 2 parallel calls)
       if (isTryingToConnect) {
