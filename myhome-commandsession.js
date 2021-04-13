@@ -12,7 +12,7 @@ module.exports = function (RED) {
       let command = msg.payload;
       let payload = {};
 
-      mhutils.executeCommand (node, command, gateway,
+      mhutils.executeCommand (node, command, gateway, true,
         function (sdata, command, cmd_responses) {
           // update payload with sent command & results received
           payload.command_sent = command; // Include initial SCS/BUS message which was sent in main payload

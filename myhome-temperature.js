@@ -166,9 +166,50 @@ module.exports = function (RED) {
 
     // Function called when a message (payload) is received from the node-RED flow
     this.processInput = function (msg) {
-// to set temp manually
-// *#4*where*#14*T*M## (M=3 ? for generic ?)
-    };
+      let payload = msg.payload;
+
+
+      let commands = [];
+      if (config.isstatusrequest) {
+        // Working in read-only mode: build a status enquiry request (no status update sent)
+        // nodestatusinfo = 'status refresh requested';
+        commands[0] = '';
+        commands[1] = '';
+      } else {
+        // Read+Write mode
+        // // // TODO // // //
+        // to set temp manually
+        // *#4*where*#14*T*M## (M=3 ? for generic ?)
+      }
+      if (commands.length === 0) {
+        return;
+      }
+
+      // Send the command on the BUS through the MyHome gateway
+      mhutils.executeCommand (node, commands, gateway, false,
+        function (sdata, commands, cmd_responses) {
+          // Return values to both outputs
+          // Build main payload
+          payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
+          payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          msg.topic = 'state/' + config.topic;
+          // When running in status refresh mode, if we received an update, we process it as it was received by the bus
+          // This also means process stops here and msg will be output by the called function itself
+          if (cmd_responses.length) {
+            node.processReceivedBUSCommand (msg, cmd_responses[0]);
+            return;
+          }
+//          if (config.skipevents) {
+//            node.status ({fill: (payload.state === 'ON') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
+//          }
+          // Send both outputs
+          node.send(msg);
+        }, function (sdata, command, errorMsg) {
+          node.error ('command [' + command + '] failed : ' + errorMsg);
+          // Error, only update node state
+          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + command});
+        });
+      };
 
       node.on('close', function (done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls

@@ -103,17 +103,20 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
 }
 exports.processInitialConnection = processInitialConnection;
 
-function executeCommand (callingNode, command, gateway, success, error) {
+function executeCommand (callingNode, command, gateway, processNextCmdOnFail, success, error) {
   let net = require('net');
 
   let client = new net.Socket();
   let cmd_responses = [];
   let commandSent = '';
   let commandSentCount = 0;
+  let errorCount = 0;
+  let errorCommandsSent = [];
   let persistentObj = {};
   persistentObj.logEnabled = gateway.log_out_cmd;
   // The function allows processing multiple commands. If command is a string, convert it to array using comma, semi-colon or space as splitter
   let commands = (typeof(command) === 'string') ? command.split (/,|;| /) : command;
+  processNextCmdOnFail = (processNextCmdOnFail && commands.length >> 1);
 
   function internalError (command, packet, errorMsg) {
     persistentObj.state = 'disconnected';
@@ -146,10 +149,18 @@ function executeCommand (callingNode, command, gateway, success, error) {
         // Still not connected
         return;
       } else if (packet === NACK) {
-        // When we have a non acknowledged return, always generate error by calling error callback
-        internalError (commandSent, packet, 'Command not acknowledged (NACK) when already connected');
-      } else if (commandSent !== '') {
-        if (packet !== ACK) {
+        if (processNextCmdOnFail) {
+          // Error when processing a command, but we may try next one(s)
+          errorCount++;
+          errorCommandsSent.push(commandSent);
+          callingNode.debug ("mhutils.executeCommand('" + commandSent + "'), command sent, but was not acknowledged (NACK). Skipping this command to process next one.");
+        } else {
+          // When we have a non acknowledged return, generate error by calling error callback
+          internalError (commandSent, packet, 'Command not acknowledged (NACK) when already connected');
+        }
+      }
+      if (commandSent !== '') {
+        if (packet !== ACK && packet !== NACK) {
           // Command was sent, but we still did not receive an acknowledged receipt, it means the socket is still emitting results of command sent
           cmd_responses.push (packet);
           callingNode.debug ("mhutils.executeCommand('" + commandSent + "'), collecting response(s) [#" + cmd_responses.length + "] (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" + data.toString() + "')");
@@ -159,9 +170,17 @@ function executeCommand (callingNode, command, gateway, success, error) {
           commandSent = '';
         } else {
           // Command was sent, ACK received, no more command to execute. Callback in success mode with all results
-          callingNode.debug ("mhutils.executeCommand('" + commandSent + "'), last command sent, responses gathered -if any-, acknowledgment received. All are now done.");
           client.destroy();
-          success (packet, commands, cmd_responses);
+          if (errorCount && cmd_responses.length === 0) {
+            internalError (errorCommandsSent.join (', '), '', 'Some commands (' + errorCount + ') were not acknowledged (NACK) when already connected');
+          } else {
+            if (errorCount) {
+              callingNode.debug ("mhutils.executeCommand('" + commands.join(', ') + "'), last command sent, error(s) occurred (" + errorCount + "), but at least one response received. All are now done.");
+            } else {
+              callingNode.debug ("mhutils.executeCommand('" + commands.join(', ') + "'), last command sent, responses gathered -if any-, acknowledgment received. All are now done.");
+            }
+            success (packet, commands, cmd_responses);
+          }
         }
       }
       if (commandSent === '') {

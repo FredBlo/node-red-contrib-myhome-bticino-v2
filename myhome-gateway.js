@@ -86,7 +86,7 @@ var lastReadPacketInfo = ''; // DEBUG
       let sdata = data.toString();
       let bufferedReadCount = 0;
 
-let packet = '';
+let packet = '';  // DEBUG
 while (sdata.length > 0) {
   bufferedReadCount++;
 

@@ -117,7 +117,7 @@ module.exports = function (RED) {
       }
 
       // Send the command on the BUS through the MyHome gateway
-      mhutils.executeCommand (node, command, gateway,
+      mhutils.executeCommand (node, command, gateway, false,
         function (sdata, command, cmd_responses) {
           // Return values to both outputs
           // Build main payload
