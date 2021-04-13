@@ -168,6 +168,7 @@ while (sdata.length > 0) {
       }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.disconnect = function (restartTimeout) {
       // Only warn / update status when status is not already 'disconnected'
       if (persistentObj.state !== 'disconnected') {
@@ -200,6 +201,7 @@ while (sdata.length > 0) {
       autoCheckConnection = setInterval (checkConnection, node.timeout);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.on('close', function (done)	{
       // Disable auto-refresh of connection & close connection properly
       if (autoCheckConnection !== undefined) {

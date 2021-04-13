@@ -14,6 +14,7 @@ module.exports = function (RED) {
     const listenerFunction = function (packet) {
       node.send ({payload: packet});
     };
+
     // LIGHTS
     if (config.own_lights) {
       runningMonitor.addMonitoredEvent ('OWN_LIGHTS', listenerFunction);
@@ -35,7 +36,7 @@ module.exports = function (RED) {
       runningMonitor.addMonitoredEvent ('OWN_OTHERS', listenerFunction);
     }
 
-
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.on('close', function(done)	{
       runningMonitor.clearAllMonitoredEvents ();
       done();

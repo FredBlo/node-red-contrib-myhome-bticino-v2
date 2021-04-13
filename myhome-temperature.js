@@ -33,7 +33,9 @@ module.exports = function (RED) {
       runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
     }
 
-    // Function called when a MyHome BUS command is received
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processReceivedBUSCommand = function (msg, packet) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
@@ -164,17 +166,63 @@ module.exports = function (RED) {
       node.send (msg);
     };
 
-    // Function called when a message (payload) is received from the node-RED flow
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function called when a message (payload) is received from the node-RED flow ///////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processInput = function (msg) {
+      if (typeof (msg) === 'string') {
+        try {msg = JSON.parse(msg);} catch(error){}
+      }
+      // Only process input received from flow when the topic matches with configuration of nodes
+      if (msg.topic !== 'cmd/' + config.topic) {
+        return;
+      }
+      // Get payload and apply conversions (asked state can be set in 'msg.payload',
+      // 'msg.payload.state' or 'msg.payload.On', value being either true/false or ON/OFF
+      // Final result is always kept in 'msg.payload.state' = 'ON' or 'OFF'
+      if (msg.payload === undefined) {
+        msg.payload = {};
+      } else if (typeof(msg.payload) === 'string') {
+        try {msg.payload = JSON.parse(msg.payload);} catch(error){}
+      }
+      if (typeof(msg.payload) === 'object') {
+        /*
+        // TODO (or not based on possible input allowed)
+        if (msg.payload.state === undefined && msg.payload.On !== undefined) {
+          msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
+        }
+        */
+      } else if (typeof(msg.payload) === 'string') {
+        msg.payload = {'state': msg.payload};
+      }
       let payload = msg.payload;
 
-
+      // Build the OpenWebNet command to be sent
       let commands = [];
       if (config.isstatusrequest) {
         // Working in read-only mode: build a status enquiry request (no status update sent)
-        // nodestatusinfo = 'status refresh requested';
-        commands[0] = '';
-        commands[1] = '';
+        // In theory (based on OpenWebNet doc), only 2 calls are required
+        // Command #1 : *#4*where## which returns (where = Zone)
+        //    1: *4*what*where##     : what = Zone operation mode
+        //    2: *#4*where*0*T##     : T = Zone operation temperature not adjust by local offset
+        //    3: *#4*where*12*T*3##  : T = Zone operation temperature with adjust by local offset
+        //    4: *#4*where*13*OL##   : OL = Local Offset (knob status)
+        //    5: *#4*where*14*T*3##  : T = Zone Set-point temperature
+        // BUT, during test phase, it appears not all gateways are able to repond to otherwise
+        //  - F455 : does not respond anything to 'Command #1', but all responses are sent on the bus (=indirect fetch)
+        //  - MH202 : does not return on 'Command #1' the 1.5: (but is sent on the BUS), returns '*#4*where*14*T##' instead
+        //  - F459 & MyHOMEServer1 : all responses are received, and even more (15 actually ...)
+        // Therefore, using a mode with more calls was the most stable way to go...
+        // commands.push ('*#4*' + config.zoneid + '##'); // theory, not stable enough :-P, quite heavy to also include (actually, only MH202 is missing something without this)
+        commands.push ('*#4*' + config.zoneid + '*12##');   // to fetch Command #1.1 + #1.3 Works OK on F455 / F459 / MyHOMEServer1 but MH202 does not return #1.1
+        commands.push ('*#4*' + config.zoneid + '*0##');    // to fetch Command #1.2 Works OK on F455 / MH202 / F459 / MyHOMEServer1
+        commands.push ('*#4*' + config.zoneid + '*13##');   // to fetch Command #1.4 Works OK on F455 / MH202 / F459 / MyHOMEServer1
+        commands.push ('*#4*' + config.zoneid + '*14##');   // to fetch Command #1.5 Works OK on F455 / MH202 (but without the '*3') / F459 / MyHOMEServer1
+        // Command #2 : *#4*where#0*20## which returns (where = Zone)
+        //    1: *#4*where#[1-9]*20*Val##  : Actuator #[1-9] status for current zone
+        // Test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
+        commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-(
+        commands.push ('*#4*' + config.zoneid + '#1*20##');   // since most systems have the first actuator enabled, force refreshing it...
       } else {
         // Read+Write mode
         // // // TODO // // //
@@ -186,7 +234,7 @@ module.exports = function (RED) {
       }
 
       // Send the command on the BUS through the MyHome gateway
-      mhutils.executeCommand (node, commands, gateway, false,
+      mhutils.executeCommand (node, commands, gateway, true,
         function (sdata, commands, cmd_responses) {
           // Return values to both outputs
           // Build main payload
@@ -196,14 +244,14 @@ module.exports = function (RED) {
           // When running in status refresh mode, if we received an update, we process it as it was received by the bus
           // This also means process stops here and msg will be output by the called function itself
           if (cmd_responses.length) {
-            node.processReceivedBUSCommand (msg, cmd_responses[0]);
+            node.processReceivedBUSCommand (msg, cmd_responses);
             return;
           }
 //          if (config.skipevents) {
 //            node.status ({fill: (payload.state === 'ON') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
 //          }
           // Send both outputs
-          node.send(msg);
+          node.send (msg);
         }, function (sdata, command, errorMsg) {
           node.error ('command [' + command + '] failed : ' + errorMsg);
           // Error, only update node state
@@ -211,6 +259,7 @@ module.exports = function (RED) {
         });
       };
 
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       node.on('close', function (done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
         runningMonitor.clearAllMonitoredEvents ();

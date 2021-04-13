@@ -23,7 +23,9 @@ module.exports = function (RED) {
       runningMonitor.addMonitoredEvent ('OWN_LIGHTS', listenerFunction);
     }
 
-    // Function called when a MyHome BUS command is received
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processReceivedBUSCommand = function (msg, packet) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
@@ -77,7 +79,9 @@ module.exports = function (RED) {
       }
     };
 
-    // Function called when a message (payload) is received from the node-RED flow
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function called when a message (payload) is received from the node-RED flow ///////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processInput = function (msg) {
       if (typeof(msg) === 'string') {
         try {msg = JSON.parse(msg);} catch(error){}
@@ -171,7 +175,7 @@ module.exports = function (RED) {
             node.status ({fill: (payload.state === 'ON') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
           }
           // Send both outputs
-          node.send([msg, msg2]);
+          node.send ([msg, msg2]);
         }, function (sdata, command, errorMsg) {
           node.error ('command [' + command + '] failed : ' + errorMsg);
           // Error, only update node state
@@ -179,6 +183,7 @@ module.exports = function (RED) {
         });
       };
 
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       node.on('close', function(done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
         runningMonitor.clearAllMonitoredEvents ();
