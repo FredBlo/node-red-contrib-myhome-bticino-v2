@@ -16,12 +16,11 @@
     inputs:1,
     outputs:2,
     outputLabels: function(index) {
-            if (index === 0) {
-              return 'payload';
-            } else if (index === 1) {
-              return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + "=" + ((this.output2_type === 'boolean') ? 'true/false' : 'ON/OFF');
-            }
-            return '';
+      if (index === 0) {
+        return 'payload';
+      } else if (index === 1) {
+        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + "=" + ((this.output2_type === 'boolean') ? 'true/false' : 'ON/OFF');
+      }
     },
     icon: function() {
       if (this.isgroup) {
