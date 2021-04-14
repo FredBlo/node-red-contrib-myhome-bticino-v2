@@ -4,7 +4,7 @@ name: npmjs.org publish
 # Controls when the action will run. 
 on:
   release:
-    types: [edited]
+    types: [published]
   # [published] [unpublished] [edited] [created] [deleted] [prereleased]
   # Triggers the workflow on push or pull request events but only for the main branch
   # push:
