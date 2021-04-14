@@ -18,6 +18,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 ## 2. Version history
 ### v2.0.0 (latest available)
 First **npm** published release.
+Only modification after v2.0.0-beta3 was the addition of the CHANGELOG.md file.
 
 #### Beta phase : v2.0.0-beta3
 - ***Bug fix*** : Execute command sometimes returned partial results only (detected on very 'loaded' flows, running on F455 gateway)
