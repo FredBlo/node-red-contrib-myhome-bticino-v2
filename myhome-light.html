@@ -138,7 +138,7 @@
     <ul>
       <li> <code>payload.state</code> <em>[string]</em> value is 'ON' or 'OFF'</li>
       <li> <code>payload.brightness</code> <em>[integer]</em> (returned for dimmers only) represents current brightness percentage of the load</li>
-      <li> <code>payload.command_sent</code> <em>[string]</em> when the node was triggered from Node-RED (i.e. a command was sent to the MyHome gateway), contains the command which was sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
+      <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
       <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: <em>'*1*5*25##'</em> means load 2.5 was turned on at 50% brightness)</li>
       <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
     </ul>

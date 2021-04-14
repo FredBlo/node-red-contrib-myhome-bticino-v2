@@ -2,9 +2,7 @@
 ### v2.1.0 (latest available)
 - **General**
   - ***Bug fix*** :
-  - ***Improvement (technical)*** : the `payload.command_sent` returned from all nodes is now always an array of string, since multiple commands can have been sent when updating a single node (in v2.0.0, it was a string).
-
-  @TODO : update doc of related nodes
+  - ***Improvement (technical)*** : the `payload.command_sent` returned from all nodes is now always an array of strings, since multiple commands can have been sent when updating a single node (in v2.0.0, it was a string).
 
 - **MH Gateway**
   - ***Bug fix*** :

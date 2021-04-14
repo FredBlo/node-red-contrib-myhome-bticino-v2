@@ -40,7 +40,7 @@
   <h3>Output</h3>
     <p>The <strong>output</strong> is a JSON object <code>msg.payload</code> with</p>
       <ul>
-        <li> <code>payload.command_sent</code> <em>[string]</em> contains the command which was sent in OpenWebNet protocol (e.g. '*1*1*15##' to turn on load 1.5)</li>
+        <li> <code>payload.command_sent</code> <em>[array of string]</em> contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
         <li> <code>payload.command_responses</code> <em>[array of strings]</em> will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
       </ul>
 </script>
