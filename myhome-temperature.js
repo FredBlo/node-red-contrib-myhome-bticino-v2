@@ -93,7 +93,7 @@ module.exports = function (RED) {
         }
         // Checks 3 : Actuator status for current zone frames (OpenWebNet doc) : *#4*where*20*Val##
         // where : Actuators N of zone Z [Z#N] -> [0-99#1-9] / All the actuators of zone Z [Z#0] / All the actuators [0#0]
-        // val : 0 = OFF / 1 = ON / 2 = Opened / 3 = Closed / 4 = Stop / 5 = Off Fan Coil / 6 = ON Vel 1 / 7 = ON Vel 2 / 8 = ON Vel 3 / 9 = ON Fan Coil
+        // val : 0 = OFF / 1 = ON / 2 = Opened / 3 = Closed / 4 = Stop / 5 = OFF Fan Coil / 6 = ON Vel 1 / 7 = ON Vel 2 / 8 = ON Vel 3 / 9 = ON Fan Coil
         if (packetMatch === null) {
           packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
           if (packetMatch !== null) {
@@ -106,7 +106,7 @@ module.exports = function (RED) {
             actuatorStates_List[2] = ['2' , true , 'Opened'];
             actuatorStates_List[3] = ['3' , false , 'Closed'];
             actuatorStates_List[4] = ['4' , false , 'Stop'];
-            actuatorStates_List[5] = ['5' , false , 'Off Fan Coil'];
+            actuatorStates_List[5] = ['5' , false , 'OFF Fan Coil'];
             actuatorStates_List[6] = ['6' , true , 'ON Vel 1'];
             actuatorStates_List[7] = ['7' , true , 'ON Vel 2'];
             actuatorStates_List[8] = ['8' , true , 'ON Vel 3'];
