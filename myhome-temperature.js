@@ -195,9 +195,9 @@ module.exports = function (RED) {
       //      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
-      // (but always send it when running in 'state/' mode, i.e. read-only mode)
+      // (but always send it when SmartFilter is disabked or when running in 'state/' mode, i.e. read-only mode)
       node.newPayloadinfo = JSON.stringify (payloadInfo);
-      if (node.newPayloadinfo !== node.lastPayloadInfo || msg.topic === 'state/' + config.topic) {
+      if (!config.smartfilter || node.newPayloadinfo !== node.lastPayloadInfo || msg.topic === 'state/' + config.topic) {
         node.lastPayloadInfo = node.newPayloadinfo;
         // Recived command info
         payload.command_received = packet;
@@ -275,78 +275,78 @@ module.exports = function (RED) {
         //    1: *#4*where#[1-9]*20*Val##  : Actuator #[1-9] status for current zone
         // BUT, during test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
         // Therefore, added a second call to at least gather actuator 1 status (most systems have the first actuator assigned before the others...)
-        commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-(
-          commands.push ('*#4*' + config.zoneid + '#1*20##');
-          // Command #3 : *#4*#where## (where = Zone) which returns :
-          //    1: *4*what*#where#    : what = Zone operation mode request of Central Unit
-          // Test Phase : OK on all gateways tested (F455 / MH202 / F459 / MyHOMEServer1)
-          commands.push ('*#4*#' + config.zoneid + '##');
-        } else {
-          // Running in Write mode
-          if (parseFloat(payload.state)) {
-            // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
-            //  - where = [#1 - #99] Setup zone by Central Unit
-            //  - The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
-            //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-            //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
-            let tempSet = parseInt(payload.state*10);
-            if (tempSet < 20) {
-              tempSet = 20;
-            } else if (tempSet > 430) {
-              tempSet = 430;
-            }
-            tempSet = ('0000' + tempSet.toString()).slice(-4);
-            commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
-          } else if (payload.state === 'AUTO') {
-            // Zone to be switched to auto : *4*311*#where##
-            //  - where = [#1 - #99] Setup zone by Central Unit
-            commands.push ('*4*311*#' + config.zoneid + '##');
-          } else if (payload.state === 'OFF') {
-            // Zone to be switched to off : *4*303*where##
-            //  - where = [#1 - #99] Setup zone by Central Unit
-            commands.push ('*4*303*#' + config.zoneid + '##');
-          } else if (payload.state === 'PROTECT') {
-            // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
-            //  - where = [#1 - #99] Setup zone by Central Unit
-            commands.push ('*4*302*#' + config.zoneid + '##');
+        commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-/
+        commands.push ('*#4*' + config.zoneid + '#1*20##');
+        // Command #3 : *#4*#where## (where = Zone) which returns :
+        //    1: *4*what*#where#    : what = Zone operation mode request of Central Unit
+        // Test Phase : OK on all gateways tested (F455 / MH202 / F459 / MyHOMEServer1)
+        commands.push ('*#4*#' + config.zoneid + '##');
+      } else {
+        // Running in Write mode
+        if (parseFloat(payload.state)) {
+          // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
+          //  - where = [#1 - #99] Setup zone by Central Unit
+          //  - The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
+          //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
+          //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
+          let tempSet = parseInt(payload.state*10);
+          if (tempSet < 20) {
+            tempSet = 20;
+          } else if (tempSet > 430) {
+            tempSet = 430;
           }
+          tempSet = ('0000' + tempSet.toString()).slice(-4);
+          commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
+        } else if (payload.state === 'AUTO') {
+          // Zone to be switched to auto : *4*311*#where##
+          //  - where = [#1 - #99] Setup zone by Central Unit
+          commands.push ('*4*311*#' + config.zoneid + '##');
+        } else if (payload.state === 'OFF') {
+          // Zone to be switched to off : *4*303*where##
+          //  - where = [#1 - #99] Setup zone by Central Unit
+          commands.push ('*4*303*#' + config.zoneid + '##');
+        } else if (payload.state === 'PROTECT') {
+          // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
+          //  - where = [#1 - #99] Setup zone by Central Unit
+          commands.push ('*4*302*#' + config.zoneid + '##');
         }
-        if (commands.length === 0) {
-          return;
-        }
-
-        // Send the command on the BUS through the MyHome gateway
-        mhutils.executeCommand (node, commands, gateway, true,
-          function (sdata, commands, cmd_responses) {
-            // Return values to both outputs
-            // Build main payload
-            payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
-            payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
-            msg.topic = 'state/' + config.topic;
-            // When running in status refresh mode, if we received an update, we process it as it was received by the bus
-            // This also means process stops here and msg will be output by the called function itself
-            if (cmd_responses.length) {
-              node.processReceivedBUSCommand (msg, cmd_responses);
-              return;
-            }
-            //        if (config.skipevents) {
-            //          node.status ({fill: (payload.state === 'ON') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
-            //        }
-            // Send both outputs
-            node.send (msg);
-          }, function (sdata, command, errorMsg) {
-            node.error ('command [' + command + '] failed : ' + errorMsg);
-            // Error, only update node state
-            node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + command});
-          });
-        };
-
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        node.on('close', function (done)	{
-          // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
-          runningMonitor.clearAllMonitoredEvents ();
-          done();
-        });
       }
-      RED.nodes.registerType ('myhome-temperature', MyHomeTemperatureNode);
-    };
+      if (commands.length === 0) {
+        return;
+      }
+
+      // Send the command on the BUS through the MyHome gateway
+      mhutils.executeCommand (node, commands, gateway, true,
+        function (sdata, commands, cmd_responses) {
+          // Return values to both outputs
+          // Build main payload
+          payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
+          payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          msg.topic = 'state/' + config.topic;
+          // When running in status refresh mode, if we received an update, we process it as it was received by the bus
+          // This also means process stops here and msg will be output by the called function itself
+          if (cmd_responses.length) {
+            node.processReceivedBUSCommand (msg, cmd_responses);
+            return;
+          }
+          //        if (config.skipevents) {
+          //          node.status ({fill: (payload.state === 'ON') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
+          //        }
+          // Send both outputs // TODO for secondary one
+          node.send (msg);
+        }, function (sdata, command, errorMsg) {
+          node.error ('command [' + command + '] failed : ' + errorMsg);
+          // Error, only update node state
+          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + command});
+        });
+      };
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      node.on('close', function (done)	{
+        // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
+        runningMonitor.clearAllMonitoredEvents ();
+        done();
+      });
+    }
+    RED.nodes.registerType ('myhome-temperature', MyHomeTemperatureNode);
+  };

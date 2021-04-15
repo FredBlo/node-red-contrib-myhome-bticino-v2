@@ -16,7 +16,23 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
   		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-### v2.0.0 (latest available)
+### v2.0.1 (latest available)
+Only modification after v2.0.0-beta3 was the addition of the CHANGELOG.md file.
+
+#### Beta phase : v2.0.0-beta3
+- ***Bug fix*** : Execute command sometimes returned partial results only (detected on very 'loaded' flows, running on F455 gateway)
+- ***Improvement (technical)*** : Added more verbose log info when sending commands to MyHome gateway in debug mode
+- ***Documentation*** : Updated & finalized README.md :
+  - added references to issues published on GitHub linked to [node-red-contrib-myhome-bticino](https://github.com/fabiobui/node-red-contrib-myhome-bticino/issues)
+
+#### Beta phase : v2.0.0-beta2
+- ***Documentation*** : Updated README.md :
+  - shutters info
+  - upgrade procedure
+  - sample to paste on new install
+- ***Improvement (technical)*** : updated *'package.json'* for correct npm publishing (& added automated publishing process from GitHub to npm)
+
+#### Beta phase : v2.0.0-beta
 First **npm** published release.
 
 This version is a major refactoring of the previous [v0.2.2 from Fabio Bui (node-red-contrib-myhome-bticino)](https://github.com/fabiobui/node-red-contrib-myhome-bticino)  to improve stability, performance, enable more functionalities and extend support to new gateways (using HMAC secured access)
@@ -146,11 +162,20 @@ Test the Light injecting payload boolean message `true` (or `false`) and setting
 ## 4. Bticino Gateway & OpenWebNet
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
-- ***MH201*** : works OK (based on Fabio Bui feedback).
-- ***MH202*** (scenario manager - FW 1.0.24) : works OK (tested modes: basic authentication)
-- ***F455*** (basic gateway - FW 1.1.2) works OK, best when 'keep alive' is enabled every 10 minutes (tested modes: allowed IP range (no password), basic authentication and advanced authentication (HMAC [SHA-1]))
-- ***F459*** (driver manager - FW 2.0.48) : works OK (tested modes: allowed IP range (no password), basic authentication and advanced authentication (HMAC [SHA-2]))
-- ***myHOMEServer1*** (FW 2.32.15) : works OK (tested mode: HMAC [SHA-2] authentication -which is the only mode this gateway supports-)
+BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
+Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
+| Gateway             | Authentication (tested)           | Lights        | Shutters      | Temperature   |
+| ------------------- | --------------------------------- | ------------- | ------------- | ------------- |
+| ***MH201*** *       | IP, OPEN pwd                      | OK            | OK            | ?             |
+| ***MH202***         | OPEN pwd                          | OK            | OK            | OK [2][3]     |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK [3]        |
+| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            |
+
+*based on *Fabio Bui* feedback
+[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
+[2] MH202 gateway returns the temperature set-point without taking the local offset into account
+[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
 
 ## 5. Contact me
 If you have questions, remarks, issues,... please add your input using GitHub for this project (either [issues](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues) or [discussions](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/discussions))
