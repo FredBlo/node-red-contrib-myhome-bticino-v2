@@ -110,7 +110,7 @@ module.exports = function (RED) {
         msg.topic = 'state/' + config.topic;
 
         // MSG2 : Build secondary payload
-        let msg2 = mhutils.buildSecondaryOutput (payloadInfo.state, config, 'On', 'ON', 'OFF');
+        let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', 'ON', 'OFF');
 
         // Store last sent payload info & send both msg to output1 and output2
         node.lastPayloadInfo = newPayloadinfo;

@@ -9,10 +9,25 @@
       name: { value:'', required: true },
       skipevents: { value: false , required: false},
       smartfilter: { value: true , required: false},
-      isstatusrequest: { value: false , required: false}
+      isstatusrequest: { value: false , required: false},
+      output2_name: { value: 'On' , required: false},
+      output2_type: { value: 'text_state' , required: false}
     },
     inputs:1,
-    outputs:1,
+    outputs:2,
+    outputLabels: function (index) {
+      if (index === 0) {
+        return 'payload';
+      } else if (index === 1) {
+        let outputTypeDescr;
+        if (this.output2_type === 'text_state') {
+          outputTypeDescr = '°C';
+        } else {
+          outputTypeDescr = 'string';
+        }
+        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
+      }
+    },
     icon: 'font-awesome/fa-thermometer-half',
     paletteLabel: 'MH Temperature',
     label: function() {
@@ -61,6 +76,33 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
           <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current zone status
           &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (whatever it contains) is ignored and a status request is sent to gather current zone state without applying any change."></i>
         </label>
+    </div>
+    <div class="form-tips form-row" style="background:#EFEFEF">
+      <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
+      <br>
+      You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
+      <br>
+      <div class="form-row">
+        <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
+        <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
+        <label for="node-input-output2_name" style="width:15px">
+          &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
+        </label>
+      </div>
+      <div class="form-row">
+        <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
+        <select id="node-input-output2_type" style="width:55%">
+          <option value="text_state">.state (number: °C)</option>
+          <option value="setTemperature">.setTemperature (number: °C)</option>
+          <option value="operationType_ownValue">.operationType_ownValue (string: see doc)</option>
+          <option value="operationType">.operationType (string: see doc)</option>
+          <option value="operationMode_ownValue">.operationMode_ownValue (string: see doc)</option>
+          <option value="operationMode">.operationMode (string: see doc)</option>
+          <option value="localOffset_ownValue">.localOffset_ownValue (string: see doc)</option>
+          <option value="localOffset">.localOffset (string/number: see doc)</option>
+          <option value="actuatorStates.On">.actuatorStates.On (boolean: true / false)</option>
+        </select>
+      </div>
     </div>
 </script>
 

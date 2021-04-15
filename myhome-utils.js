@@ -236,20 +236,30 @@ class eventsMonitor {
 exports.eventsMonitor = eventsMonitor;
 
 // Secondary output generator (based on load ON/OFF state)
-function buildSecondaryOutput (state, config, outputDefaultName, trueTextValue, falseTextValue) {
+function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueTextValue, falseTextValue) {
   // Build state content based on configured type (text or boolean)
   let msg2_value;
-  if (config.output2_type === 'text_state') {
-    // Working in text mode, the ouput is the state itself
-    msg2_value = state;
-  } else if (state === trueTextValue) {
-    msg2_value = true;
-  } else if (state === falseTextValue) {
-    msg2_value = false;
+  let msg2_type = (config.output2_type === undefined) ? 'boolean' : config.output2_type;
+  if (msg2_type === 'text_state') {
+    // Using default property (state), the ouput is the state itself
+    msg2_value = payloadInfo.state;
+  } else if (msg2_type === 'boolean') {
+    // Using default property (state) to define whether is true/false
+    if (payloadInfo.state === trueTextValue) {
+      msg2_value = true;
+    } else if (payloadInfo.state === falseTextValue) {
+      msg2_value = false;
+    } else {
+      msg2_value = -1;
+    }
   } else {
-    msg2_value = -1;
+    // Any other value set as 'output2_type' means we have to find this property in current payloadInfo to return its contentToHash
+    // Samples : 'brightness' to get 'payloadInfo.brightness', or also 'actuatorStates.actuator_1.state' to get 'payloadInfo.actuatorStates.actuator_1.state'
+    msg2_value = payloadInfo;
+    for (let propertyName of msg2_type.split('.')) {
+      msg2_value = msg2_value[propertyName];
+    }
   }
-
   // Build & return a new msg object
   let msg2 = {};
   msg2.topic = 'state/' + config.topic;

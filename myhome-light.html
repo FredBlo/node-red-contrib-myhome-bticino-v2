@@ -16,11 +16,19 @@
     },
     inputs:1,
     outputs:2,
-    outputLabels: function(index) {
+    outputLabels: function (index) {
       if (index === 0) {
         return 'payload';
       } else if (index === 1) {
-        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + "=" + ((this.output2_type === 'boolean') ? 'true/false' : 'ON/OFF');
+        let outputTypeDescr;
+        if (this.output2_type === 'boolean') {
+          outputTypeDescr = 'true/false';
+        } else if (this.output2_type === 'text_state') {
+          outputTypeDescr = 'ON/OFF';
+        } else {
+          outputTypeDescr = 'string';
+        }
+        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
       }
     },
     icon: function() {
@@ -103,8 +111,9 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
     <div class="form-row">
       <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
       <select id="node-input-output2_type" style="width:55%">
-        <option value="boolean">Boolean (true / false)</option>
-        <option value="text_state">String (ON / OFF)</option>
+        <option value="boolean">.state (boolean: true / false)</option>
+        <option value="text_state">.state (string: ON / OFF)</option>
+        <option value="brightness">.brightness (number: 20-100)</option>
       </select>
     </div>
   </div>

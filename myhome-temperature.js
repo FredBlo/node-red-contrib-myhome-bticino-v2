@@ -11,7 +11,7 @@ module.exports = function (RED) {
 
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
-    payloadInfo.curTemp = '?';
+    payloadInfo.state = '?';
     payloadInfo.setTemperature = '?';
     payloadInfo.localOffset_ownValue = '?';
     payloadInfo.localOffset = '?';
@@ -64,7 +64,7 @@ module.exports = function (RED) {
         if (packetMatch !== null) {
           if (packetMatch[1] === '0') {
             // Current temperature from master probe
-            payloadInfo.curTemp = parseInt (packetMatch[2]) / 10;
+            payloadInfo.state = parseInt (packetMatch[2]) / 10;
           } else if (packetMatch[1] === '14') {
             // Current temperature objective set
             payloadInfo.setTemperature = parseInt (packetMatch[2]) / 10;
@@ -191,7 +191,7 @@ module.exports = function (RED) {
       } else {
         nodeStatusFill = 'blue';
       }
-      let nodeStatusText = payloadInfo.curTemp + '°C (' + payloadInfo.operationMode + ' @' + payloadInfo.setTemperature + '°C)';
+      let nodeStatusText = payloadInfo.state + '°C (' + payloadInfo.operationMode + ' @' + payloadInfo.setTemperature + '°C)';
       node.status ({fill: nodeStatusFill, shape: 'dot', text: nodeStatusText});
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
@@ -202,7 +202,7 @@ module.exports = function (RED) {
         // MSG1 : Received command info
         payload.command_received = packet;
         // MSG1 : Add all current node stored values to payload
-        payload.state = payloadInfo.curTemp;
+        payload.state = payloadInfo.state;
         payload.setTemperature = payloadInfo.setTemperature;
         payload.operationType = payloadInfo.operationType;
         payload.operationType_ownValue = payloadInfo.operationType_ownValue;
@@ -215,12 +215,11 @@ module.exports = function (RED) {
         msg.topic = 'state/' + config.topic;
 
         // MSG2 : Build secondary payload
-        //      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
+        let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', '', '');
 
         // Store last sent payload info & send both msg to output1 and output2
         node.lastPayloadInfo = newPayloadinfo;
-        node.send (msg); //TODO /include 2nd msg
-        // node.send ([msg, msg2]);
+        node.send ([msg, msg2]);
       }
     };
 
