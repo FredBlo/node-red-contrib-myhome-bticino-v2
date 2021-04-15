@@ -9,7 +9,7 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
-    // All current zone received values stored in meme from the moment node is loaded
+    // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
     payloadInfo.curTemp = '?';
     payloadInfo.setTemperature = '?';
@@ -21,7 +21,7 @@ module.exports = function (RED) {
     payloadInfo.actuatorStates.On = false;
     payloadInfo.operationMode_ownValue = '?';
     payloadInfo.operationMode = '?';
-    node.lastPayloadInfo = JSON.stringify (payloadInfo); // kept in memory to be able to compare whether an update occurred while processing msg
+    node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Register node for updates
@@ -47,7 +47,9 @@ module.exports = function (RED) {
         msg.payload = {};
       }
       let payload = msg.payload;
-
+      // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
+      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured Zone
       let processedPackets = 0;
@@ -170,12 +172,13 @@ module.exports = function (RED) {
             }
           }
         }
+        // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
           processedPackets++;
         }
       }
-      // Checks : all done, if nothing was processed, abord (no node / flow update detected)
-      if (processedPackets === 0) {
+      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      if (processedPackets === 0 && !forceRefreshAndMsg) {
         return;
       }
 
@@ -191,17 +194,14 @@ module.exports = function (RED) {
       let nodeStatusText = payloadInfo.curTemp + '°C (' + payloadInfo.operationMode + ' @' + payloadInfo.setTemperature + '°C)';
       node.status ({fill: nodeStatusFill, shape: 'dot', text: nodeStatusText});
 
-      // Build secondary payload
-      //      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
-
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
-      // (but always send it when SmartFilter is disabked or when running in 'state/' mode, i.e. read-only mode)
-      node.newPayloadinfo = JSON.stringify (payloadInfo);
-      if (!config.smartfilter || node.newPayloadinfo !== node.lastPayloadInfo || msg.topic === 'state/' + config.topic) {
-        node.lastPayloadInfo = node.newPayloadinfo;
-        // Recived command info
+      // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
+      let newPayloadinfo = JSON.stringify (payloadInfo);
+      if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
+        // MSG1 : Build primary msg
+        // MSG1 : Received command info
         payload.command_received = packet;
-        // Add all current node stored values to payload
+        // MSG1 : Add all current node stored values to payload
         payload.state = payloadInfo.curTemp;
         payload.setTemperature = payloadInfo.setTemperature;
         payload.operationType = payloadInfo.operationType;
@@ -211,9 +211,16 @@ module.exports = function (RED) {
         payload.actuatorStates = payloadInfo.actuatorStates;
         payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
         payload.operationMode = payloadInfo.operationMode;
-        // Add misc info & send
+        // MSG1 : Add misc info
         msg.topic = 'state/' + config.topic;
-        node.send (msg);
+
+        // MSG2 : Build secondary payload
+        //      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
+
+        // Store last sent payload info & send both msg to output1 and output2
+        node.lastPayloadInfo = newPayloadinfo;
+        node.send (msg); //TODO /include 2nd msg
+        // node.send ([msg, msg2]);
       }
     };
 
@@ -250,7 +257,7 @@ module.exports = function (RED) {
       }
       let payload = msg.payload;
 
-      // Build the OpenWebNet command to be sent
+      // Build the OpenWebNet command(s) to be sent
       let commands = [];
       if (isReadOnly) {
         // Working in read-only mode: build a status enquiry request (no status update sent)
@@ -318,22 +325,12 @@ module.exports = function (RED) {
       // Send the command on the BUS through the MyHome gateway
       mhutils.executeCommand (node, commands, gateway, true,
         function (sdata, commands, cmd_responses) {
-          // Return values to both outputs
-          // Build main payload
+          // Build main payload to return payloads to outputs
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          // Once commands were sent, call internal function to froce node info refresh (using 'state/')and msg outputs
           msg.topic = 'state/' + config.topic;
-          // When running in status refresh mode, if we received an update, we process it as it was received by the bus
-          // This also means process stops here and msg will be output by the called function itself
-          if (cmd_responses.length) {
-            node.processReceivedBUSCommand (msg, cmd_responses);
-            return;
-          }
-          //        if (config.skipevents) {
-          //          node.status ({fill: (payload.state === 'ON') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
-          //        }
-          // Send both outputs // TODO for secondary one
-          node.send (msg);
+          node.processReceivedBUSCommand (msg, cmd_responses);
         }, function (sdata, command, errorMsg) {
           node.error ('command [' + command + '] failed : ' + errorMsg);
           // Error, only update node state

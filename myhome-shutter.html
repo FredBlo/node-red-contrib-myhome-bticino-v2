@@ -9,6 +9,7 @@
       gateway: { type: 'myhome-gateway', required: true },
       name: { value: '', required: true },
       skipevents: { value: false , required: false},
+      smartfilter: { value: true , required: false},
       isstatusrequest: { value: false , required: false},
       output2_name: { value: 'On' , required: false},
       output2_type: { value: 'boolean' , required: false}
@@ -67,6 +68,16 @@
       </label>
   </div>
   <div class="form-row">
+      <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
+      <label for="node-input-smartfilter" style="width:70%">
+        <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
+        &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
+This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+&#13;
+Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+      </label>
+  </div>
+  <div class="form-row">
         <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
         <label for="node-input-isstatusrequest" style="width:70%">
           <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current shutter status
@@ -106,6 +117,7 @@
     <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
     <li><strong>Name</strong> (mandatory) is the name of the node</li>
     <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, a new msg (output) is only generated when a status CHANGE was detected. Not applicable in read-only (status refresh request) mode.</li>
     <li><strong>Read-only</strong> : when enabled, the received payload (being 'OPEN', 'CLOSE', or whatever) is ignored and a status request is sent to gather current shutter state without applying any change.</li>
   </ul>
 
