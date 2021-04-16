@@ -51,7 +51,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="temperature identifier" />
+        <input type="text" id="node-input-name" placeholder=" identifier" />
     </div>
     <div class="form-row">
       <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
@@ -113,7 +113,7 @@
     #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
     #mh-tableinfo th {background-color: #A6BBCF; color: white;}
   </style>
-  <p>Adds a MyHome Temperature Node to monitor a temperature-controlled zone.</p>
+  <p>Adds a MyHome Thermo Zone Node to monitor & apply changes on a thermo-controlled zone.</p>
   <ul>
     <li><strong>Zone</strong> is the address of the zone in MyHome system (1-99)</li>
     <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
@@ -129,7 +129,7 @@
     <ul>
       <li>A simple value <em>[string]</em> is a valid zone command</li>
       <li>An Object where <code>payload.state</code> is a valid zone command</li>
-      <p>A valid temperature-controlled <strong>zone command</strong> is :</p>
+      <p>A valid thermo-controlled <strong>zone command</strong> is :</p>
       <ul>
         <li>a <strong>number</strong> ('20', '21.5',..) : the zone will be switched to manual mode and specified temperature will be applied (min 2°C, max 43°C)</li>
         <li><strong>OFF</strong> : zone will be switched off.</li>

@@ -1,9 +1,8 @@
-<script type="text/javascript">
+central unit<script type="text/javascript">
   RED.nodes.registerType('myhome-thermo-central',{
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
-      zoneid: { value: '', required: true, validate: RED.validators.number() },
       topic: { value: '', required: true},
       gateway: { type:'myhome-gateway', required: true },
       name: { value:'', required: true },
@@ -38,10 +37,6 @@
 
 <script type="text/x-red" data-template-name="myhome-thermo-central">
   <div class="form-row">
-      <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> Zone</label>
-      <input type="text" id="node-input-zoneid" placeholder="1-99" />
-  </div>
-  <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
       <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
   </div>
@@ -73,7 +68,7 @@
     <div class="form-row">
         <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
         <label for="node-input-isstatusrequest" style="width:70%">
-          <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current zone status
+          <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current central unit status
           &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (whatever it contains) is ignored and a status request is sent to gather current zone state without applying any change."></i>
         </label>
     </div>
@@ -113,7 +108,7 @@
     #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
     #mh-tableinfo th {background-color: #A6BBCF; color: white;}
   </style>
-  <p>Adds a MyHome Temperature Node to monitor a temperature-controlled zone.</p>
+  <p>Adds a MyHome Thermo Central Unit Node to monitor & apply changes using the 1-99 zone central unit</p>
   <ul>
     <li><strong>Zone</strong> is the address of the zone in MyHome system (1-99)</li>
     <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>

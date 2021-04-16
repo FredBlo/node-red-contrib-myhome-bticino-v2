@@ -3,7 +3,7 @@
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
 
-  function MyHomeTemperatureNode (config) {
+  function MyHomeThermoZoneNode (config) {
     RED.nodes.createNode (this, config);
     var node = this;
     let gateway = RED.nodes.getNode (config.gateway);
@@ -344,5 +344,5 @@ module.exports = function (RED) {
         done();
       });
     }
-    RED.nodes.registerType ('myhome-thermo-zone', MyHomeTemperatureNode);
+    RED.nodes.registerType ('myhome-thermo-zone', MyHomeThermoZoneNode);
   };

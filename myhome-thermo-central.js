@@ -12,15 +12,17 @@ module.exports = function (RED) {
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
     payloadInfo.state = '?';
-    payloadInfo.setTemperature = '?';
-    payloadInfo.localOffset_ownValue = '?';
-    payloadInfo.localOffset = '?';
-    payloadInfo.operationType_ownValue = '?';
-    payloadInfo.operationType = '?';
-    payloadInfo.actuatorStates = {};
-    payloadInfo.actuatorStates.On = false;
-    payloadInfo.operationMode_ownValue = '?';
+    payloadInfo.remoteControl = '?';
     payloadInfo.operationMode = '?';
+    // payloadInfo.setTemperature = '?';
+    // payloadInfo.localOffset_ownValue = '?';
+    // payloadInfo.localOffset = '?';
+    // payloadInfo.operationType_ownValue = '?';
+    // payloadInfo.operationType = '?';
+    // payloadInfo.actuatorStates = {};
+    // payloadInfo.actuatorStates.On = false;
+    // payloadInfo.operationMode_ownValue = '?';
+    // payloadInfo.operationMode = '?';
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,37 +57,47 @@ module.exports = function (RED) {
       let processedPackets = 0;
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
         let packetMatch;
-        // Checks 1 : current temperature and set objective frames (OpenWebNet doc) :
-        //  - current temperature (master probe) : *#4*where*0*T## (or *#4*where*0*T*3## if local offset included)
-        //  - current temperature goal set (included adjust by local offset) : *#4*where*14*T*3##
-        //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
-        //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-        packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*(0|14)\\*\\d(\\d\\d\\d)(\\*3|)##');
+        // Checks 1 : current central unit status info frames (OpenWebNet doc) : reading '*4*what*#0##' with what in 2 digits mode
+        // what: 20 = Remote control disabled / 21 = Remote control enabled / 22 = At least one probe OFF /
+        //       23 = At least one probe in protection / 24 = At least one probe in manual / 30 = Failure discovered / 31 = Central Unit battery KO
+        packetMatch = curPacket.match ('^\\*4\\*(\\d\\d)\\*#0##');
         if (packetMatch !== null) {
-          if (packetMatch[1] === '0') {
-            // Current temperature from master probe
-            payloadInfo.state = parseInt (packetMatch[2]) / 10;
-          } else if (packetMatch[1] === '14') {
-            // Current temperature objective set
-            payloadInfo.setTemperature = parseInt (packetMatch[2]) / 10;
+          if (packetMatch[1] === '20') {
+            payloadInfo.remoteControl = false;
+          } else if (packetMatch[1] === '21') {
+            payloadInfo.remoteControl = true;
+          } else {
+            // We do not manage the other 2 digits ones
           }
         }
-        // Checks 2 : Zone operation type frames (OpenWebNet doc) : *4*what*where##
-        // where being : 0 = Conditioning / 1 = Heating / 102 = Antifreeze / 202 = Thermal Protection / 303 = Generic OFF
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d+)\\*' + config.zoneid + '##');
-          if (packetMatch !== null) {
-            payloadInfo.operationType_ownValue = packetMatch[1];
-            let operationType_List = [];
-            operationType_List[0] = ['0' , 'Conditioning'];
-            operationType_List[1] = ['1' , 'Heating'];
-            operationType_List[2] = ['102' , 'Antifreeze'];
-            operationType_List[3] = ['202' , 'Thermal Protection'];
-            operationType_List[4] = ['303' , 'Generic OFF'];
 
-            for (let i = 0; i < operationType_List.length; i++) {
-              if (operationType_List[i][0] == payloadInfo.operationType_ownValue) {
-                payloadInfo.operationType = operationType_List[i][1];
+        // Checks 2 : Central Unit’s operation mode : '*4*what*#0##' with what in 3-4 digits (and sub info)
+        // what: 110#T = Manual Heating / 210#T = Manual Conditioning
+        //       103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
+        //       [1101-1103] = Memo program in Heating mode / [2101-2103] = Memo program in Conditioning mode
+        //       [1201-1216] = Memo scenario in Heating mode / [2201-2216] = Memo scenario in Conditioning mode
+        //       115#[1101-1103] = Holiday Heating [program on return] / 215#[2101-2103] = Holiday Conditioning  [program on return] / ... (and some more for holidays)
+        //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
+        //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
+        if (packetMatch === null) {
+          packetMatch = curPacket.match ('^\\*4\\*((\\d\\d\\d)(\\d)|(\\d+)#(\\d+))\\*#0##');
+          if (packetMatch !== null) {
+            payloadInfo.operationMode_ownValue = packetMatch[2];
+            let operationMode_List = [];
+            operationMode_List[0] = ['110' , 'Manual Heating' , packetMatch[3]];
+            operationMode_List[1] = ['210' , 'Manual Conditioning ' , packetMatch[3]];
+            operationMode_List[2] = ['103' , 'Off Heating' , ''];
+            operationMode_List[3] = ['203' , 'Off Conditioning' , ''];
+            operationMode_List[4] = ['102' , 'Antifreeze' , ''];
+            operationMode_List[5] = ['202' , 'Thermal Protection' , ''];
+            operationMode_List[6] = ['110' , 'Heating mode Program' , packetMatch[3]];
+            operationMode_List[7] = ['210' , 'Conditioning mode Program' , packetMatch[3]];
+            operationMode_List[8] = ['120' , 'Heating mode Scenario' , packetMatch[3]];
+            operationMode_List[9] = ['220' , 'Conditioning mode Scenario' , packetMatch[3]];
+
+            for (let i = 0; i < operationMode_List.length; i++) {
+              if (operationMode_List[i][0] == payloadInfo.operationType_ownValue) {
+                payloadInfo.operationMode = operationMode_List[i][1];
                 break;
               }
             }
@@ -95,82 +107,82 @@ module.exports = function (RED) {
         // where : Actuators N of zone Z [Z#N] -> [0-99#1-9] / All the actuators of zone Z [Z#0] / All the actuators [0#0]
         // val : 0 = OFF / 1 = ON / 2 = Opened / 3 = Closed / 4 = Stop / 5 = OFF Fan Coil / 6 = ON Vel 1 / 7 = ON Vel 2 / 8 = ON Vel 3 / 9 = ON Fan Coil
         if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
-          if (packetMatch !== null) {
-            let curActuatorid = packetMatch[1];
-            let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
-            curActuatorState.state_ownValue = packetMatch[2];
-            let actuatorStates_List = [];
-            actuatorStates_List[0] = ['0' , false , 'OFF'];
-            actuatorStates_List[1] = ['1' , true , 'ON'];
-            actuatorStates_List[2] = ['2' , true , 'Opened'];
-            actuatorStates_List[3] = ['3' , false , 'Closed'];
-            actuatorStates_List[4] = ['4' , false , 'Stop'];
-            actuatorStates_List[5] = ['5' , false , 'OFF Fan Coil'];
-            actuatorStates_List[6] = ['6' , true , 'ON Vel 1'];
-            actuatorStates_List[7] = ['7' , true , 'ON Vel 2'];
-            actuatorStates_List[8] = ['8' , true , 'ON Vel 3'];
-            actuatorStates_List[9] = ['9' , true , 'ON Fan Coil'];
-
-            for (let i = 0; i < actuatorStates_List.length; i++) {
-              if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {
-                curActuatorState.On = actuatorStates_List[i][1];
-                curActuatorState.state = actuatorStates_List[i][2];
-                payloadInfo.actuatorStates.On = curActuatorState.On; // Easy way (but not 100% correct : the global state in taken from the last read actuator)
-                break;
-              }
-            }
-          }
+          // packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
+          // if (packetMatch !== null) {
+          //   let curActuatorid = packetMatch[1];
+          //   let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
+          //   curActuatorState.state_ownValue = packetMatch[2];
+          //   let actuatorStates_List = [];
+          //   actuatorStates_List[0] = ['0' , false , 'OFF'];
+          //   actuatorStates_List[1] = ['1' , true , 'ON'];
+          //   actuatorStates_List[2] = ['2' , true , 'Opened'];
+          //   actuatorStates_List[3] = ['3' , false , 'Closed'];
+          //   actuatorStates_List[4] = ['4' , false , 'Stop'];
+          //   actuatorStates_List[5] = ['5' , false , 'OFF Fan Coil'];
+          //   actuatorStates_List[6] = ['6' , true , 'ON Vel 1'];
+          //   actuatorStates_List[7] = ['7' , true , 'ON Vel 2'];
+          //   actuatorStates_List[8] = ['8' , true , 'ON Vel 3'];
+          //   actuatorStates_List[9] = ['9' , true , 'ON Fan Coil'];
+          //
+          //   for (let i = 0; i < actuatorStates_List.length; i++) {
+          //     if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {
+          //       curActuatorState.On = actuatorStates_List[i][1];
+          //       curActuatorState.state = actuatorStates_List[i][2];
+          //       payloadInfo.actuatorStates.On = curActuatorState.On; // Easy way (but not 100% correct : the global state in taken from the last read actuator)
+          //       break;
+          //     }
+          //   }
+          // }
         }
         // Checks 4 : Local offset acquire frames (OpenWebNet doc) : *#4*where*13*OL## with OL = Local Offset (knob status):
         // 00 = 0 / 01 = +1° / 02 = +2° / 03 = +3° / 11 = -1° / 12 = -2° / 13 = -3° / 04 = Local OFF / 05 = Local protection
         if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d\\d)##');
-          if (packetMatch !== null) {
-            payloadInfo.localOffset_ownValue = packetMatch[1];
-            let localOffset_List = [];
-            localOffset_List[0] = ['00' , 0];  // +0°C
-            localOffset_List[1] = ['01' , 1];  // +1°C
-            localOffset_List[2] = ['02' , 2];  // +2°C
-            localOffset_List[3] = ['03' , 3];  // +3°C
-            localOffset_List[4] = ['11' , -1]; // -1°C
-            localOffset_List[5] = ['12' , -2]; // -2°C
-            localOffset_List[6] = ['13' , -3]; // -3°C
-            localOffset_List[7] = ['04' , 'Local OFF'];
-            localOffset_List[8] = ['05' , 'Local protection'];
-
-            for (let i = 0; i < localOffset_List.length; i++) {
-              if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
-                payloadInfo.localOffset = localOffset_List[i][1];
-                break;
-              }
-            }
-          }
+          // packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d\\d)##');
+          // if (packetMatch !== null) {
+          //   payloadInfo.localOffset_ownValue = packetMatch[1];
+          //   let localOffset_List = [];
+          //   localOffset_List[0] = ['00' , 0];  // +0°C
+          //   localOffset_List[1] = ['01' , 1];  // +1°C
+          //   localOffset_List[2] = ['02' , 2];  // +2°C
+          //   localOffset_List[3] = ['03' , 3];  // +3°C
+          //   localOffset_List[4] = ['11' , -1]; // -1°C
+          //   localOffset_List[5] = ['12' , -2]; // -2°C
+          //   localOffset_List[6] = ['13' , -3]; // -3°C
+          //   localOffset_List[7] = ['04' , 'Local OFF'];
+          //   localOffset_List[8] = ['05' , 'Local protection'];
+          //
+          //   for (let i = 0; i < localOffset_List.length; i++) {
+          //     if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
+          //       payloadInfo.localOffset = localOffset_List[i][1];
+          //       break;
+          //     }
+          //   }
+          // }
         }
         // Checks 5 : Zone operation mode request of central unit (OpenWebNet doc) : *4*what*#where##
         // what : 110 = Manual Heating / 210 = Manual Conditioning / 111 = Automatic Heating / 211 = Automatic Conditioning / 103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
         // where : [#1 - #99] Request zone by Central Unit.
         if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d\\d\\d)\\*\\#' + config.zoneid + '##');
-          if (packetMatch !== null) {
-            payloadInfo.operationMode_ownValue = packetMatch[1];
-            let operationMode_List = [];
-            operationMode_List[0] = ['110' , 'Manual Heating'];
-            operationMode_List[1] = ['210' , 'Manual Conditioning'];
-            operationMode_List[2] = ['111' , 'Automatic Heating'];
-            operationMode_List[3] = ['211' , 'Automatic Conditioning'];
-            operationMode_List[4] = ['103' , 'Off Heating'];
-            operationMode_List[5] = ['203' , 'Off Conditioning'];
-            operationMode_List[6] = ['102' , 'Antifreeze'];
-            operationMode_List[7] = ['202' , 'Thermal Protection'];
-
-            for (let i = 0; i < operationMode_List.length; i++) {
-              if (operationMode_List[i][0] == payloadInfo.operationMode_ownValue) {
-                payloadInfo.operationMode = operationMode_List[i][1];
-                break;
-              }
-            }
-          }
+          // packetMatch = curPacket.match ('^\\*4\\*(\\d\\d\\d)\\*\\#' + config.zoneid + '##');
+          // if (packetMatch !== null) {
+          //   payloadInfo.operationMode_ownValue = packetMatch[1];
+          //   let operationMode_List = [];
+          //   operationMode_List[0] = ['110' , 'Manual Heating'];
+          //   operationMode_List[1] = ['210' , 'Manual Conditioning'];
+          //   operationMode_List[2] = ['111' , 'Automatic Heating'];
+          //   operationMode_List[3] = ['211' , 'Automatic Conditioning'];
+          //   operationMode_List[4] = ['103' , 'Off Heating'];
+          //   operationMode_List[5] = ['203' , 'Off Conditioning'];
+          //   operationMode_List[6] = ['102' , 'Antifreeze'];
+          //   operationMode_List[7] = ['202' , 'Thermal Protection'];
+          //
+          //   for (let i = 0; i < operationMode_List.length; i++) {
+          //     if (operationMode_List[i][0] == payloadInfo.operationMode_ownValue) {
+          //       payloadInfo.operationMode = operationMode_List[i][1];
+          //       break;
+          //     }
+          //   }
+          // }
         }
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
@@ -260,33 +272,13 @@ module.exports = function (RED) {
       let commands = [];
       if (isReadOnly) {
         // Working in read-only mode: build a status enquiry request (no status update sent)
-        // In theory (based on OpenWebNet doc), only 2 calls are required
-        // Command #1 : *#4*where## (where = Zone) which returns :
-        //    1: *4*what*where##     : what = Zone operation mode
-        //    2: *#4*where*0*T##     : T = Zone operation temperature not adjust by local offset
-        //    3: *#4*where*12*T*3##  : T = Zone operation temperature with adjust by local offset
-        //    4: *#4*where*13*OL##   : OL = Local Offset (knob status)
-        //    5: *#4*where*14*T*3##  : T = Zone Set-point temperature
-        // BUT, during test phase, it appears not all gateways are able to repond to otherwise
-        //  - F455 : does not respond anything to 'Command #1', but all responses are sent on the bus (=indirect fetch)
-        //  - MH202 : does not return on 'Command #1' the 1.5: (but is sent on the BUS), returns '*#4*where*14*T##' instead
-        //  - F459 & MyHOMEServer1 : all responses are received, and even more (15 actually ...)
-        // Therefore, using a mode with more calls was the most stable way to go...
-        // commands.push ('*#4*' + config.zoneid + '##'); // theory, not stable enough :-P, quite heavy to also include (actually, only MH202 is missing something without this)
-        commands.push ('*#4*' + config.zoneid + '*12##');   // to fetch Command #1.1 + #1.3 Works OK on F455 / F459 / MyHOMEServer1 but MH202 does not return #1.1
-        commands.push ('*#4*' + config.zoneid + '*0##');    // to fetch Command #1.2 Works OK on F455 / MH202 / F459 / MyHOMEServer1
-        commands.push ('*#4*' + config.zoneid + '*13##');   // to fetch Command #1.4 Works OK on F455 / MH202 / F459 / MyHOMEServer1
-        commands.push ('*#4*' + config.zoneid + '*14##');   // to fetch Command #1.5 Works OK on F455 / MH202 (but without the '*3') / F459 / MyHOMEServer1
-        // Command #2 : *#4*where#0*20## (where = Zone) which returns :
-        //    1: *#4*where#[1-9]*20*Val##  : Actuator #[1-9] status for current zone
-        // BUT, during test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
-        // Therefore, added a second call to at least gather actuator 1 status (most systems have the first actuator assigned before the others...)
-        commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-/
-        commands.push ('*#4*' + config.zoneid + '#1*20##');
-        // Command #3 : *#4*#where## (where = Zone) which returns :
-        //    1: *4*what*#where#    : what = Zone operation mode request of Central Unit
-        // Test Phase : OK on all gateways tested (F455 / MH202 / F459 / MyHOMEServer1)
-        commands.push ('*#4*#' + config.zoneid + '##');
+        // In theory (based on OpenWebNet doc), only 1 call is required
+        // Command #1 : *#4*#0## (where = #0 here) which returns multiple '*4*what*#0##' with different 'what' based on curtrent state
+        // BUT, during test phase, it appears not all gateways react the same, as for zone
+        //  - F455 : does provide the listed ones but also much more (2 on F459 -> 17 (!!) on F455. Also quite long delay before responses are all sent...). But OK, they are there
+        //  - MH202 : does provide the listed ones but always returned 3 frame (what=22, 23 and 24) even if not probe OFF / Protection / manual at all...
+        //  - F459 & MyHOMEServer1 : works as it should
+        commands.push ('*#4*#0##');
       } else {
         // Running in Write mode
         if (parseFloat(payload.state)) {
