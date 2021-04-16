@@ -23,6 +23,7 @@
       "myhome-commandsession": "myhome-commandsession.js",
       "myhome-light": "myhome-light.js",
       "myhome-shutter": "myhome-shutter.js",
+      "myhome-thermo-central": "myhome-thermo-central.js",
       "myhome-thermo-zone": "myhome-thermo-zone.js"
     }
   }

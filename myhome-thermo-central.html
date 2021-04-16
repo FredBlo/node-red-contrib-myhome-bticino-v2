@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('myhome-thermo-zone',{
+  RED.nodes.registerType('myhome-thermo-central',{
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
@@ -28,15 +28,15 @@
         return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
       }
     },
-    icon: 'font-awesome/fa-thermometer-half',
-    paletteLabel: 'MH Thermo Zone',
+    icon: 'mh-thermo-centralunit.svg',
+    paletteLabel: 'MH Thermo Central',
     label: function() {
-      return this.name || 'MH Thermo Zone';
+      return this.name || 'MH Thermo Central';
     }
   });
 </script>
 
-<script type="text/x-red" data-template-name="myhome-thermo-zone">
+<script type="text/x-red" data-template-name="myhome-thermo-central">
   <div class="form-row">
       <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> Zone</label>
       <input type="text" id="node-input-zoneid" placeholder="1-99" />
@@ -106,7 +106,7 @@
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="myhome-thermo-zone">
+<script type="text/x-red" data-help-name="myhome-thermo-central">
   <style>
     #mh-tableinfo {width: 300px;font-size: small;}
     #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
