@@ -162,8 +162,6 @@ Test the Light injecting payload boolean message `true` (or `false`) and setting
 ## 4. Bticino Gateway & OpenWebNet
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
-BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
-Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
 | Gateway             | Authentication (tested)           | Lights        | Shutters      | Temperature   |
 | ------------------- | --------------------------------- | ------------- | ------------- | ------------- |
 | ***MH201*** *       | IP, OPEN pwd                      | OK            | OK            | ?             |
