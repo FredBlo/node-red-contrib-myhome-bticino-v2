@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('myhome-temperature',{
+  RED.nodes.registerType('myhome-thermo-zone',{
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
@@ -29,14 +29,14 @@
       }
     },
     icon: 'font-awesome/fa-thermometer-half',
-    paletteLabel: 'MH Temperature',
+    paletteLabel: 'MH Thermo Zone',
     label: function() {
-      return this.name || 'MH Temperature';
+      return this.name || 'MH Thermo Zone';
     }
   });
 </script>
 
-<script type="text/x-red" data-template-name="myhome-temperature">
+<script type="text/x-red" data-template-name="myhome-thermo-zone">
   <div class="form-row">
       <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> Zone</label>
       <input type="text" id="node-input-zoneid" placeholder="1-99" />
@@ -106,7 +106,7 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
     </div>
 </script>
 
-<script type="text/x-red" data-help-name="myhome-temperature">
+<script type="text/x-red" data-help-name="myhome-thermo-zone">
   <style>
     #mh-tableinfo {width: 300px;font-size: small;}
     #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}

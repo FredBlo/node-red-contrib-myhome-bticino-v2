@@ -344,5 +344,5 @@ module.exports = function (RED) {
         done();
       });
     }
-    RED.nodes.registerType ('myhome-temperature', MyHomeTemperatureNode);
+    RED.nodes.registerType ('myhome-thermo-zone', MyHomeTemperatureNode);
   };
