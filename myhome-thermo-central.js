@@ -199,17 +199,20 @@ module.exports = function (RED) {
 
       // Build the OpenWebNet command(s) to be sent
       let commands = [];
-      if (isReadOnly) {
-        // Working in read-only mode: build a status enquiry request (no status update sent)
-        // In theory (based on OpenWebNet doc), only 1 call is required
-        // Command #1 : *#4*#0## (where = #0 here) which returns multiple '*4*what*#0##' with different 'what' based on curtrent state
-        // BUT, during test phase, it appears not all gateways react the same, as for zone
-        //  - F455 : does provide the listed ones but also much more (2 on F459 -> 17 (!!) on F455. Also quite long delay before responses are all sent...). But OK, they are there
-        //  - MH202 : does provide the listed ones but always returned 3 frame (what=22, 23 and 24) even if not probe OFF / Protection / manual at all...
-        //  - F459 & MyHOMEServer1 : works as it should
-        commands.push ('*#4*#0##');
-      } else {
+      if (!isReadOnly) {
         // Running in Write mode
+
+  // 1.6.11 Scenario activation command (without specific mode)
+	// *4*what*#0##
+	// what = [3201 – 3216]
+	// Response : *4*what*#0## = but with response [1201-1216] (heating) or [2201-2216] (conditioning)
+
+  // 1.6.7	Weekly program activation command (without specific mode)
+	// *4*what*#0##
+	// what = [3101 – 3103] set in program.
+	// Response : *4*what*#0## = same as command (!! to test : does it not respond [1101 – 1103] in heating & [2101 – 2103] in conditioning ???)
+  //
+	// + 4*3100*#0## = last activated program
         // if (parseFloat(payload.state)) {
         //   // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
         //   //  - where = [#1 - #99] Setup zone by Central Unit
@@ -237,6 +240,16 @@ module.exports = function (RED) {
         //   //  - where = [#1 - #99] Setup zone by Central Unit
         //   commands.push ('*4*302*#' + config.zoneid + '##');
         // }
+      }
+      if (isReadOnly || commands.length) {
+      // Working in read-only mode: build a status enquiry request (no status update sent)
+        // In theory (based on OpenWebNet doc), only 1 call is required
+        // Command #1 : *#4*#0## (where = #0 here) which returns multiple '*4*what*#0##' with different 'what' based on curtrent state
+        // BUT, during test phase, it appears not all gateways react the same, as for zone
+        //  - F455 : does provide the listed ones but also much more (2 on F459 -> 17 (!!) on F455. Also quite long delay before responses are all sent...). But OK, they are there
+        //  - MH202 : does provide the listed ones but always returned 3 frame (what=22, 23 and 24) even if not probe OFF / Protection / manual at all...
+        //  - F459 & MyHOMEServer1 : works as it should
+        commands.push ('*#4*#0##');
       }
       if (commands.length === 0) {
         return;

@@ -77,11 +77,11 @@ module.exports = function (RED) {
           if (packetMatch !== null) {
             payloadInfo.operationType_ownValue = packetMatch[1];
             let operationType_List = [];
-            operationType_List[0] = ['0' , 'Conditioning'];
-            operationType_List[1] = ['1' , 'Heating'];
-            operationType_List[2] = ['102' , 'Antifreeze'];
-            operationType_List[3] = ['202' , 'Thermal Protection'];
-            operationType_List[4] = ['303' , 'Generic OFF'];
+            operationType_List.push (['0' , 'Conditioning']);
+            operationType_List.push (['1' , 'Heating']);
+            operationType_List.push (['102' , 'Antifreeze']);
+            operationType_List.push (['202' , 'Thermal Protection']);
+            operationType_List.push (['303' , 'Generic OFF']);
 
             for (let i = 0; i < operationType_List.length; i++) {
               if (operationType_List[i][0] == payloadInfo.operationType_ownValue) {
@@ -101,16 +101,16 @@ module.exports = function (RED) {
             let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
             curActuatorState.state_ownValue = packetMatch[2];
             let actuatorStates_List = [];
-            actuatorStates_List[0] = ['0' , false , 'OFF'];
-            actuatorStates_List[1] = ['1' , true , 'ON'];
-            actuatorStates_List[2] = ['2' , true , 'Opened'];
-            actuatorStates_List[3] = ['3' , false , 'Closed'];
-            actuatorStates_List[4] = ['4' , false , 'Stop'];
-            actuatorStates_List[5] = ['5' , false , 'OFF Fan Coil'];
-            actuatorStates_List[6] = ['6' , true , 'ON Vel 1'];
-            actuatorStates_List[7] = ['7' , true , 'ON Vel 2'];
-            actuatorStates_List[8] = ['8' , true , 'ON Vel 3'];
-            actuatorStates_List[9] = ['9' , true , 'ON Fan Coil'];
+            actuatorStates_List.push (['0' , false , 'OFF']);
+            actuatorStates_List.push (['1' , true , 'ON']);
+            actuatorStates_List.push (['2' , true , 'Opened']);
+            actuatorStates_List.push (['3' , false , 'Closed']);
+            actuatorStates_List.push (['4' , false , 'Stop']);
+            actuatorStates_List.push (['5' , false , 'OFF Fan Coil']);
+            actuatorStates_List.push (['6' , true , 'ON Vel 1']);
+            actuatorStates_List.push (['7' , true , 'ON Vel 2']);
+            actuatorStates_List.push (['8' , true , 'ON Vel 3']);
+            actuatorStates_List.push (['9' , true , 'ON Fan Coil']);
 
             for (let i = 0; i < actuatorStates_List.length; i++) {
               if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {
@@ -129,15 +129,15 @@ module.exports = function (RED) {
           if (packetMatch !== null) {
             payloadInfo.localOffset_ownValue = packetMatch[1];
             let localOffset_List = [];
-            localOffset_List[0] = ['00' , 0];  // +0°C
-            localOffset_List[1] = ['01' , 1];  // +1°C
-            localOffset_List[2] = ['02' , 2];  // +2°C
-            localOffset_List[3] = ['03' , 3];  // +3°C
-            localOffset_List[4] = ['11' , -1]; // -1°C
-            localOffset_List[5] = ['12' , -2]; // -2°C
-            localOffset_List[6] = ['13' , -3]; // -3°C
-            localOffset_List[7] = ['04' , 'Local OFF'];
-            localOffset_List[8] = ['05' , 'Local protection'];
+            localOffset_List.push (['00' , 0]);  // +0°C
+            localOffset_List.push (['01' , 1]);  // +1°C
+            localOffset_List.push (['02' , 2]);  // +2°C
+            localOffset_List.push (['03' , 3]);  // +3°C
+            localOffset_List.push (['11' , -1]); // -1°C
+            localOffset_List.push (['12' , -2]); // -2°C
+            localOffset_List.push (['13' , -3]); // -3°C
+            localOffset_List.push (['04' , 'Local OFF']);
+            localOffset_List.push (['05' , 'Local protection']);
 
             for (let i = 0; i < localOffset_List.length; i++) {
               if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
