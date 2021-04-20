@@ -25,13 +25,11 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    if (!config.skipevents) {
-      const listenerFunction = function (packet) {
-        let msg = {};
-        node.processReceivedBUSCommand (msg, packet);
-      };
-      runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
-    }
+    const listenerFunction = function (packet) {
+      let msg = {};
+      node.processReceivedBUSCommand (msg, packet);
+    };
+    runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
@@ -133,34 +131,36 @@ module.exports = function (RED) {
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
       // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
-      let newPayloadinfo = JSON.stringify (payloadInfo);
-      if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
-        // MSG1 : Build primary msg
-        // MSG1 : Received command info
-        payload.command_received = packet;
-        // MSG1 : Add all current node stored values to payload
-        payload.state = payloadInfo.state;
-        payload.remoteControl = payloadInfo.remoteControl;
-        payload.operationMode = payloadInfo.operationMode;
-        // MSG1 : Add all current node stored values to payload (but only if these were defined)
-        if (payloadInfo.operationMode_setTemperature !== undefined) {
-          payload.operationMode_setTemperature = payloadInfo.operationMode_setTemperature;
-        }
-        if (payloadInfo.operationMode_curProgram !== undefined) {
-          payload.operationMode_curProgram = payloadInfo.operationMode_curProgram;
-        }
-        if (payloadInfo.operationMode_curScenario !== undefined) {
-          payload.operationMode_curScenario = payloadInfo.operationMode_curScenario;
-        }
-        // MSG1 : Add misc info
-        msg.topic = 'state/' + config.topic;
+      if (!config.skipevents || forceRefreshAndMsg) {
+        let newPayloadinfo = JSON.stringify (payloadInfo);
+        if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
+          // MSG1 : Build primary msg
+          // MSG1 : Received command info
+          payload.command_received = packet;
+          // MSG1 : Add all current node stored values to payload
+          payload.state = payloadInfo.state;
+          payload.remoteControl = payloadInfo.remoteControl;
+          payload.operationMode = payloadInfo.operationMode;
+          // MSG1 : Add all current node stored values to payload (but only if these were defined)
+          if (payloadInfo.operationMode_setTemperature !== undefined) {
+            payload.operationMode_setTemperature = payloadInfo.operationMode_setTemperature;
+          }
+          if (payloadInfo.operationMode_curProgram !== undefined) {
+            payload.operationMode_curProgram = payloadInfo.operationMode_curProgram;
+          }
+          if (payloadInfo.operationMode_curScenario !== undefined) {
+            payload.operationMode_curScenario = payloadInfo.operationMode_curScenario;
+          }
+          // MSG1 : Add misc info
+          msg.topic = 'state/' + config.topic;
 
-        // MSG2 : Build secondary payload
-        let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', '', '');
+          // MSG2 : Build secondary payload
+          let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', '', '');
 
-        // Store last sent payload info & send both msg to output1 and output2
-        node.lastPayloadInfo = newPayloadinfo;
-        node.send ([msg, msg2]);
+          // Store last sent payload info & send both msg to output1 and output2
+          node.lastPayloadInfo = newPayloadinfo;
+          node.send ([msg, msg2]);
+        }
       }
     };
 
@@ -252,7 +252,7 @@ module.exports = function (RED) {
             // Also add failed requests, but only if some failed
             payload.command_failed = cmd_failed;
           }
-          // Once commands were sent, call internal function to froce node info refresh (using 'state/')and msg outputs
+          // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
           node.processReceivedBUSCommand (msg, cmd_responses);
         }, function (sdata, command, errorMsg) {

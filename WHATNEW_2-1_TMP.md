@@ -8,6 +8,7 @@
   Notes:
     - SmartFilter is never applied when node is running in **read-only** (status update request) mode.
     - The SmartFilter is **enabled by default** for new nodes but will remain disabled on your existing nodes until you manually decide to enable it. This way, it also remains **backward compatible** with existing configs.
+  - ***Improvement*** : the 'skip events' fonction was improved on existing nodes (Lights & Shutters) : the incoming bus messages are still processed by the node (to collect data and update node status) but will still not generate an output (~flow).
 
 
 - **MH Gateway**

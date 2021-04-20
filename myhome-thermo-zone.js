@@ -33,13 +33,11 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    if (!config.skipevents) {
-      const listenerFunction = function (packet) {
-        let msg = {};
-        node.processReceivedBUSCommand (msg, packet);
-      };
-      runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
-    }
+    const listenerFunction = function (packet) {
+      let msg = {};
+      node.processReceivedBUSCommand (msg, packet);
+    };
+    runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
@@ -190,8 +188,8 @@ module.exports = function (RED) {
       // Update node status payloadInfo
       // Icon : when colo is not grey (i.e. blue or yellow), we revert to grey if actuators are not On
       let nodeStatusColor = node.status_icon[0];
-      if (node.status_icon[0] !== 'grey' && !payloadInfo.actuatorStates.On) {
-        let nodeStatusColor = 'grey';
+      if (nodeStatusColor !== 'grey' && !payloadInfo.actuatorStates.On) {
+        nodeStatusColor = 'grey';
       }
       // Text : append temperatur set point info if needed
       let nodeStatusText = payloadInfo.state + '°C (' + payloadInfo.operationMode + ((node.status_needTempInfo) ? ' @' + payloadInfo.setTemperature + '°C' : '') + ')';
@@ -199,30 +197,32 @@ module.exports = function (RED) {
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
       // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
-      let newPayloadinfo = JSON.stringify (payloadInfo);
-      if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
-        // MSG1 : Build primary msg
-        // MSG1 : Received command info
-        payload.command_received = packet;
-        // MSG1 : Add all current node stored values to payload
-        payload.state = payloadInfo.state;
-        payload.setTemperature = payloadInfo.setTemperature;
-        payload.operationType = payloadInfo.operationType;
-        payload.operationType_ownValue = payloadInfo.operationType_ownValue;
-        payload.localOffset = payloadInfo.localOffset;
-        payload.localOffset_ownValue = payloadInfo.localOffset_ownValue;
-        payload.actuatorStates = payloadInfo.actuatorStates;
-        payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
-        payload.operationMode = payloadInfo.operationMode;
-        // MSG1 : Add misc info
-        msg.topic = 'state/' + config.topic;
+      if (!config.skipevents || forceRefreshAndMsg) {
+        let newPayloadinfo = JSON.stringify (payloadInfo);
+        if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
+          // MSG1 : Build primary msg
+          // MSG1 : Received command info
+          payload.command_received = packet;
+          // MSG1 : Add all current node stored values to payload
+          payload.state = payloadInfo.state;
+          payload.setTemperature = payloadInfo.setTemperature;
+          payload.operationType = payloadInfo.operationType;
+          payload.operationType_ownValue = payloadInfo.operationType_ownValue;
+          payload.localOffset = payloadInfo.localOffset;
+          payload.localOffset_ownValue = payloadInfo.localOffset_ownValue;
+          payload.actuatorStates = payloadInfo.actuatorStates;
+          payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
+          payload.operationMode = payloadInfo.operationMode;
+          // MSG1 : Add misc info
+          msg.topic = 'state/' + config.topic;
 
-        // MSG2 : Build secondary payload
-        let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', '', '');
+          // MSG2 : Build secondary payload
+          let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', '', '');
 
-        // Store last sent payload info & send both msg to output1 and output2
-        node.lastPayloadInfo = newPayloadinfo;
-        node.send ([msg, msg2]);
+          // Store last sent payload info & send both msg to output1 and output2
+          node.lastPayloadInfo = newPayloadinfo;
+          node.send ([msg, msg2]);
+        }
       }
     };
 
@@ -257,36 +257,7 @@ module.exports = function (RED) {
       // Build the OpenWebNet command(s) to be sent
       let commands = [];
       let interCommandsDelay = 0;
-      if (isReadOnly) {
-        // Working in read-only mode: build a status enquiry request (no status update sent)
-        // In theory (based on OpenWebNet doc), only 2 calls are required
-        // Command #1 : *#4*where## (where = Zone) which returns :
-        //    1: *4*what*where##     : what = Zone operation mode
-        //    2: *#4*where*0*T##     : T = Zone operation temperature not adjust by local offset
-        //    3: *#4*where*12*T*3##  : T = Zone operation temperature with adjust by local offset
-        //    4: *#4*where*13*OL##   : OL = Local Offset (knob status)
-        //    5: *#4*where*14*T*3##  : T = Zone Set-point temperature
-        // BUT, during test phase, it appears not all gateways are able to repond to otherwise
-        //  - F455 : does not respond anything to 'Command #1', but all responses are sent on the bus (=indirect fetch)
-        //  - MH202 : does not return on 'Command #1' the 1.5: (but is sent on the BUS), returns '*#4*where*14*T##' instead
-        //  - F459 & MyHOMEServer1 : all responses are received, and even more (15 actually ...)
-        // Therefore, using a mode with more calls was the most stable way to go...
-        // commands.push ('*#4*' + config.zoneid + '##'); // theory, not stable enough :-P, quite heavy to also include (actually, only MH202 is missing something without this)
-        commands.push ('*#4*' + config.zoneid + '*12##');   // to fetch Command #1.1 + #1.3 Works OK on F455 / F459 / MyHOMEServer1 but MH202 does not return #1.1
-        commands.push ('*#4*' + config.zoneid + '*0##');    // to fetch Command #1.2 Works OK on F455 / MH202 / F459 / MyHOMEServer1
-        commands.push ('*#4*' + config.zoneid + '*13##');   // to fetch Command #1.4 Works OK on F455 / MH202 / F459 / MyHOMEServer1
-        commands.push ('*#4*' + config.zoneid + '*14##');   // to fetch Command #1.5 Works OK on F455 / MH202 (but without the '*3') / F459 / MyHOMEServer1
-        // Command #2 : *#4*where#0*20## (where = Zone) which returns :
-        //    1: *#4*where#[1-9]*20*Val##  : Actuator #[1-9] status for current zone
-        // BUT, during test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
-        // Therefore, added a second call to at least gather actuator 1 status (most systems have the first actuator assigned before the others...)
-        commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-/
-        commands.push ('*#4*' + config.zoneid + '#1*20##');
-        // Command #3 : *#4*#where## (where = Zone) which returns :
-        //    1: *4*what*#where#    : what = Zone operation mode request of Central Unit
-        // Test Phase : OK on all gateways tested (F455 / MH202 / F459 / MyHOMEServer1)
-        commands.push ('*#4*#' + config.zoneid + '##');
-      } else {
+      if (!isReadOnly) {
         // Running in Write mode
         if (parseFloat(payload.state)) {
           // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
@@ -317,15 +288,42 @@ module.exports = function (RED) {
             //  - where = [#1 - #99] Setup zone by Central Unit
             commands.push ('*4*311*#' + config.zoneid + '##');
           }
-          if (commands.length) {
-            // since the 'set' command does not return the value, get it by adding a status command right after
-            commands.push ('*#4*' + config.zoneid + '*12##'); // Zone operation mode (local) + Zone operation temperature
-            commands.push ('*#4*' + config.zoneid + '*14##'); // Zone Set-point temperature
-            commands.push ('*#4*#' + config.zoneid + '##'); // Zone operation mode request of Central Unit
-            // during tests, last command (to gather zone operation mode of central unit) failed. It seems it cannot be processed as long as the first command is still
-            // processing the first one / emitting content to the BUS. There must be a total delay of 1.5 seconds between first command (operation mode change) and last (operation mode request)
-            interCommandsDelay = parseInt(1500/(commands.length-1));
-          }
+        }
+      }
+      if (isReadOnly || commands.length) {
+        // In Read-Only mode : build a status enquiry request (no status update sent)
+        // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
+        // -> Which commands ??? In theory (based on OpenWebNet doc), only 2 calls are required
+        // Command #1 : *#4*where## (where = Zone) which returns :
+        //    1: *4*what*where##     : what = Zone operation mode
+        //    2: *#4*where*0*T##     : T = Zone operation temperature not adjust by local offset
+        //    3: *#4*where*12*T*3##  : T = Zone operation temperature with adjust by local offset
+        //    4: *#4*where*13*OL##   : OL = Local Offset (knob status)
+        //    5: *#4*where*14*T*3##  : T = Zone Set-point temperature
+        // BUT, during test phase, it appears not all gateways are able to repond to otherwise
+        //  - F455 : does not respond anything to 'Command #1', but all responses are sent on the bus (=indirect fetch)
+        //  - MH202 : does not return on 'Command #1' the 1.5: (but is sent on the BUS), returns '*#4*where*14*T##' instead
+        //  - F459 & MyHOMEServer1 : all responses are received, and even more (15 actually ...)
+        // Therefore, using a mode with more calls was the most stable way to go...
+        // commands.push ('*#4*' + config.zoneid + '##'); // theory, not stable enough :-P, quite heavy to also include (actually, only MH202 is missing something without this)
+        commands.push ('*#4*' + config.zoneid + '*12##');   // to fetch Command #1.1 + #1.3 Works OK on F455 / F459 / MyHOMEServer1 but MH202 does not return #1.1
+        commands.push ('*#4*' + config.zoneid + '*0##');    // to fetch Command #1.2 Works OK on F455 / MH202 / F459 / MyHOMEServer1
+        commands.push ('*#4*' + config.zoneid + '*13##');   // to fetch Command #1.4 Works OK on F455 / MH202 / F459 / MyHOMEServer1
+        commands.push ('*#4*' + config.zoneid + '*14##');   // to fetch Command #1.5 Works OK on F455 / MH202 (but without the '*3') / F459 / MyHOMEServer1
+        // Command #2 : *#4*where#0*20## (where = Zone) which returns :
+        //    1: *#4*where#[1-9]*20*Val##  : Actuator #[1-9] status for current zone
+        // BUT, during test phase : fails on F455 & MH202 (NACK), or return other results (?). Commands are NOT seen on the BUS at all...
+        // Therefore, added a second call to at least gather actuator 1 status (most systems have the first actuator assigned before the others...)
+        commands.push ('*#4*' + config.zoneid + '#0*20##');   // no alternative found to ask for these :-/
+        commands.push ('*#4*' + config.zoneid + '#1*20##');
+        // Command #3 : *#4*#where## (where = Zone) which returns :
+        //    1: *4*what*#where#    : what = Zone operation mode request of Central Unit
+        // Test Phase : OK on all gateways tested (F455 / MH202 / F459 / MyHOMEServer1)
+        commands.push ('*#4*#' + config.zoneid + '##');
+        // During tests, last command (to gather zone operation mode of central unit) failed. It seems it cannot be processed as long as the first one
+        // is being processed / emitting content to the BUS. There must be a total delay of >=1.5 seconds between first command (operation mode change) and last (operation mode request)
+        if (!isReadOnly) {
+          interCommandsDelay = parseInt(1500/(commands.length-1));
         }
       }
       if (commands.length === 0) {
@@ -342,7 +340,7 @@ module.exports = function (RED) {
             // Also add failed requests, but only if some failed
             payload.command_failed = cmd_failed;
           }
-          // Once commands were sent, call internal function to froce node info refresh (using 'state/')and msg outputs
+          // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
           node.processReceivedBUSCommand (msg, cmd_responses);
         }, function (sdata, command, errorMsg) {
