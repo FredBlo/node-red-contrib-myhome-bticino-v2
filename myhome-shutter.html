@@ -3,19 +3,19 @@
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
+      name: { value: '', required: true },
       shutterid: { value: '', required: true, validate: RED.validators.number() },
-      isgroup: { value: false , required: false},
+      isgroup: { value: false, required: false},
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
-      name: { value: '', required: true },
-      smartfilter: { value: true , required: false},
-      skipevents: { value: false , required: false},
-      isstatusrequest: { value: false , required: false},
-      output2_name: { value: 'On' , required: false},
-      output2_type: { value: 'boolean' , required: false}
+      smartfilter: { value: true, required: false},
+      skipevents: { value: false, required: false},
+      isstatusrequest: { value: false, required: false},
+      output2_name: { value: 'On', required: false},
+      output2_type: { value: 'boolean', required: false}
     },
-    inputs:1,
-    outputs:2,
+    inputs: 1,
+    outputs: 2,
     outputLabels: function (index) {
       if (index === 0) {
         return 'payload';
@@ -47,6 +47,10 @@
 
 <script type="text/x-red" data-template-name="myhome-shutter">
   <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Shutter name" />
+  </div>
+  <div class="form-row">
       <label for="node-input-shutterid"><i class="fa fa-align-justify"></i> Shutter</label>
       <input type="text" id="node-input-shutterid" placeholder="32 for shutter 3.2 or group 32" />
   </div>
@@ -63,10 +67,6 @@
   <div class="form-row">
       <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
       <input type="text" id="node-input-gateway" />
-  </div>
-  <div class="form-row">
-      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-input-name" placeholder="Shutter name" />
   </div>
   <div class="form-row">
     <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>

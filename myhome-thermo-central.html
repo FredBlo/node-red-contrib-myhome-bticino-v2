@@ -3,17 +3,17 @@ central unit<script type="text/javascript">
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
+      name: { value: '', required: true },
       topic: { value: '', required: true},
-      gateway: { type:'myhome-gateway', required: true },
-      name: { value:'', required: true },
-      smartfilter: { value: true , required: false},
-      skipevents: { value: false , required: false},
-      isstatusrequest: { value: false , required: false},
-      output2_name: { value: 'On' , required: false},
-      output2_type: { value: 'text_state' , required: false}
+      gateway: { type: 'myhome-gateway', required: true },
+      smartfilter: { value: true, required: false},
+      skipevents: { value: false, required: false},
+      isstatusrequest: { value: false, required: false},
+      output2_name: { value: 'On', required: false},
+      output2_type: { value: 'text_state', required: false}
     },
-    inputs:1,
-    outputs:2,
+    inputs: 1,
+    outputs: 2,
     outputLabels: function (index) {
       if (index === 0) {
         return 'payload';
@@ -37,16 +37,16 @@ central unit<script type="text/javascript">
 
 <script type="text/x-red" data-template-name="myhome-thermo-central">
   <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="central unit identifier" />
+  </div>
+  <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
       <input type="text" id="node-input-topic" placeholder="e.g. home" />
   </div>
     <div class="form-row">
         <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
         <input type="text" id="node-input-gateway" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="central unit identifier" />
     </div>
     <div class="form-row">
       <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>

@@ -7,6 +7,7 @@ module.exports = function (RED) {
     RED.nodes.createNode (this, config);
     var node = this;
     let gateway = RED.nodes.getNode (config.gateway);
+    let interCommandsDelay = parseInt(config.intercommandsdelay) || 0;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a message (payload) is received from the node-RED flow ///////////////////////////////////////
@@ -15,8 +16,8 @@ module.exports = function (RED) {
       let commands = msg.payload;
       let payload = {};
 
-      mhutils.executeCommand (node, commands, gateway, 0, true,
-        function (sdata, commands, cmd_responses, cmd_failed) {
+      mhutils.executeCommand (node, commands, gateway, interCommandsDelay, true,
+        function (commands, cmd_responses, cmd_failed) {
           // update payload with sent command & results received
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)

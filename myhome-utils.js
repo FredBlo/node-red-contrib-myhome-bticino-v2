@@ -105,7 +105,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
 }
 exports.processInitialConnection = processInitialConnection;
 
-function executeCommand (callingNode, command, gateway, interCommandsDelay, processNextCmdOnFail, success, error) {
+function executeCommand (callingNode, commands, gateway, interCommandsDelay, processNextCmdOnFail, success, error) {
   let net = require('net');
 
   let client = new net.Socket();
@@ -119,7 +119,7 @@ function executeCommand (callingNode, command, gateway, interCommandsDelay, proc
   let persistentObj = {};
   persistentObj.logEnabled = gateway.log_out_cmd;
   // Convert commands (which could be an array... or a string) to a single string and only take valid MyHome commands (back) to an array
-  let commands = command.toString().match(/\*.+?##/g);
+  commands = commands.toString().match(/\*.+?##/g);
 
   function internalError (command, packet, errorMsg) {
     persistentObj.state = 'disconnected';
@@ -146,10 +146,11 @@ function executeCommand (callingNode, command, gateway, interCommandsDelay, proc
       let packet = packetMatch[1] || '';
       bufferedFrames = packetMatch[2] || '';
       if (packet) {
+        callingNode.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
         // As long as initial connection is not OK, all packets are transmitted to a central function managing this
         if (processInitialConnection (START_COMMAND, packet, client, callingNode, gateway, persistentObj, internalError)) {
           // We are connected OK, pass the packet to the commands & responses management part
-          parsePacket (packet, allframes, bufferedFrames);
+          parsePacket (packet);
         }
       }
     }
@@ -160,7 +161,7 @@ function executeCommand (callingNode, command, gateway, interCommandsDelay, proc
     // opening command session
   });
 
-  function parsePacket (packet, allFrames , bufferedFrames) {
+  function parsePacket (packet) {
     if (cmd_sent !== '') {
       // A command was sent, receiving gateway's response: process the response packet received
       if (packet === NACK) {
@@ -178,7 +179,7 @@ function executeCommand (callingNode, command, gateway, interCommandsDelay, proc
         // Command was sent, but we still did not receive an acknowledged receipt, it means the socket is still emitting results of command sent
         cmd_lastSent_count++;
         cmd_responses.push (packet);
-        callingNode.debug ("mhutils.executeCommand('" + cmd_sent + "'), collecting response(s) [#" + cmd_lastSent_count + "] (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allFrames + "')");
+        callingNode.debug ("mhutils.executeCommand('" + cmd_sent + "'), collecting response(s) [#" + cmd_lastSent_count + "] (current: '" + packet + "')");
         return;
       }
     }
@@ -203,7 +204,7 @@ function executeCommand (callingNode, command, gateway, interCommandsDelay, proc
         } else {
           callingNode.debug ("mhutils.executeCommand('" + commands.join(', ') + "'), all commands sent, all [" + cmd_success_count + "] acknowledged (ACK), responses gathered : " + cmd_responses.length + ". All done now.");
         }
-        success (packet, commands, cmd_responses , cmd_failed);
+        success (commands, cmd_responses , cmd_failed);
       } else {
         // No command was acknowledged, return in error mode
         internalError (cmd_failed.join (', '), '', 'All commands (' + cmd_failed_count + ') were not acknowledged (NACK) when already connected.');
@@ -222,7 +223,7 @@ function executeCommand (callingNode, command, gateway, interCommandsDelay, proc
 exports.executeCommand = executeCommand;
 
 class eventsMonitor {
-  // This class is intended to manage listeners linked to a specifc objectf in a centralized object
+  // This class is intended to manage listeners linked to a specifc object in a centralized object
   // to be able to easily clear them off when entity unloads
   constructor (monitoredEntity) {
     this.monitoredEntity = monitoredEntity;

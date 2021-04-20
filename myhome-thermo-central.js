@@ -244,7 +244,7 @@ module.exports = function (RED) {
 
       // Send the command on the BUS through the MyHome gateway
       mhutils.executeCommand (node, commands, gateway, 0, true,
-        function (sdata, commands, cmd_responses, cmd_failed) {
+        function (commands, cmd_responses, cmd_failed) {
           // Build main payload to return payloads to outputs
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)

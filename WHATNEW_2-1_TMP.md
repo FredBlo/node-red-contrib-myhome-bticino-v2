@@ -20,6 +20,7 @@
 
 - **MH Inject**
     - ***Improvement*** : the node can now be called with **multiple commands** (either using a string with commands set one after the other, either using an array of strings). It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned.
+    - ***Improvement*** : when sending multiple commands, an custom delay can be applied between 2 commands (minimum is 50ms)
 
 
 - **MH Light**

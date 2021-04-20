@@ -30,7 +30,22 @@ module.exports = function (RED) {
     node.client = new net.Socket();
 
       node.client.on ('data', function (data) {
-        parsePacket (data);
+        let allframes = data.toString();
+        let bufferedFrames = allframes;
+        while (bufferedFrames.length > 0) {
+          let packetMatch = bufferedFrames.match (/(\*.+?##)(.*)/) || [];
+          let packet = packetMatch[1] || '';
+          bufferedFrames = packetMatch[2] || '';
+          if (packet) {
+//            node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')"); // DISABLED in dev phase, too verbose, to re-enable afterwards DEBUG
+            // As long as initial connection is not OK, all packets are transmitted to a central function managing this
+            if (mhutils.processInitialConnection (START_MONITOR, packet, node.client, node, node, persistentObj, internalError)) {
+              // We are connected OK, pass the packet to the commands & responses management part
+              failedConnectionAttempts = 0;
+              parsePacket (packet);
+            }
+          }
+        }
       });
 
       node.client.on ('error', function () {
@@ -82,90 +97,50 @@ module.exports = function (RED) {
       }
     }
 
-var wouldHaveCrashed = 0; //DEBUG
-var lastReadPacketInfo = ''; // DEBUG
-    function parsePacket (data) {
-      let sdata = data.toString();
-      let bufferedReadCount = 0;
+    function parsePacket (packet) {
+      if (packet === NACK) {
+        // When we have a non acknowledged return, always generate an internal error
+        internalError (START_MONITOR, packet, 'Command not acknowledged (NACK) when already connected');
+        return;
+      }
 
-let packet = '';  // DEBUG
-while (sdata.length > 0) {
-  bufferedReadCount++;
-
-  if (wouldHaveCrashed) {    // DEBUG
-    console.warn ("Would have crashed " + wouldHaveCrashed + " packets ago. Now received '" + sdata + "', buffered index=" + bufferedReadCount);    // DEBUG
-    wouldHaveCrashed++;    // DEBUG
-
-    if (wouldHaveCrashed >> 5) {    // DEBUG
-      //Reset
-      wouldHaveCrashed = 0;    // DEBUG
-    }    // DEBUG
-  }    // DEBUG
-  let m = sdata.match (/(\*.+?##)(.*)/) ;// || []; DEBUG
-  if (m === null) { // DEBUG
-    wouldHaveCrashed = 1; // DEBUG
-    console.warn ("Would have crashed on packet : '" + sdata + "', previous packet '" + lastReadPacketInfo + "' buffered index=" + bufferedReadCount);    // DEBUG
-    return;
-  } else {   // DEBUG
-    // let packet = m[1] || ''; // CORRRECT LINE
-    packet = m[1] || ''; // DEBUG
-    lastReadPacketInfo = packet + '(Buffer=' + bufferedReadCount + ')'; // DEBUG
-    sdata = m[2] || '';
-    // node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + sdata + "' / full raw data : '" + data.toString() + "')"); // To include in final version but to test
-  }
-
-        if (persistentObj.state !== 'connected') {
-          // As long as initial connection is not OK, all packets are transmitted to a central function managing this
-          mhutils.processInitialConnection (START_MONITOR, packet, node.client, node, node, persistentObj, internalError);
-        }
-        if (persistentObj.state !== 'connected') {
-          // Still not connected
-          return;
-        } else if (packet === NACK) {
-          // When we have a non acknowledged return, always generate an internal error
-          internalError (START_MONITOR, packet, 'Command not acknowledged (NACK) when already connected');
-        } else {
-          // Connexion is OK, running in MONITORING mode
-          failedConnectionAttempts = 0;
-          // Get the OpenWebNet WHO family linked to this command (structure is '*WHO*WHAT*WHERE##', and can be '*#WHO*WHAT*WHERE' for some kind of calls)
-          let ownFamily = packet.match (/^\*#{0,1}(\d+)\*.+?##/);
-          if (ownFamily !== null) {
-            let loggingEnabled = false;
-            let emitterTrigger = "";
-            if (ownFamily !== null) {
-              switch (ownFamily[1]) {
-                case '1':
-                  // WHO = 1 : Lighting
-                  loggingEnabled = config.log_in_lights;
-                  emitterTrigger = 'OWN_LIGHTS';
-                  break;
-                case '2':
-                  // WHO = 2 : Automation (Shutters management)
-                  loggingEnabled = config.log_in_shutters;
-                  emitterTrigger = 'OWN_SHUTTERS';
-                  break;
-                case '4':
-                  // WHO = 4 : Temperature Control/Heating
-                  loggingEnabled = config.log_in_temperature;
-                  emitterTrigger = 'OWN_TEMPERATURE';
-                  break;
-                case '18':
-                  // WHO = 18 : Energy Management
-                  loggingEnabled = config.log_in_energy;
-                  emitterTrigger = 'OWN_ENERGY';
-                  break;
-                default:
-                  loggingEnabled = config.log_in_others;
-                  emitterTrigger = 'OWN_OTHERS';
-              }
-            }
-            if (loggingEnabled) {
-              node.log ('Received OpenWebNet command [' + packet.toString() + ']; buffered index is ' + (bufferedReadCount-1).toString());
-            }
-            if (emitterTrigger !== '') {
-              node.emit (emitterTrigger, packet);
-            }
+      // Get the OpenWebNet WHO family linked to this command (structure is '*WHO*WHAT*WHERE##', and can be '*#WHO*WHAT*WHERE' for some kind of calls)
+      let ownFamily = packet.match (/^\*#{0,1}(\d+)\*.+?##/);
+      if (ownFamily !== null) {
+        let loggingEnabled = false;
+        let emitterTrigger = "";
+        if (ownFamily !== null) {
+          switch (ownFamily[1]) {
+            case '1':
+              // WHO = 1 : Lighting
+              loggingEnabled = config.log_in_lights;
+              emitterTrigger = 'OWN_LIGHTS';
+              break;
+            case '2':
+              // WHO = 2 : Automation (Shutters management)
+              loggingEnabled = config.log_in_shutters;
+              emitterTrigger = 'OWN_SHUTTERS';
+              break;
+            case '4':
+              // WHO = 4 : Temperature Control/Heating
+              loggingEnabled = config.log_in_temperature;
+              emitterTrigger = 'OWN_TEMPERATURE';
+              break;
+            case '18':
+              // WHO = 18 : Energy Management
+              loggingEnabled = config.log_in_energy;
+              emitterTrigger = 'OWN_ENERGY';
+              break;
+            default:
+              loggingEnabled = config.log_in_others;
+              emitterTrigger = 'OWN_OTHERS';
           }
+        }
+        if (loggingEnabled) {
+          node.log ("Received OpenWebNet command (" + emitterTrigger + ") : '" + packet + "'");
+        }
+        if (emitterTrigger !== '') {
+          node.emit (emitterTrigger, packet);
         }
       }
     }
@@ -194,7 +169,6 @@ while (sdata.length > 0) {
     function checkConnection() {
       if (failedConnectionAttempts === 0) {
         node.debug ('gateway connection : keeping connection alive every ' + node.timeout/1000 + 's ...');
-        // node.client.write (); // TEST DEBUG
         node.client.write (ACK);
       }
     }

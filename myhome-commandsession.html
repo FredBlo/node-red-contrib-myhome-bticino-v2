@@ -3,12 +3,13 @@
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
-      gateway: { type:"myhome-gateway", required: true },
-      name: { value:"", required: true }
+      name: { value: '', required: true },
+      gateway: { type: 'myhome-gateway', required: true },
+      intercommandsdelay: { value: '', required: false, validate: function(v){return (v === '' || v === undefined || parseInt(v) >= 50)} }
     },
-    inputs:1,
-    outputs:1,
-    icon: "font-awesome/fa-terminal",
+    inputs: 1,
+    outputs: 1,
+    icon: 'font-awesome/fa-terminal',
     paletteLabel: 'MH Inject',
     label: function() {
       return this.name || 'MH Inject';
@@ -17,21 +18,28 @@
 </script>
 
 <script type="text/x-red" data-template-name="myhome-commandsession">
-    <div class="form-row">
-        <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-        <input type="text" id="node-input-gateway" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="event session identifier" />
-    </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="event session identifier" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+      <input type="text" id="node-input-gateway" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-intercommandsdelay"><i class="fa fa-history"></i> Delay (ms)</label>
+      <input type="text" id="node-input-intercommandsdelay" placeholder="50 ms (minimum delay between 2 commands)"/>
+      &nbsp;<i class="fa fa-info-circle" title="By default, a very limited delay (50ms) is applied before sending a new command to the MyHome gateway.
+If you encounter some refused commands when processing multiple at once, you may decide to extend this delay to let the gateway 'breathe' a bit more."></i>
+  </div>
 </script>
 
 <script type="text/x-red" data-help-name="myhome-commandsession">
   <p>MyHome Inject Node to send any supported OpenWebNet command to the MyHome system.</p>
     <ul>
-      <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
       <li><strong>Name</strong> (mandatory) is the name of the node</li>
+      <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+      <li><strong>Delay (ms)</strong> is the custom delay to wait before sending a new command to the gateway</li>
     </ul>
 
   <h3>Inputs</h3>

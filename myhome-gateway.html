@@ -3,17 +3,17 @@
     category: 'config',
     color: '#a6bbcf',
     defaults: {
-      name: { value: "", required: true },
-      host: { value: "", required: true },
-      port: { value: "20000", required: true },
-      pass: { value: "12345", required: false },
-      timeout: { value: "600", required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
-      log_in_lights: { value: false , required: false},
-      log_in_shutters: { value: false , required: false},
-      log_in_temperature: { value: false , required: false},
-      log_in_energy: { value: false , required: false},
-      log_in_others: { value: false , required: false},
-      log_out_cmd: { value: false , required: false}
+      name: { value: '', required: true },
+      host: { value: '', required: true },
+      port: { value: '20000', required: true },
+      pass: { value: '12345', required: false },
+      timeout: { value: '600', required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
+      log_in_lights: { value: false, required: false},
+      log_in_shutters: { value: false, required: false},
+      log_in_temperature: { value: false, required: false},
+      log_in_energy: { value: false, required: false},
+      log_in_others: { value: false, required: false},
+      log_out_cmd: { value: false, required: false}
     },
     label: function() {
       return this.name;
