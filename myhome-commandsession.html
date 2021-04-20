@@ -35,7 +35,8 @@
     </ul>
 
   <h3>Inputs</h3>
-    <p><code>msg.payload</code> must contain the command to be sent, in OpenWebNet format (i.e. '*WHO*WHAT*WHERE##')</p>
+    <p><code>msg.payload</code> must contain the command(s) to be sent, in OpenWebNet format (i.e. '*WHO*WHAT*WHERE##'). When multiple
+commands have to be sent, this can be made by eeither using a string with commands set one after the other, or either using an array of strings).</p>
 
   <h3>Output</h3>
     <p>The <strong>output</strong> is a JSON object <code>msg.payload</code> with</p>
@@ -43,4 +44,5 @@
         <li> <code>payload.command_sent</code> <em>[array of string]</em> contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
         <li> <code>payload.command_responses</code> <em>[array of strings]</em> will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
       </ul>
+    <p>Note: It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned. </p>
 </script>

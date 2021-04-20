@@ -21,6 +21,8 @@ module.exports = function (RED) {
     payloadInfo.actuatorStates.On = false;
     payloadInfo.operationMode_ownValue = '?';
     payloadInfo.operationMode = '?';
+    node.status_icon = ['grey','ring'];
+    node.status_needTempInfo = false;
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,7 +127,7 @@ module.exports = function (RED) {
         // Checks 4 : Local offset acquire frames (OpenWebNet doc) : *#4*where*13*OL## with OL = Local Offset (knob status):
         // 00 = 0 / 01 = +1° / 02 = +2° / 03 = +3° / 11 = -1° / 12 = -2° / 13 = -3° / 04 = Local OFF / 05 = Local protection
         if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d\\d)##');
+          packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d{2})##');
           if (packetMatch !== null) {
             payloadInfo.localOffset_ownValue = packetMatch[1];
             let localOffset_List = [];
@@ -151,22 +153,25 @@ module.exports = function (RED) {
         // what : 110 = Manual Heating / 210 = Manual Conditioning / 111 = Automatic Heating / 211 = Automatic Conditioning / 103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
         // where : [#1 - #99] Request zone by Central Unit.
         if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d\\d\\d)\\*\\#' + config.zoneid + '##');
+          packetMatch = curPacket.match ('^\\*4\\*(\\d{3})\\*\\#' + config.zoneid + '##');
           if (packetMatch !== null) {
             payloadInfo.operationMode_ownValue = packetMatch[1];
             let operationMode_List = [];
-            operationMode_List[0] = ['110' , 'Manual Heating'];
-            operationMode_List[1] = ['210' , 'Manual Conditioning'];
-            operationMode_List[2] = ['111' , 'Automatic Heating'];
-            operationMode_List[3] = ['211' , 'Automatic Conditioning'];
-            operationMode_List[4] = ['103' , 'Off Heating'];
-            operationMode_List[5] = ['203' , 'Off Conditioning'];
-            operationMode_List[6] = ['102' , 'Antifreeze'];
-            operationMode_List[7] = ['202' , 'Thermal Protection'];
+            operationMode_List.push ({own:'102', mode:'Antifreeze',             icon:['yellow','ring'], needTempInfo:false});
+            operationMode_List.push ({own:'103', mode:'Off Heating',            icon:['grey','dot'],    needTempInfo:false});
+            operationMode_List.push ({own:'110', mode:'Manual Heating',         icon:['yellow','dot'],  needTempInfo:true});
+            operationMode_List.push ({own:'111', mode:'Automatic Heating',      icon:['yellow','dot'],  needTempInfo:true});
+            operationMode_List.push ({own:'202', mode:'Thermal Protection',     icon:['blue','ring'],   needTempInfo:false});
+            operationMode_List.push ({own:'203', mode:'Off Conditioning',       icon:['grey','dot'],    needTempInfo:false});
+            operationMode_List.push ({own:'210', mode:'Manual Conditioning',    icon:['blue','dot'],    needTempInfo:true});
+            operationMode_List.push ({own:'211', mode:'Automatic Conditioning', icon:['blue','dot'],    needTempInfo:true});
 
+            // Add main & associated sub info if any
             for (let i = 0; i < operationMode_List.length; i++) {
-              if (operationMode_List[i][0] == payloadInfo.operationMode_ownValue) {
-                payloadInfo.operationMode = operationMode_List[i][1];
+              if (operationMode_List[i].own == payloadInfo.operationMode_ownValue) {
+                payloadInfo.operationMode = operationMode_List[i].mode;
+                node.status_icon = operationMode_List[i].icon;
+                node.status_needTempInfo = operationMode_List[i].needTempInfo;
                 break;
               }
             }
@@ -183,16 +188,14 @@ module.exports = function (RED) {
       }
 
       // Update node status payloadInfo
-      let nodeStatusFill;
-      if (!payloadInfo.actuatorStates.On || payloadInfo.operationType === '?') {
-        nodeStatusFill = 'grey';
-      } else if (payloadInfo.operationType === 'Heating') {
-        nodeStatusFill = 'yellow';
-      } else {
-        nodeStatusFill = 'blue';
+      // Icon : when colo is not grey (i.e. blue or yellow), we revert to grey if actuators are not On
+      let nodeStatusColor = node.status_icon[0];
+      if (node.status_icon[0] !== 'grey' && !payloadInfo.actuatorStates.On) {
+        let nodeStatusColor = 'grey';
       }
-      let nodeStatusText = payloadInfo.state + '°C (' + payloadInfo.operationMode + ' @' + payloadInfo.setTemperature + '°C)';
-      node.status ({fill: nodeStatusFill, shape: 'dot', text: nodeStatusText});
+      // Text : append temperatur set point info if needed
+      let nodeStatusText = payloadInfo.state + '°C (' + payloadInfo.operationMode + ((node.status_needTempInfo) ? ' @' + payloadInfo.setTemperature + '°C' : '') + ')';
+      node.status ({fill: nodeStatusColor , shape: node.status_icon[1], text: nodeStatusText});
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
       // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
@@ -246,18 +249,14 @@ module.exports = function (RED) {
       } else if (typeof(msg.payload) === 'string') {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
-      if (typeof(msg.payload) === 'object') {
-        // TODO (or not based on possible input allowed)
-        // if (msg.payload.state === undefined && msg.payload.On !== undefined) {
-        //  msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
-        //  }
-      } else if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
+      if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
         msg.payload = {'state': msg.payload};
       }
       let payload = msg.payload;
 
       // Build the OpenWebNet command(s) to be sent
       let commands = [];
+      let interCommandsDelay = 0;
       if (isReadOnly) {
         // Working in read-only mode: build a status enquiry request (no status update sent)
         // In theory (based on OpenWebNet doc), only 2 calls are required
@@ -303,18 +302,30 @@ module.exports = function (RED) {
           }
           tempSet = ('0000' + tempSet.toString()).slice(-4);
           commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
-        } else if (payload.state === 'AUTO') {
-          // Zone to be switched to auto : *4*311*#where##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          commands.push ('*4*311*#' + config.zoneid + '##');
-        } else if (payload.state === 'OFF') {
-          // Zone to be switched to off : *4*303*where##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          commands.push ('*4*303*#' + config.zoneid + '##');
-        } else if (payload.state === 'PROTECT') {
-          // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          commands.push ('*4*302*#' + config.zoneid + '##');
+          commands.push ('*#4*' + config.zoneid + '*14##'); // since the set command does not return the value, get it by adding a status command right after
+        } else {
+          if (payload.state === 'PROTECT') {
+            // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
+            //  - where = [#1 - #99] Setup zone by Central Unit
+            commands.push ('*4*302*#' + config.zoneid + '##');
+          } else if (payload.state === 'OFF') {
+            // Zone to be switched to off : *4*303*where##
+            //  - where = [#1 - #99] Setup zone by Central Unit
+            commands.push ('*4*303*#' + config.zoneid + '##');
+          } else if (payload.state === 'AUTO') {
+            // Zone to be switched to auto : *4*311*#where##
+            //  - where = [#1 - #99] Setup zone by Central Unit
+            commands.push ('*4*311*#' + config.zoneid + '##');
+          }
+          if (commands.length) {
+            // since the 'set' command does not return the value, get it by adding a status command right after
+            commands.push ('*#4*' + config.zoneid + '*12##'); // Zone operation mode (local) + Zone operation temperature
+            commands.push ('*#4*' + config.zoneid + '*14##'); // Zone Set-point temperature
+            commands.push ('*#4*#' + config.zoneid + '##'); // Zone operation mode request of Central Unit
+            // during tests, last command (to gather zone operation mode of central unit) failed. It seems it cannot be processed as long as the first command is still
+            // processing the first one / emitting content to the BUS. There must be a total delay of 1.5 seconds between first command (operation mode change) and last (operation mode request)
+            interCommandsDelay = parseInt(1500/(commands.length-1));
+          }
         }
       }
       if (commands.length === 0) {
@@ -322,11 +333,15 @@ module.exports = function (RED) {
       }
 
       // Send the command on the BUS through the MyHome gateway
-      mhutils.executeCommand (node, commands, gateway, true,
-        function (sdata, commands, cmd_responses) {
+      mhutils.executeCommand (node, commands, gateway, interCommandsDelay, true,
+        function (sdata, commands, cmd_responses, cmd_failed) {
           // Build main payload to return payloads to outputs
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          if (cmd_failed.length) {
+            // Also add failed requests, but only if some failed
+            payload.command_failed = cmd_failed;
+          }
           // Once commands were sent, call internal function to froce node info refresh (using 'state/')and msg outputs
           msg.topic = 'state/' + config.topic;
           node.processReceivedBUSCommand (msg, cmd_responses);

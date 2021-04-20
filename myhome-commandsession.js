@@ -12,22 +12,26 @@ module.exports = function (RED) {
     // Function called when a message (payload) is received from the node-RED flow ///////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.on ('input', function (msg) {
-      let command = msg.payload;
+      let commands = msg.payload;
       let payload = {};
 
-      mhutils.executeCommand (node, command, gateway, true,
-        function (sdata, command, cmd_responses) {
+      mhutils.executeCommand (node, commands, gateway, 0, true,
+        function (sdata, commands, cmd_responses, cmd_failed) {
           // update payload with sent command & results received
-          payload.command_sent = command; // Include initial SCS/BUS message which was sent in main payload
+          payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          if (cmd_failed.length) {
+            // Also add failed requests, but only if some failed
+            payload.command_failed = cmd_failed;
+          }
           msg.payload = payload;
           node.send (msg);
           // updating node state
-          node.status ({fill: 'green', shape: 'dot', text: 'command executed: ' + command});
-        }, function (sdata, command, errorMsg) {
-          node.error ('command [' + command + '] failed : ' + errorMsg);
+          node.status ({fill: 'green', shape: 'dot', text: 'command executed: ' + commands});
+        }, function (sdata, commands, errorMsg) {
+          node.error ('command [' + commands + '] failed : ' + errorMsg);
           // Error, only update node state
-          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + command});
+          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + commands});
         });
       });
     }

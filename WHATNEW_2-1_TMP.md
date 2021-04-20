@@ -19,7 +19,7 @@
 
 
 - **MH Inject**
-    - ***Improvement*** : the node can now be called with **multiple commands** (either using a string with command separated by comma, semi-colon or space, either using an array of strings). It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned.
+    - ***Improvement*** : the node can now be called with **multiple commands** (either using a string with commands set one after the other, either using an array of strings). It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned.
 
 
 - **MH Light**

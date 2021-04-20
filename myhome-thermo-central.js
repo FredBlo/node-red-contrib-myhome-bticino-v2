@@ -14,15 +14,7 @@ module.exports = function (RED) {
     payloadInfo.state = '?';
     payloadInfo.remoteControl = '?';
     payloadInfo.operationMode = '?';
-    // payloadInfo.setTemperature = '?';
-    // payloadInfo.localOffset_ownValue = '?';
-    // payloadInfo.localOffset = '?';
-    // payloadInfo.operationType_ownValue = '?';
-    // payloadInfo.operationType = '?';
-    // payloadInfo.actuatorStates = {};
-    // payloadInfo.actuatorStates.On = false;
-    // payloadInfo.operationMode_ownValue = '?';
-    // payloadInfo.operationMode = '?';
+    node.status_icon = ['grey','ring'];
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,129 +52,63 @@ module.exports = function (RED) {
         // Checks 1 : current central unit status info frames (OpenWebNet doc) : reading '*4*what*#0##' with what in 2 digits mode
         // what: 20 = Remote control disabled / 21 = Remote control enabled / 22 = At least one probe OFF /
         //       23 = At least one probe in protection / 24 = At least one probe in manual / 30 = Failure discovered / 31 = Central Unit battery KO
-        packetMatch = curPacket.match ('^\\*4\\*(\\d\\d)\\*#0##');
+        // TechNote : we only manage the remote control status
+        packetMatch = curPacket.match ('^\\*4\\*(20|21)\\*#0##');
         if (packetMatch !== null) {
           if (packetMatch[1] === '20') {
             payloadInfo.remoteControl = false;
           } else if (packetMatch[1] === '21') {
             payloadInfo.remoteControl = true;
-          } else {
-            // We do not manage the other 2 digits ones
           }
         }
-
         // Checks 2 : Central Unit’s operation mode : '*4*what*#0##' with what in 3-4 digits (and sub info)
         // what: 110#T = Manual Heating / 210#T = Manual Conditioning
         //       103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
         //       [1101-1103] = Memo program in Heating mode / [2101-2103] = Memo program in Conditioning mode
         //       [1201-1216] = Memo scenario in Heating mode / [2201-2216] = Memo scenario in Conditioning mode
-        //       115#[1101-1103] = Holiday Heating [program on return] / 215#[2101-2103] = Holiday Conditioning  [program on return] / ... (and some more for holidays)
+        //       115#[1101-1103] = Holiday Heating [program on return] / 215#[2101-2103] = Holiday Conditioning  [program on return]
+        //       [13001-13255] = Holiday days in Heating mode / [23001-23255] = Holiday days in Conditioning mode
         //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
         //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
         if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*((\\d\\d\\d)(\\d)|(\\d+)#(\\d+))\\*#0##');
+          packetMatch = curPacket.match ('^\\*4\\*(\\d{3,5})((#(\\d+))|)\\*#0##');
+          // RegEx results using groups -> array :
+          // [1] = what : first 3 to max 5 digits (before a possible #)
+          // [2] = -not used-
+          // [3] = -not used-, only there if there was a #
+          // [4] = what : all digits after the #, if there was a #
           if (packetMatch !== null) {
-            payloadInfo.operationMode_ownValue = packetMatch[2];
+            payloadInfo.operationMode_ownValue = packetMatch[1];
             let operationMode_List = [];
-            operationMode_List[0] = ['110' , 'Manual Heating' , packetMatch[3]];
-            operationMode_List[1] = ['210' , 'Manual Conditioning ' , packetMatch[3]];
-            operationMode_List[2] = ['103' , 'Off Heating' , ''];
-            operationMode_List[3] = ['203' , 'Off Conditioning' , ''];
-            operationMode_List[4] = ['102' , 'Antifreeze' , ''];
-            operationMode_List[5] = ['202' , 'Thermal Protection' , ''];
-            operationMode_List[6] = ['110' , 'Heating mode Program' , packetMatch[3]];
-            operationMode_List[7] = ['210' , 'Conditioning mode Program' , packetMatch[3]];
-            operationMode_List[8] = ['120' , 'Heating mode Scenario' , packetMatch[3]];
-            operationMode_List[9] = ['220' , 'Conditioning mode Scenario' , packetMatch[3]];
+            operationMode_List.push ({own:'102',  mode:'Antifreeze',                 icon:['yellow','ring']});
+            operationMode_List.push ({own:'103',  mode:'Off Heating',                icon:['grey','dot']});
+            operationMode_List.push ({own:'110',  mode:'Manual Heating',             icon:['yellow','dot'], addField:'setTemperature', addFieldInfo:parseInt((packetMatch[4] || '').slice(-3))/10});
+            operationMode_List.push ({own:'110.', mode:'Auto Heating Program',       icon:['yellow','dot'], addField:'curProgram',     addFieldInfo:packetMatch[1].slice(-1)});
+            operationMode_List.push ({own:'12..', mode:'Auto Heating Scenario',      icon:['yellow','dot'], addField:'curScenario',    addFieldInfo:packetMatch[1].slice(-2)});
+            operationMode_List.push ({own:'202',  mode:'Thermal Protection',         icon:['blue','ring']});
+            operationMode_List.push ({own:'203',  mode:'Off Conditioning',           icon:['grey','dot']});
+            operationMode_List.push ({own:'210',  mode:'Manual Conditioning',        icon:['blue','dot'],   addField:'setTemperature', addFieldInfo:parseInt((packetMatch[4] || '').slice(-3))/10});
+            operationMode_List.push ({own:'210.', mode:'Auto Conditioning Program',  icon:['blue','dot'],   addField:'curProgram',     addFieldInfo:packetMatch[1].slice(-1)});
+            operationMode_List.push ({own:'22..', mode:'Auto Conditioning Scenario', icon:['blue','dot'],   addField:'curScenario',    addFieldInfo:packetMatch[1].slice(-2)});
 
+            // First remove all associated 'sub info'
+            delete payloadInfo.operationMode_setTemperature;
+            delete payloadInfo.operationMode_curProgram;
+            delete payloadInfo.operationMode_curScenario;
+            // Add main & associated sub info if any
             for (let i = 0; i < operationMode_List.length; i++) {
-              if (operationMode_List[i][0] == payloadInfo.operationType_ownValue) {
-                payloadInfo.operationMode = operationMode_List[i][1];
+              // Use a regex to see if the current 'what' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
+              if (payloadInfo.operationMode_ownValue.match('^' + operationMode_List[i].own + '$')) {
+                payloadInfo.operationMode = operationMode_List[i].mode;
+                node.status_icon = operationMode_List[i].icon;
+                if (operationMode_List[i].addField !== undefined) {
+                  // A sub value is defined for this mode, add it to payload // TODO:
+                  payloadInfo['operationMode_' + operationMode_List[i].addField] = operationMode_List[i].addFieldInfo;
+                }
                 break;
               }
             }
           }
-        }
-        // Checks 3 : Actuator status for current zone frames (OpenWebNet doc) : *#4*where*20*Val##
-        // where : Actuators N of zone Z [Z#N] -> [0-99#1-9] / All the actuators of zone Z [Z#0] / All the actuators [0#0]
-        // val : 0 = OFF / 1 = ON / 2 = Opened / 3 = Closed / 4 = Stop / 5 = OFF Fan Coil / 6 = ON Vel 1 / 7 = ON Vel 2 / 8 = ON Vel 3 / 9 = ON Fan Coil
-        if (packetMatch === null) {
-          // packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
-          // if (packetMatch !== null) {
-          //   let curActuatorid = packetMatch[1];
-          //   let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
-          //   curActuatorState.state_ownValue = packetMatch[2];
-          //   let actuatorStates_List = [];
-          //   actuatorStates_List[0] = ['0' , false , 'OFF'];
-          //   actuatorStates_List[1] = ['1' , true , 'ON'];
-          //   actuatorStates_List[2] = ['2' , true , 'Opened'];
-          //   actuatorStates_List[3] = ['3' , false , 'Closed'];
-          //   actuatorStates_List[4] = ['4' , false , 'Stop'];
-          //   actuatorStates_List[5] = ['5' , false , 'OFF Fan Coil'];
-          //   actuatorStates_List[6] = ['6' , true , 'ON Vel 1'];
-          //   actuatorStates_List[7] = ['7' , true , 'ON Vel 2'];
-          //   actuatorStates_List[8] = ['8' , true , 'ON Vel 3'];
-          //   actuatorStates_List[9] = ['9' , true , 'ON Fan Coil'];
-          //
-          //   for (let i = 0; i < actuatorStates_List.length; i++) {
-          //     if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {
-          //       curActuatorState.On = actuatorStates_List[i][1];
-          //       curActuatorState.state = actuatorStates_List[i][2];
-          //       payloadInfo.actuatorStates.On = curActuatorState.On; // Easy way (but not 100% correct : the global state in taken from the last read actuator)
-          //       break;
-          //     }
-          //   }
-          // }
-        }
-        // Checks 4 : Local offset acquire frames (OpenWebNet doc) : *#4*where*13*OL## with OL = Local Offset (knob status):
-        // 00 = 0 / 01 = +1° / 02 = +2° / 03 = +3° / 11 = -1° / 12 = -2° / 13 = -3° / 04 = Local OFF / 05 = Local protection
-        if (packetMatch === null) {
-          // packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d\\d)##');
-          // if (packetMatch !== null) {
-          //   payloadInfo.localOffset_ownValue = packetMatch[1];
-          //   let localOffset_List = [];
-          //   localOffset_List[0] = ['00' , 0];  // +0°C
-          //   localOffset_List[1] = ['01' , 1];  // +1°C
-          //   localOffset_List[2] = ['02' , 2];  // +2°C
-          //   localOffset_List[3] = ['03' , 3];  // +3°C
-          //   localOffset_List[4] = ['11' , -1]; // -1°C
-          //   localOffset_List[5] = ['12' , -2]; // -2°C
-          //   localOffset_List[6] = ['13' , -3]; // -3°C
-          //   localOffset_List[7] = ['04' , 'Local OFF'];
-          //   localOffset_List[8] = ['05' , 'Local protection'];
-          //
-          //   for (let i = 0; i < localOffset_List.length; i++) {
-          //     if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
-          //       payloadInfo.localOffset = localOffset_List[i][1];
-          //       break;
-          //     }
-          //   }
-          // }
-        }
-        // Checks 5 : Zone operation mode request of central unit (OpenWebNet doc) : *4*what*#where##
-        // what : 110 = Manual Heating / 210 = Manual Conditioning / 111 = Automatic Heating / 211 = Automatic Conditioning / 103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
-        // where : [#1 - #99] Request zone by Central Unit.
-        if (packetMatch === null) {
-          // packetMatch = curPacket.match ('^\\*4\\*(\\d\\d\\d)\\*\\#' + config.zoneid + '##');
-          // if (packetMatch !== null) {
-          //   payloadInfo.operationMode_ownValue = packetMatch[1];
-          //   let operationMode_List = [];
-          //   operationMode_List[0] = ['110' , 'Manual Heating'];
-          //   operationMode_List[1] = ['210' , 'Manual Conditioning'];
-          //   operationMode_List[2] = ['111' , 'Automatic Heating'];
-          //   operationMode_List[3] = ['211' , 'Automatic Conditioning'];
-          //   operationMode_List[4] = ['103' , 'Off Heating'];
-          //   operationMode_List[5] = ['203' , 'Off Conditioning'];
-          //   operationMode_List[6] = ['102' , 'Antifreeze'];
-          //   operationMode_List[7] = ['202' , 'Thermal Protection'];
-          //
-          //   for (let i = 0; i < operationMode_List.length; i++) {
-          //     if (operationMode_List[i][0] == payloadInfo.operationMode_ownValue) {
-          //       payloadInfo.operationMode = operationMode_List[i][1];
-          //       break;
-          //     }
-          //   }
-          // }
         }
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
@@ -195,16 +121,15 @@ module.exports = function (RED) {
       }
 
       // Update node status payloadInfo
-      let nodeStatusFill;
-      if (!payloadInfo.actuatorStates.On || payloadInfo.operationType === '?') {
-        nodeStatusFill = 'grey';
-      } else if (payloadInfo.operationType === 'Heating') {
-        nodeStatusFill = 'yellow';
-      } else {
-        nodeStatusFill = 'blue';
+      let nodeStatusText = payloadInfo.operationMode;
+      if (payloadInfo.operationMode_curProgram !== undefined) {
+        nodeStatusText = nodeStatusText + ' #' + payloadInfo.operationMode_curProgram;
+      } else if (payloadInfo.operationMode_curScenario !== undefined) {
+        nodeStatusText = nodeStatusText + ' #' + payloadInfo.operationMode_curScenario;
+      } else if (payloadInfo.operationMode_setTemperature !== undefined) {
+        nodeStatusText = nodeStatusText + ' @' + payloadInfo.operationMode_setTemperature + '°C';
       }
-      let nodeStatusText = payloadInfo.state + '°C (' + payloadInfo.operationMode + ' @' + payloadInfo.setTemperature + '°C)';
-      node.status ({fill: nodeStatusFill, shape: 'dot', text: nodeStatusText});
+      node.status ({fill: node.status_icon[0], shape: node.status_icon[1], text: nodeStatusText});
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
       // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
@@ -215,14 +140,18 @@ module.exports = function (RED) {
         payload.command_received = packet;
         // MSG1 : Add all current node stored values to payload
         payload.state = payloadInfo.state;
-        payload.setTemperature = payloadInfo.setTemperature;
-        payload.operationType = payloadInfo.operationType;
-        payload.operationType_ownValue = payloadInfo.operationType_ownValue;
-        payload.localOffset = payloadInfo.localOffset;
-        payload.localOffset_ownValue = payloadInfo.localOffset_ownValue;
-        payload.actuatorStates = payloadInfo.actuatorStates;
-        payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
+        payload.remoteControl = payloadInfo.remoteControl;
         payload.operationMode = payloadInfo.operationMode;
+        // MSG1 : Add all current node stored values to payload (but only if these were defined)
+        if (payloadInfo.operationMode_setTemperature !== undefined) {
+          payload.operationMode_setTemperature = payloadInfo.operationMode_setTemperature;
+        }
+        if (payloadInfo.operationMode_curProgram !== undefined) {
+          payload.operationMode_curProgram = payloadInfo.operationMode_curProgram;
+        }
+        if (payloadInfo.operationMode_curScenario !== undefined) {
+          payload.operationMode_curScenario = payloadInfo.operationMode_curScenario;
+        }
         // MSG1 : Add misc info
         msg.topic = 'state/' + config.topic;
 
@@ -281,44 +210,48 @@ module.exports = function (RED) {
         commands.push ('*#4*#0##');
       } else {
         // Running in Write mode
-        if (parseFloat(payload.state)) {
-          // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          //  - The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
-          //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-          //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
-          let tempSet = parseInt(payload.state*10);
-          if (tempSet < 20) {
-            tempSet = 20;
-          } else if (tempSet > 430) {
-            tempSet = 430;
-          }
-          tempSet = ('0000' + tempSet.toString()).slice(-4);
-          commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
-        } else if (payload.state === 'AUTO') {
-          // Zone to be switched to auto : *4*311*#where##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          commands.push ('*4*311*#' + config.zoneid + '##');
-        } else if (payload.state === 'OFF') {
-          // Zone to be switched to off : *4*303*where##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          commands.push ('*4*303*#' + config.zoneid + '##');
-        } else if (payload.state === 'PROTECT') {
-          // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
-          //  - where = [#1 - #99] Setup zone by Central Unit
-          commands.push ('*4*302*#' + config.zoneid + '##');
-        }
+        // if (parseFloat(payload.state)) {
+        //   // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
+        //   //  - where = [#1 - #99] Setup zone by Central Unit
+        //   //  - The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
+        //   //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
+        //   //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
+        //   let tempSet = parseInt(payload.state*10);
+        //   if (tempSet < 20) {
+        //     tempSet = 20;
+        //   } else if (tempSet > 430) {
+        //     tempSet = 430;
+        //   }
+        //   tempSet = ('0000' + tempSet.toString()).slice(-4);
+        //   commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
+        // } else if (payload.state === 'AUTO') {
+        //   // Zone to be switched to auto : *4*311*#where##
+        //   //  - where = [#1 - #99] Setup zone by Central Unit
+        //   commands.push ('*4*311*#' + config.zoneid + '##');
+        // } else if (payload.state === 'OFF') {
+        //   // Zone to be switched to off : *4*303*where##
+        //   //  - where = [#1 - #99] Setup zone by Central Unit
+        //   commands.push ('*4*303*#' + config.zoneid + '##');
+        // } else if (payload.state === 'PROTECT') {
+        //   // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
+        //   //  - where = [#1 - #99] Setup zone by Central Unit
+        //   commands.push ('*4*302*#' + config.zoneid + '##');
+        // }
       }
       if (commands.length === 0) {
         return;
       }
 
       // Send the command on the BUS through the MyHome gateway
-      mhutils.executeCommand (node, commands, gateway, true,
-        function (sdata, commands, cmd_responses) {
+      mhutils.executeCommand (node, commands, gateway, 0, true,
+        function (sdata, commands, cmd_responses, cmd_failed) {
           // Build main payload to return payloads to outputs
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          if (cmd_failed.length) {
+            // Also add failed requests, but only if some failed
+            payload.command_failed = cmd_failed;
+          }
           // Once commands were sent, call internal function to froce node info refresh (using 'state/')and msg outputs
           msg.topic = 'state/' + config.topic;
           node.processReceivedBUSCommand (msg, cmd_responses);
