@@ -27,7 +27,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     if (logEnabled) {callingNode.log ('gateway connection : NACK command received, abording.');}
     let errorMsg = "Gateway connection/authentication failed (NACK). Last reached state was '" + persistentObj.state + "'";
     persistentObj.state = 'disconnected';
-    error (startCommand, packet, errorMsg); // error callback to stop function
+    error (startCommand, errorMsg); // error callback to stop function
   }
 
   // The connection procedure differs based on how authentication is defined
@@ -94,7 +94,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     } else {
       if (logEnabled) {callingNode.warn ('gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, abording...');}
       netSocket.write (NACK);
-      error (startCommand, packet, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
+      error (startCommand, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
     }
   }
   if (persistentObj.state === 'authenticating') {
@@ -121,10 +121,22 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
   // Convert commands (which could be an array... or a string) to a single string and only take valid MyHome commands (back) to an array
   commands = commands.toString().match(/\*.+?##/g);
 
-  function internalError (command, packet, errorMsg) {
+  function internalError (cmd_failed, errorMsg) {
+    // Disconnect & reset state
     persistentObj.state = 'disconnected';
     client.destroy();
-    error (packet, command, errorMsg);
+    //  Build error message and return it
+    if (typeof(cmd_failed) === 'string') {
+      cmd_failed = [cmd_failed];
+    }
+    let nodeStatusErrorMsg = '';
+    if (cmd_failed.length > 1) {
+      nodeStatusErrorMsg = cmd_failed.length + ' commands failed.';
+    } else {
+      nodeStatusErrorMsg = 'command failed: ' + cmd_failed.toString();
+    }
+    callingNode.error ('commands [' + cmd_failed.toString() + '] failed : ' + errorMsg);
+    error (cmd_failed, nodeStatusErrorMsg);
   }
 
   function writeCommand (command , applyDelay)  {
@@ -135,7 +147,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
   }
 
   client.on ('error', function() {
-    internalError (commands.join(','), '', 'Command socket error');
+    internalError (commands, 'Command socket error');
   });
 
   client.on ('data', function (data) {
@@ -207,7 +219,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
         success (commands, cmd_responses , cmd_failed);
       } else {
         // No command was acknowledged, return in error mode
-        internalError (cmd_failed.join (', '), '', 'All commands (' + cmd_failed_count + ') were not acknowledged (NACK) when already connected.');
+        internalError (cmd_failed, 'All commands (' + cmd_failed_count + ') were not acknowledged (NACK) when already connected.');
       }
     }
   }

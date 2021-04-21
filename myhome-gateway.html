@@ -114,17 +114,17 @@
   Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :
   <table id="mh-tableinfo">
       <tr>  <th>Gateway</th>                         <th>Authentication (tested)</th>               <th>Lights</th>   <th>Shutters</th>  <th>Temperature</th>	</tr>
-      <tr>  <td><strong>MH201</strong></td>          <td>IP, OPEN pwd</td>                          <td>OK</td>       <td>OK</td>        <td>?</td>            </tr>
+      <tr>  <td><strong>MH201 *</strong></td>          <td>IP, OPEN pwd</td>                          <td>OK</td>       <td>OK</td>        <td>?</td>            </tr>
       <tr>  <td><strong>MH202</strong></td>          <td>OPEN pwd</td>                              <td>OK</td>       <td>OK</td>        <td>OK [2][3]</td>    </tr>
       <tr>  <td><strong>F455</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-1) pwd [1]</td>    <td>OK</td>       <td>OK</td>        <td>OK [3]</td>       </tr>
       <tr>  <td><strong>F459</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>        <td>OK</td>       <td>OK</td>        <td>OK</td>           </tr>
-      <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                      <td>OK</td>       <td>OK</td>        <td>OK</td>           </tr>
+      <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                      <td>OK</td>       <td>OK</td>        <td>OK [4]</td>       </tr>
   </table>
   <i>* based on *Fabio Bui* feedback</i>
   <br> <i>[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.</i>
   <br> <i>[2] MH202 gateway returns the temperature set-point without taking the local offset into account</i>
   <br> <i>[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)</i>
-
+  <br> <i>[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
 
   <h3>BUS logging options</h3>
     <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>

@@ -164,16 +164,17 @@ BTicino is using a proprietary protocol (SCS) to communicate from/to the devices
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
 | Gateway             | Authentication (tested)           | Lights        | Shutters      | Temperature   |
 | ------------------- | --------------------------------- | ------------- | ------------- | ------------- |
-| ***MH201*** *       | IP, OPEN pwd                      | OK            | OK            | ?             |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             |
 | ***MH202***         | OPEN pwd                          | OK            | OK            | OK [2][3]     |
 | ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK [3]        |
 | ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK [4]        |
 
-*based on *Fabio Bui* feedback
+\*based on *Fabio Bui* feedback
 [1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
 [2] MH202 gateway returns the temperature set-point without taking the local offset into account
 [3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
+[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
 
 ## 5. Contact me
 If you have questions, remarks, issues,... please add your input using GitHub for this project (either [issues](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues) or [discussions](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/discussions))

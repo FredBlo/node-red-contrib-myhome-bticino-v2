@@ -343,10 +343,9 @@ module.exports = function (RED) {
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
           node.processReceivedBUSCommand (msg, cmd_responses);
-        }, function (sdata, command, errorMsg) {
-          node.error ('command [' + command + '] failed : ' + errorMsg);
+        }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
-          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + command});
+          node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});
         });
       };
 

@@ -18,21 +18,30 @@ module.exports = function (RED) {
 
       mhutils.executeCommand (node, commands, gateway, interCommandsDelay, true,
         function (commands, cmd_responses, cmd_failed) {
+          let nodeStatusShape = 'dot';
+          let nodeStatusTextErr = '';
           // update payload with sent command & results received
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
           if (cmd_failed.length) {
             // Also add failed requests, but only if some failed
             payload.command_failed = cmd_failed;
+            nodeStatusTextErr = ' Errors: ' + cmd_failed.length;
+            nodeStatusShape = 'ring';
           }
           msg.payload = payload;
           node.send (msg);
           // updating node state
-          node.status ({fill: 'green', shape: 'dot', text: 'command executed: ' + commands});
-        }, function (sdata, commands, errorMsg) {
-          node.error ('command [' + commands + '] failed : ' + errorMsg);
+          let nodeStatusText = '';
+          if (payload.command_sent.length === 1) {
+            nodeStatusText = "'"+ payload.command_sent[0] + "' sent. Responses: " + cmd_responses.length;
+          } else if (payload.command_sent.length > 1) {
+            nodeStatusText = payload.command_sent.length + ' sent.' + nodeStatusTextErr + ' Responses: ' + cmd_responses.length;
+          }
+          node.status ({fill: 'green', shape: nodeStatusShape, text: nodeStatusText});
+        }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
-          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + commands});
+          node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});
         });
       });
     }

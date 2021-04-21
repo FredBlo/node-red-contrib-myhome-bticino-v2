@@ -49,14 +49,14 @@ module.exports = function (RED) {
       });
 
       node.client.on ('error', function () {
-        internalError ('', '', 'socket error connecting to ' + node.host + ':' + node.port);
+        internalError ('', 'socket error connecting to ' + node.host + ':' + node.port);
       });
 
       node.client.on ('close', function() {
-        internalError ('', '', 'socket connection closed');
+        internalError ('', 'socket connection closed');
       });
 
-    function internalError (command, packet, errorMsg) {
+    function internalError (cmd_failed, errorMsg) {
       // In case of error / disconnection / close, try automated restart
       node.warn ("gateway connection issue (" + errorMsg + "): last known state was '" + persistentObj.state + "', trying to re-connect...");
       node.disconnect (RESTART_CONNECT_TIMEOUT);
@@ -100,7 +100,7 @@ module.exports = function (RED) {
     function parsePacket (packet) {
       if (packet === NACK) {
         // When we have a non acknowledged return, always generate an internal error
-        internalError (START_MONITOR, packet, 'Command not acknowledged (NACK) when already connected');
+        internalError (START_MONITOR, 'Command not acknowledged (NACK) when already connected');
         return;
       }
 
