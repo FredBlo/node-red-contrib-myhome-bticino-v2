@@ -100,7 +100,7 @@ module.exports = function (RED) {
                 payloadInfo.operationMode = operationMode_List[i].mode;
                 node.status_icon = operationMode_List[i].icon;
                 if (operationMode_List[i].addField !== undefined) {
-                  // A sub value is defined for this mode, add it to payload // TODO:
+                  // A sub value is defined for this mode, add it to payload
                   payloadInfo['operationMode_' + operationMode_List[i].addField] = operationMode_List[i].addFieldInfo;
                 }
                 break;
@@ -179,9 +179,7 @@ module.exports = function (RED) {
       } else if (msg.topic !== 'cmd/' + config.topic) {
         return;
       }
-      // Get payload and apply conversions (asked state can be set in 'msg.payload',
-      // 'msg.payload.state' or 'msg.payload.On', value being either true/false or ON/OFF
-      // Final result is always kept in 'msg.payload.state' = 'ON' or 'OFF'
+      // Get payload and apply conversions (asked state can be set in 'msg.payload' or 'msg.payload.state'
       if (msg.payload === undefined) {
         msg.payload = {};
       } else if (typeof(msg.payload) === 'string') {
@@ -193,7 +191,7 @@ module.exports = function (RED) {
         //  msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
         //  }
       } else if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
-        msg.payload = {'state': msg.payload};
+        msg.payload = {'state': msg.payload.toString()};
       }
       let payload = msg.payload;
 
@@ -201,46 +199,67 @@ module.exports = function (RED) {
       let commands = [];
       if (!isReadOnly) {
         // Running in Write mode
+        let cmd_what = '';
+        let isManualTemp = 0;
 
-  // 1.6.11 Scenario activation command (without specific mode)
-	// *4*what*#0##
-	// what = [3201 – 3216]
-	// Response : *4*what*#0## = but with response [1201-1216] (heating) or [2201-2216] (conditioning)
-
-  // 1.6.7	Weekly program activation command (without specific mode)
-	// *4*what*#0##
-	// what = [3101 – 3103] set in program.
-	// Response : *4*what*#0## = same as command (!! to test : does it not respond [1101 – 1103] in heating & [2101 – 2103] in conditioning ???)
-  //
-	// + 4*3100*#0## = last activated program
-        // if (parseFloat(payload.state)) {
-        //   // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
-        //   //  - where = [#1 - #99] Setup zone by Central Unit
-        //   //  - The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
-        //   //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-        //   //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
-        //   let tempSet = parseInt(payload.state*10);
-        //   if (tempSet < 20) {
-        //     tempSet = 20;
-        //   } else if (tempSet > 430) {
-        //     tempSet = 430;
-        //   }
-        //   tempSet = ('0000' + tempSet.toString()).slice(-4);
-        //   commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
-        // } else if (payload.state === 'AUTO') {
-        //   // Zone to be switched to auto : *4*311*#where##
-        //   //  - where = [#1 - #99] Setup zone by Central Unit
-        //   commands.push ('*4*311*#' + config.zoneid + '##');
-        // } else if (payload.state === 'OFF') {
-        //   // Zone to be switched to off : *4*303*where##
-        //   //  - where = [#1 - #99] Setup zone by Central Unit
-        //   commands.push ('*4*303*#' + config.zoneid + '##');
-        // } else if (payload.state === 'PROTECT') {
-        //   // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
-        //   //  - where = [#1 - #99] Setup zone by Central Unit
-        //   commands.push ('*4*302*#' + config.zoneid + '##');
-        // }
+        let operationMode_List = [];
+        operationMode_List.push ({state:'ANTIFREEZE',                 own:'102',    mode:'Antifreeze',                 icon:['yellow','ring']});
+        operationMode_List.push ({state:'OFF_HEATING',                own:'103',    mode:'Off Heating',                icon:['grey','dot']});
+        operationMode_List.push ({state:'MANUAL_HEATING:(....)',      own:'110',    mode:'Manual Heating',             icon:['yellow','dot'], addField:'setTemperature'});
+        operationMode_List.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', mode:'Auto Heating Program',       icon:['yellow','dot'], addField:'curProgram'});
+        operationMode_List.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:'Auto Heating Scenario',      icon:['yellow','dot'], addField:'curScenario'});
+        operationMode_List.push ({state:'THERMAL_PROTECT',            own:'202',    mode:'Thermal Protection',         icon:['blue','ring']});
+        operationMode_List.push ({state:'OFF_CONDITIONING',           own:'203',    mode:'Off Conditioning',           icon:['grey','dot']});
+        operationMode_List.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:'Manual Conditioning',        icon:['blue','dot'],   addField:'setTemperature'});
+        operationMode_List.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:'Auto Conditioning Program',  icon:['blue','dot'],   addField:'curProgram'});
+        operationMode_List.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:'Auto Conditioning Scenario', icon:['blue','dot'],   addField:'curScenario'});
+        operationMode_List.push ({state:'OFF',                        own:'303',    mode:'Off Generic',                icon:['grey','dot']});
+        operationMode_List.push ({state:'MANUAL:(....)',              own:'310',    mode:'Manual Generic',             icon:['yellow','dot'], addField:'setTemperature'});
+        operationMode_List.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:'Auto Generic Program',       icon:['yellow','dot'], addField:'curProgram'});
+        operationMode_List.push ({state:'SCENARIO:(..)',              own:'32(..)', mode:'Auto Generic Scenario',      icon:['yellow','dot'], addField:'curScenario'});
+        // Add main & associated sub info if any
+        for (let i = 0; i < operationMode_List.length; i++) {
+          // Use a regex to see if the current 'state' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
+          let stateMatch = payload.state.match('^' + operationMode_List[i].state + '$');
+          if (stateMatch !== null || payload.operationMode === operationMode_List[i].mode) {
+            cmd_what = operationMode_List[i].own;
+            // If this command as a dynamic part in it (i.e. '(.)' or '(..)'), process this
+            let cmd_whatParam = '';
+            if (stateMatch === null) {
+              cmd_whatParam = payload['operationMode_' + operationMode_List[i].addField];
+            } else {
+              cmd_whatParam = stateMatch[1];
+            }
+            let countPoints = cmd_what.split('.').length-1;
+            if (cmd_whatParam && countPoints) {
+              let whatSource = '(' + '.'.repeat(countPoints) + ')';
+              let whatReplacer = ('0' + cmd_whatParam).slice(-countPoints);
+              cmd_what = cmd_what.replace(whatSource , whatReplacer);
+            }
+            isManualTemp = (operationMode_List[i].state.includes('MANUAL')) ? cmd_whatParam : 0;
+            break;
+          }
+        }
+        // After having parsed commands, apply final command : MANUAL mode a different one, while other ar 'simply' a WHAT command
+        if (isManualTemp || parseFloat(payload.state)) {
+          // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
+          //  - where = [#1 - #99] Setup zone by Central Unit
+          //  - The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
+          //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
+          //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
+          let tempSet = parseInt((isManualTemp || payload.state)*10);
+          if (tempSet < 20 || isNaN(tempSet)) {
+            tempSet = 20;
+          } else if (tempSet > 430) {
+            tempSet = 430;
+          }
+          tempSet = ('0000' + tempSet.toString()).slice(-4);
+          commands.push ('*#4*#0*#14*' + tempSet + '*' + cmd_what.slice(0,1) + '##');
+        } else if (cmd_what) {
+          commands.push ('*4*' + cmd_what + '*#0##');
+        }
       }
+
       if (isReadOnly || commands.length) {
       // Working in read-only mode: build a status enquiry request (no status update sent)
         // In theory (based on OpenWebNet doc), only 1 call is required
@@ -250,6 +269,7 @@ module.exports = function (RED) {
         //  - MH202 : does provide the listed ones but always returned 3 frame (what=22, 23 and 24) even if not probe OFF / Protection / manual at all...
         //  - F459 & MyHOMEServer1 : works as it should
         commands.push ('*#4*#0##');
+        commands.push ('*#4*0*14##');
       }
       if (commands.length === 0) {
         return;

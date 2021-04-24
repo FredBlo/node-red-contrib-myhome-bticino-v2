@@ -241,9 +241,7 @@ module.exports = function (RED) {
       } else if (msg.topic !== 'cmd/' + config.topic) {
         return;
       }
-      // Get payload and apply conversions (asked state can be set in 'msg.payload',
-      // 'msg.payload.state' or 'msg.payload.On', value being either true/false or ON/OFF
-      // Final result is always kept in 'msg.payload.state' = 'ON' or 'OFF'
+      // Get payload and apply conversions (asked state can be set in 'msg.payload' or 'msg.payload.state'
       if (msg.payload === undefined) {
         msg.payload = {};
       } else if (typeof(msg.payload) === 'string') {
@@ -266,7 +264,7 @@ module.exports = function (RED) {
           //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
           //  - M = operation mode : 1 = heating mode / 2 = conditional mode / 3 = generic mode
           let tempSet = parseInt(payload.state*10);
-          if (tempSet < 20) {
+          if (tempSet < 20 || isNaN(tempSet)) {
             tempSet = 20;
           } else if (tempSet > 430) {
             tempSet = 430;
@@ -275,18 +273,30 @@ module.exports = function (RED) {
           commands.push ('*#4*#' + config.zoneid + '*#14*' + tempSet + '*3##');
           commands.push ('*#4*' + config.zoneid + '*14##'); // since the set command does not return the value, get it by adding a status command right after
         } else {
-          if (payload.state === 'PROTECT') {
-            // Zone to be switched to protection mode (only generic managed here) : *4*302*where##
+          let cmd_what = '';
+          if (payload.state === 'ANTIFREEZE') {
+            // Zone to be switched to Antifreeze mode (only valid in 'Heating mode') : *4*102*where##
             //  - where = [#1 - #99] Setup zone by Central Unit
-            commands.push ('*4*302*#' + config.zoneid + '##');
+            cmd_what = '102';
+          } else if (payload.state === 'THERMAL_PROTECT') {
+            // Zone to be switched to thermal protection mode (only valid in 'Conditioning mode') : *4*202*where##
+            //  - where = [#1 - #99] Setup zone by Central Unit
+            cmd_what = '202';
+          } else if (payload.state === 'PROTECT') {
+            // Zone to be switched to protection mode (Generic, works for both Heating & Conditioning modes) : *4*302*where##
+            //  - where = [#1 - #99] Setup zone by Central Unit
+            cmd_what = '302';
           } else if (payload.state === 'OFF') {
             // Zone to be switched to off : *4*303*where##
             //  - where = [#1 - #99] Setup zone by Central Unit
-            commands.push ('*4*303*#' + config.zoneid + '##');
+            cmd_what = '303';
           } else if (payload.state === 'AUTO') {
             // Zone to be switched to auto : *4*311*#where##
             //  - where = [#1 - #99] Setup zone by Central Unit
-            commands.push ('*4*311*#' + config.zoneid + '##');
+            cmd_what = '311';
+          }
+          if (cmd_what) {
+            commands.push ('*4*' + cmd_what + '*#' + config.zoneid + '##');
           }
         }
       }
