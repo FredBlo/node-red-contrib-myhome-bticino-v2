@@ -32,6 +32,27 @@ module.exports = function (RED) {
     runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function which returns all operation modes params / key info (used in both 'processReceivedBUSCommand' and 'processInput' functions)
+    function operationModesParams () {
+      let operationMode_List = [];
+      operationMode_List.push ({state:'ANTIFREEZE',                 own:'102',    mode:'Antifreeze',                 icon:['yellow','ring']});
+      operationMode_List.push ({state:'OFF_HEATING',                own:'103',    mode:'Off Heating',                icon:['grey','dot']});
+      operationMode_List.push ({state:'MANUAL_HEATING:(....)',      own:'110',    mode:'Manual Heating',             icon:['yellow','dot'], addField:'setTemperature'});
+      operationMode_List.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', mode:'Auto Heating Program',       icon:['yellow','dot'], addField:'curProgram'});
+      operationMode_List.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:'Auto Heating Scenario',      icon:['yellow','dot'], addField:'curScenario'});
+      operationMode_List.push ({state:'THERMAL_PROTECT',            own:'202',    mode:'Thermal Protection',         icon:['blue','ring']});
+      operationMode_List.push ({state:'OFF_CONDITIONING',           own:'203',    mode:'Off Conditioning',           icon:['grey','dot']});
+      operationMode_List.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:'Manual Conditioning',        icon:['blue','dot'],   addField:'setTemperature'});
+      operationMode_List.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:'Auto Conditioning Program',  icon:['blue','dot'],   addField:'curProgram'});
+      operationMode_List.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:'Auto Conditioning Scenario', icon:['blue','dot'],   addField:'curScenario'});
+      operationMode_List.push ({state:'OFF',                        own:'303',    mode:'Off Generic',                icon:['grey','dot']});
+      operationMode_List.push ({state:'MANUAL:(....)',              own:'310',    mode:'Manual Generic',             icon:['yellow','dot'], addField:'setTemperature'});
+      operationMode_List.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:'Auto Generic Program',       icon:['yellow','dot'], addField:'curProgram'});
+      operationMode_List.push ({state:'SCENARIO:(..)',              own:'32(..)', mode:'Auto Generic Scenario',      icon:['yellow','dot'], addField:'curScenario'});
+      return operationMode_List;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processReceivedBUSCommand = function (msg, packet) {
@@ -77,17 +98,7 @@ module.exports = function (RED) {
           // [4] = what : all digits after the #, if there was a #
           if (packetMatch !== null) {
             payloadInfo.operationMode_ownValue = packetMatch[1];
-            let operationMode_List = [];
-            operationMode_List.push ({own:'102',  mode:'Antifreeze',                 icon:['yellow','ring']});
-            operationMode_List.push ({own:'103',  mode:'Off Heating',                icon:['grey','dot']});
-            operationMode_List.push ({own:'110',  mode:'Manual Heating',             icon:['yellow','dot'], addField:'setTemperature', addFieldInfo:parseInt((packetMatch[4] || '').slice(-3))/10});
-            operationMode_List.push ({own:'110.', mode:'Auto Heating Program',       icon:['yellow','dot'], addField:'curProgram',     addFieldInfo:packetMatch[1].slice(-1)});
-            operationMode_List.push ({own:'12..', mode:'Auto Heating Scenario',      icon:['yellow','dot'], addField:'curScenario',    addFieldInfo:packetMatch[1].slice(-2)});
-            operationMode_List.push ({own:'202',  mode:'Thermal Protection',         icon:['blue','ring']});
-            operationMode_List.push ({own:'203',  mode:'Off Conditioning',           icon:['grey','dot']});
-            operationMode_List.push ({own:'210',  mode:'Manual Conditioning',        icon:['blue','dot'],   addField:'setTemperature', addFieldInfo:parseInt((packetMatch[4] || '').slice(-3))/10});
-            operationMode_List.push ({own:'210.', mode:'Auto Conditioning Program',  icon:['blue','dot'],   addField:'curProgram',     addFieldInfo:packetMatch[1].slice(-1)});
-            operationMode_List.push ({own:'22..', mode:'Auto Conditioning Scenario', icon:['blue','dot'],   addField:'curScenario',    addFieldInfo:packetMatch[1].slice(-2)});
+            let operationMode_List = operationModesParams ();
 
             // First remove all associated 'sub info'
             delete payloadInfo.operationMode_setTemperature;
@@ -96,12 +107,28 @@ module.exports = function (RED) {
             // Add main & associated sub info if any
             for (let i = 0; i < operationMode_List.length; i++) {
               // Use a regex to see if the current 'what' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
-              if (payloadInfo.operationMode_ownValue.match('^' + operationMode_List[i].own + '$')) {
+              let ownMatch = payloadInfo.operationMode_ownValue.match('^' + operationMode_List[i].own + '$');
+              if (ownMatch !== null) {
                 payloadInfo.operationMode = operationMode_List[i].mode;
                 node.status_icon = operationMode_List[i].icon;
+                let addFieldInfo = '';
                 if (operationMode_List[i].addField !== undefined) {
                   // A sub value is defined for this mode, add it to payload
-                  payloadInfo['operationMode_' + operationMode_List[i].addField] = operationMode_List[i].addFieldInfo;
+                  if (ownMatch[1] !== undefined) {
+                    // Additional field info is a part of the WHAT command
+                    addFieldInfo = ownMatch[1];
+                  } else {
+                    // The value is not to be found in OWN WHAT command itself. In this case, it means it is TEMPERATURE info from after the WHAT#
+                    addFieldInfo = parseInt((packetMatch[4] || '').slice(-3))/10;
+                  }
+                  payloadInfo['operationMode_' + operationMode_List[i].addField] = addFieldInfo;
+                }
+                // Build the summary state part of payload
+                payloadInfo.state = operationMode_List[i].state;
+                let countPoints = payloadInfo.state.split('.').length-1;
+                if (countPoints) {
+                  let whatSource = '(' + '.'.repeat(countPoints) + ')';
+                  payloadInfo.state = payloadInfo.state.replace (whatSource , addFieldInfo);
                 }
                 break;
               }
@@ -141,6 +168,7 @@ module.exports = function (RED) {
           payload.state = payloadInfo.state;
           payload.remoteControl = payloadInfo.remoteControl;
           payload.operationMode = payloadInfo.operationMode;
+          payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
           // MSG1 : Add all current node stored values to payload (but only if these were defined)
           if (payloadInfo.operationMode_setTemperature !== undefined) {
             payload.operationMode_setTemperature = payloadInfo.operationMode_setTemperature;
@@ -185,12 +213,7 @@ module.exports = function (RED) {
       } else if (typeof(msg.payload) === 'string') {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
-      if (typeof(msg.payload) === 'object') {
-        // TODO (or not based on possible input allowed)
-        // if (msg.payload.state === undefined && msg.payload.On !== undefined) {
-        //  msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
-        //  }
-      } else if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
+      if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
         msg.payload = {'state': msg.payload.toString()};
       }
       let payload = msg.payload;
@@ -201,22 +224,7 @@ module.exports = function (RED) {
         // Running in Write mode
         let cmd_what = '';
         let isManualTemp = 0;
-
-        let operationMode_List = [];
-        operationMode_List.push ({state:'ANTIFREEZE',                 own:'102',    mode:'Antifreeze',                 icon:['yellow','ring']});
-        operationMode_List.push ({state:'OFF_HEATING',                own:'103',    mode:'Off Heating',                icon:['grey','dot']});
-        operationMode_List.push ({state:'MANUAL_HEATING:(....)',      own:'110',    mode:'Manual Heating',             icon:['yellow','dot'], addField:'setTemperature'});
-        operationMode_List.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', mode:'Auto Heating Program',       icon:['yellow','dot'], addField:'curProgram'});
-        operationMode_List.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:'Auto Heating Scenario',      icon:['yellow','dot'], addField:'curScenario'});
-        operationMode_List.push ({state:'THERMAL_PROTECT',            own:'202',    mode:'Thermal Protection',         icon:['blue','ring']});
-        operationMode_List.push ({state:'OFF_CONDITIONING',           own:'203',    mode:'Off Conditioning',           icon:['grey','dot']});
-        operationMode_List.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:'Manual Conditioning',        icon:['blue','dot'],   addField:'setTemperature'});
-        operationMode_List.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:'Auto Conditioning Program',  icon:['blue','dot'],   addField:'curProgram'});
-        operationMode_List.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:'Auto Conditioning Scenario', icon:['blue','dot'],   addField:'curScenario'});
-        operationMode_List.push ({state:'OFF',                        own:'303',    mode:'Off Generic',                icon:['grey','dot']});
-        operationMode_List.push ({state:'MANUAL:(....)',              own:'310',    mode:'Manual Generic',             icon:['yellow','dot'], addField:'setTemperature'});
-        operationMode_List.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:'Auto Generic Program',       icon:['yellow','dot'], addField:'curProgram'});
-        operationMode_List.push ({state:'SCENARIO:(..)',              own:'32(..)', mode:'Auto Generic Scenario',      icon:['yellow','dot'], addField:'curScenario'});
+        let operationMode_List = operationModesParams ();
         // Add main & associated sub info if any
         for (let i = 0; i < operationMode_List.length; i++) {
           // Use a regex to see if the current 'state' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
@@ -254,7 +262,7 @@ module.exports = function (RED) {
             tempSet = 430;
           }
           tempSet = ('0000' + tempSet.toString()).slice(-4);
-          commands.push ('*#4*#0*#14*' + tempSet + '*' + cmd_what.slice(0,1) + '##');
+          commands.push ('*#4*#0*#14*' + tempSet + '*' + (cmd_what + '3').slice(0,1) + '##');
         } else if (cmd_what) {
           commands.push ('*4*' + cmd_what + '*#0##');
         }
@@ -269,7 +277,6 @@ module.exports = function (RED) {
         //  - MH202 : does provide the listed ones but always returned 3 frame (what=22, 23 and 24) even if not probe OFF / Protection / manual at all...
         //  - F459 & MyHOMEServer1 : works as it should
         commands.push ('*#4*#0##');
-        commands.push ('*#4*0*14##');
       }
       if (commands.length === 0) {
         return;
