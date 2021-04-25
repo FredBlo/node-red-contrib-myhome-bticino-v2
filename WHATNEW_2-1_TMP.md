@@ -8,20 +8,18 @@
   Notes:
     - SmartFilter is never applied when node is running in **read-only** (status update request) mode.
     - The SmartFilter is **enabled by default** for new nodes but will remain disabled on your existing nodes until you manually decide to enable it. This way, it also remains **backward compatible** with existing configs.
-  - ***Improvement*** : the 'skip events' fonction was improved on existing nodes (Lights & Shutters) : the incoming bus messages are still processed by the node (to collect data and update node status) but will still not generate an output (~flow).
+  - ***Improvement*** : the 'skip events' function was improved on existing nodes (Lights & Shutters) : the incoming BUS messages are still processed by the node (to collect data and update node status) but will still not generate an output (~flow).
+  - ***Improvement*** : all nodes also return the commands which failed (i.e. which were refused by the MyHome gateway when sent) in `payload.command_failed`.
 
 
 - **MH Gateway**
-  - ***Bug fix*** :
-  - ***Improvement*** :
-
+  - ***Bug fix*** : initial connection to gateway will now process correctly all received packets. Before this fix, the gateway sometimes needed 2-3 attemps before being able to connect because it 'missed' some responses.
 
 - **MH Monitoring**
 
-
 - **MH Inject**
     - ***Improvement*** : the node can now be called with **multiple commands** (either using a string with commands set one after the other, either using an array of strings). It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned.
-    - ***Improvement*** : when sending multiple commands, a custom delay can be defined which is applied between 2 commands (minimum is 50ms)
+    - ***Improvement*** : when sending multiple commands, a custom **delay** can be defined which is applied between 2 commands (minimum is 50ms)
 
 
 - **MH Light**
@@ -35,6 +33,24 @@
   - ***Improvement*** : when a shutter point is updated by a node-RED msg (i.e. sent to the MyHome Gateway), the engine now also appends a second command sent to the MyHome Gateway to get the **effective shutter state** afterwards. This was made to work-around a 'limitation' of MyHome OpenWebNet where no status update message is responded on such posted command. Thanks to this, there is no more difference between a '*requested state*' and the '*effective state*'. This is non applicable to groups (which have no state).
 
 
+  - **MH Temperature Central Unit**
+    \
+    **New node type**. Added support for temperature control using a 1-99 zones central unit.
+    \
+    Main included functionalities :
+    - node will **read** most zone information
+      - current ***mode*** set (auto / manual / off / antifreeze, ...)
+      - current ***Weekly program*** set
+      - current ***Scenario*** set
+      - current ***set-point temperature*** (in manual mode)
+      - ***remote control*** enabled status
+    - node can be used to **send commands**
+      - switch ***modes*** (auto / manual / off / antifreeze, ...)
+      - switch to ***manual mode*** and define set-point temperature
+      - switch to a ***Weekly program***
+      - switch to a ***Scenario***
+    See node documentation for full detailed information.
+
 - **MH Temperature Zone**
   \
   **New node type**. Added support for temperature control in defined zones.
@@ -45,8 +61,8 @@
     - current ***set-point temperature***
     - zone ***operation type*** (heating, conditioning,...)
     - zone ***operation mode*** (automatic, manual, antifreeze,...)
-    - ***binded actuators***' state info (on, off, opened, closed,...)
-  - node can be used to **push information**
+    - zone ***binded actuators***' state info (on, off, opened, closed,...)
+  - node can be used to **send commands**
     - switch to ***manual mode*** and define set-point temperature
-    - switch ***modes*** (auto / antifreeze / protection mode)
+    - switch ***modes*** (auto / antifreeze / protection mode / ...)
   See node documentation for full detailed information.

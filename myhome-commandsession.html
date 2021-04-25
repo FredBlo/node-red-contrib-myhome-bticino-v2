@@ -51,6 +51,7 @@ commands have to be sent, this can be made by eeither using a string with comman
       <ul>
         <li> <code>payload.command_sent</code> <em>[array of string]</em> contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
         <li> <code>payload.command_responses</code> <em>[array of strings]</em> will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+        <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
       </ul>
     <p>Note: It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned. </p>
 </script>

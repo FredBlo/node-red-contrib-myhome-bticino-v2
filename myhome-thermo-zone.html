@@ -115,12 +115,12 @@
   </style>
   <p>Adds a MyHome Thermo Zone Node to monitor & apply changes on a thermo-controlled zone.</p>
   <ul>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
     <li><strong>Zone</strong> is the address of the zone in MyHome system (1-99)</li>
     <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
     <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
-    <li><strong>Name</strong> (mandatory) is the name of the node</li>
-    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, a new msg (output) is only generated when a status CHANGE was detected. Not applicable in read-only (status refresh request) mode.</li>
+    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Read-only</strong> : when enabled, the received payload (being '20', 'AUTO', 'OFF', or whatever) is ignored and a status request is sent to gather current zone state without applying any change.</li>
   </ul>
 
@@ -131,7 +131,7 @@
       <li>An Object where <code>payload.state</code> is a valid zone command</li>
       <p>A valid thermo-controlled <strong>zone command</strong> is :</p>
       <ul>
-        <li>a <strong>number</strong> ('20', '21.5',..) : the zone will be switched to manual mode and specified temperature will be applied (min 2°C, max 43°C)</li>
+        <li>a <strong>number</strong> ('20', '21.5',..) : the zone will be switched to manual mode and specified temperature will be applied (min 2°C, max 43°C).</li>
         <li><strong>OFF</strong> : zone will be switched off.</li>
         <li><strong>AUTO</strong> : zone will be switched to automatic mode.</li>
         <li><strong>PROTECT</strong> : zone will be switched to generic protection mode.</li>
@@ -153,7 +153,7 @@
   <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
     <ul>
       <li> <code>payload.state</code> <em>[number]</em> value is 'ON' or 'OFF'</li>
-      <li> <code>payload.setTemperature</code> <em>[number]</em> value is 'ON' or 'OFF'</li>
+      <li> <code>payload.setTemperature</code> <em>[number]</em> the current temperature defined as set-point</li>
       <li> <code>payload.operationType_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the operation type)
       <li> <code>payload.operationType</code> <em>[string]</em> the current zone operation type</li>
         <table id="mh-tableinfo">
@@ -221,6 +221,7 @@
       <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*#4*2*#14*0225*3##'</em> to switch zone '2' to Manual mode @22.5°C)</li>
       <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: <em>'*4*1*2'</em> means zone '2' operation mode is 'Heating')</li>
       <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+      <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
     </ul>
 
   <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector

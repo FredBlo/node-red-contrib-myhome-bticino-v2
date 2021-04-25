@@ -162,8 +162,10 @@ module.exports = function (RED) {
         let newPayloadinfo = JSON.stringify (payloadInfo);
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
-          // MSG1 : Received command info
-          payload.command_received = packet;
+          // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
+          if (!Array.isArray(packet)) {
+            payload.command_received = packet;
+          }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
           payload.remoteControl = payloadInfo.remoteControl;
