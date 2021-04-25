@@ -11,6 +11,35 @@ const SERVER_REQUIRES_HMAC2 = '*98*2##';
 const INTER_COMMANDS_DELAY = 50; // ms
 let net = require('net');
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MHUtils INTERNAL Function : Internal node event logger
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function logNodeEvent (callingNode, logType, riseLevel, logMsg) {
+  // logType can be : debug / log / warn / error
+
+  // Compute current level based on type provided. Defaults to debug.
+  let logLevels = [];
+  logLevels[0] = 'debug';
+  logLevels[1] = 'log';
+  logLevels[2] = 'warn';
+  logLevels[3] = 'error';
+  let curLogLevel = Math.max (0 , logLevels.indexOf (logType));
+
+  // When the function is called is 'Rise level' mode, apply it now to index
+  if (riseLevel) {
+    curLogLevel++;
+  }
+
+  // ensure index remains in boundaries
+  curLogLevel = Math.min (curLogLevel , logLevels.length);
+
+  // Apply log now
+  callingNode[logLevels[curLogLevel]] (logMsg);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXTERNAL Function : Gateway connection & log-in
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function processInitialConnection (startCommand, packet, netSocket, callingNode, gateway, persistentObj, error) {
   // Build (or get) default values from persistent object (which is kept by calling node and provided back at each received packet to be able to fill-in info)
   persistentObj.state = persistentObj.state || 'disconnected';
@@ -24,7 +53,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
 
   // When we have a non acknowledged return, always abord
   if (packet === NACK) {
-    if (logEnabled) {callingNode.log ('gateway connection : NACK command received, abording.');}
+    logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : NACK command received, abording.');
     let errorMsg = "Gateway connection/authentication failed (NACK). Last reached state was '" + persistentObj.state + "'";
     persistentObj.state = 'disconnected';
     error (startCommand, errorMsg); // error callback to stop function
@@ -38,7 +67,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
   //    the server finally returns another hash the client was able to compute itself too when sending (Ra,Rb,Kab)
   if (persistentObj.state === 'disconnected') {
     if (packet == ACK) {
-      if (logEnabled) {callingNode.log ('gateway connection : handshake acknowledged, asking for authentication if required...');}
+      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : handshake acknowledged, asking for authentication if required...');
       persistentObj.state = 'handshake';
       netSocket.write (startCommand);
     }
@@ -48,12 +77,12 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     // responded to an authentication request
     if (packet === ACK) {
       // No password to provide : working in local reserved network addresses
-      if (logEnabled) {callingNode.log ('gateway connection : request to authenticate acknowledged, no password check required (working in local IP address allowed range)...');}
+      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, no password check required (working in local IP address allowed range)...');
       persistentObj.state = 'authenticating';
     } else if (packet === SERVER_REQUIRES_HMAC1 || packet === SERVER_REQUIRES_HMAC2) {
       // The gateway sent back a HMAC authentication request in HMAC format, we acknowledge it to receive a Hash key
       let hmacType = (packet === SERVER_REQUIRES_HMAC1) ? 'SHA-1' : 'SHA-2 [256]';
-      if (logEnabled) {callingNode.log ('gateway connection : request to authenticate acknowledged, authenticating using HMAC (' + hmacType + ') password check required...');}
+      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, authenticating using HMAC (' + hmacType + ') password check required...');
       persistentObj.state = 'authenticating_HMAC';
       netSocket.write (ACK);
       return false;
@@ -61,10 +90,10 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
       // The gateway requires a basic password authentication, retrieve the key to generate a hashed password
       let hashKey = packet.match(/^\*\#(\d+)\#\#/);
       if (hashKey === null) {
-        if (logEnabled) {callingNode.warn ('gateway connection : request to authenticate acknowledged, no valid key received for basic password check.');}
+        logNodeEvent (callingNode, 'warn', false, 'gateway connection : request to authenticate acknowledged, no valid key received for basic password check.');
       } else {
         // Use it to build hashed password
-        if (logEnabled) {callingNode.log ('gateway connection : request to authenticate acknowledged, authenticating using basic password check...');}
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, authenticating using basic password check...');
         let hashedPwdCommand = '*#' + calcPass (gateway.pass, hashKey[1].toString()) + '##';
         persistentObj.state = 'authenticating';
         netSocket.write (hashedPwdCommand);
@@ -76,9 +105,9 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     // The gateway sent a random hashed key (Ra) needed to build a hash with password for connection request (Ra,Rb,A,B,Kab)
     let Ra = packet.match(/^\*\#(\d+)\#\#/);
     if (Ra === null) {
-      if (logEnabled) {callingNode.warn ('gateway connection : HMAC authentication step 1 : invalid random hash (Ra) received from server [' + packet + ']');}
+      logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 1 : invalid random hash (Ra) received from server [' + packet + ']');
     } else {
-      if (logEnabled) {callingNode.log ('gateway connection : HMAC authentication step 1 : random hash (Ra) received from server, sending response (Ra,Rb,A,B,Kab)...');}
+      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : HMAC authentication step 1 : random hash (Ra) received from server, sending response (Ra,Rb,A,B,Kab)...');
       persistentObj.HMAC_Auth = calcHMAC (Ra[1], gateway.pass);
       persistentObj.state = 'authenticating_HMAC_HashSent';
       netSocket.write (persistentObj.HMAC_Auth[0]);
@@ -88,23 +117,26 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
   if (persistentObj.state === 'authenticating_HMAC_HashSent') {
     // The gateway accepted the hash we send, which means password was OK, and it matches which what we expected (Ra,Rb,Kab)
     if (packet === persistentObj.HMAC_Auth[1]) {
-      if (logEnabled) {callingNode.log ('gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) matched expectation, password was accepted...');}
+      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) matched expectation, password was accepted...');
       persistentObj.state = 'authenticating';
       netSocket.write (ACK);
     } else {
-      if (logEnabled) {callingNode.warn ('gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, abording...');}
+      logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, abording...');
       netSocket.write (NACK);
       error (startCommand, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
     }
   }
   if (persistentObj.state === 'authenticating') {
-    if (logEnabled) {callingNode.warn ('gateway connection : Connection successful !');}
+    logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : Connection successful !');
     persistentObj.state = 'connected';
     return true;
   }
 }
 exports.processInitialConnection = processInitialConnection;
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXTERNAL Function : Gateway command execution function
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function executeCommand (callingNode, commands, gateway, interCommandsDelay, processNextCmdOnFail, success, error) {
   let net = require('net');
 
@@ -158,7 +190,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
       let packet = packetMatch[1] || '';
       bufferedFrames = packetMatch[2] || '';
       if (packet) {
-        callingNode.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
+        logNodeEvent (callingNode, 'debug', false, "Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
         // As long as initial connection is not OK, all packets are transmitted to a central function managing this
         if (processInitialConnection (START_COMMAND, packet, client, callingNode, gateway, persistentObj, internalError)) {
           // We are connected OK, pass the packet to the commands & responses management part
@@ -168,7 +200,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
     }
   });
 
-  callingNode.debug ("mhutils.executeCommand('" + commands.join(',') + "'), opening connexion to gateway...");
+  logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + commands.join(',') + "'), opening connexion to gateway...");
   client.connect (gateway.port, gateway.host, function() {
     // opening command session
   });
@@ -180,18 +212,18 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
         // Error when processing a command...
         cmd_failed_count++;
         cmd_failed.push (cmd_sent);
-        callingNode.debug ("mhutils.executeCommand('" + cmd_sent + "'), command sent, but was not acknowledged (NACK). Command skipped.");
+        logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + cmd_sent + "'), command sent, but was not acknowledged (NACK). Command skipped.");
         cmd_sent = '';
       } else if (packet === ACK) {
         // Command was sent, ACK received. Reset command sen to allow starting a new one
         cmd_success_count++;
-        callingNode.debug ("mhutils.executeCommand('" + cmd_sent + "'), command sent, acknowledged (ACK), responses gathered : " + cmd_lastSent_count + ". This one is done.");
+        logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + cmd_sent + "'), command sent, acknowledged (ACK), responses gathered : " + cmd_lastSent_count + ". This one is done.");
         cmd_sent = '';
       } else {
         // Command was sent, but we still did not receive an acknowledged receipt, it means the socket is still emitting results of command sent
         cmd_lastSent_count++;
         cmd_responses.push (packet);
-        callingNode.debug ("mhutils.executeCommand('" + cmd_sent + "'), collecting response(s) [#" + cmd_lastSent_count + "] (current: '" + packet + "')");
+        logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + cmd_sent + "'), collecting response(s) [#" + cmd_lastSent_count + "] (current: '" + packet + "')");
         return;
       }
     }
@@ -202,7 +234,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
         cmd_sent = commands[cmd_sent_count];
         cmd_sent_count++;
         cmd_lastSent_count = 0;
-        if (persistentObj.logEnabled) {callingNode.log ("Command '" + cmd_sent + "' sent using gateway...");}
+        logNodeEvent (callingNode, 'debug', persistentObj.logEnabled, "Command '" + cmd_sent + "' sent using gateway...");
         // Command is sent directly for first command, but delayed for next ones (if the gateway is not allowed to 'breathe' between commands, it tends to NACK commands)
         writeCommand (cmd_sent , (cmd_sent_count >> 1));
         return;
@@ -212,9 +244,9 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
       if (cmd_success_count) {
         // At least one command was OK, we consider this as a 'success'
         if (cmd_failed_count) {
-          callingNode.debug ("mhutils.executeCommand('" + commands.join(', ') + "'), all commands sent, some failed (NACK) [" + cmd_failed_count + "], some acknowledged (ACK) [" + cmd_success_count + "], responses gathered : " + cmd_responses.length + ". All done now.");
+          logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + commands.join(', ') + "'), all commands sent, some failed (NACK) [" + cmd_failed_count + "], some acknowledged (ACK) [" + cmd_success_count + "], responses gathered : " + cmd_responses.length + ". All done now.");
         } else {
-          callingNode.debug ("mhutils.executeCommand('" + commands.join(', ') + "'), all commands sent, all [" + cmd_success_count + "] acknowledged (ACK), responses gathered : " + cmd_responses.length + ". All done now.");
+          logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + commands.join(', ') + "'), all commands sent, all [" + cmd_success_count + "] acknowledged (ACK), responses gathered : " + cmd_responses.length + ". All done now.");
         }
         success (commands, cmd_responses , cmd_failed);
       } else {
@@ -234,8 +266,11 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
 }
 exports.executeCommand = executeCommand;
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXTERNAL Class : Listeners management
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class eventsMonitor {
-  // This class is intended to manage listeners linked to a specifc object in a centralized object
+  // This class is intended to manage listeners linked to a specific object in a centralized object
   // to be able to easily clear them off when entity unloads
   constructor (monitoredEntity) {
     this.monitoredEntity = monitoredEntity;
@@ -265,7 +300,9 @@ class eventsMonitor {
 }
 exports.eventsMonitor = eventsMonitor;
 
-// Secondary output generator (based on load ON/OFF state)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXTERNAL Function : Node Secondary output generator (based on load ON/OFF state)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueTextValue, falseTextValue) {
   // Build state content based on configured type (text or boolean)
   let msg2_value;
@@ -306,7 +343,9 @@ function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueText
 }
 exports.buildSecondaryOutput = buildSecondaryOutput;
 
-// Function used to build HAC hashed value to connect to gateway secured in SHA1 or SHA256 mode
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MHUtils INTERNAL function : used to build HAC hashed value to connect to gateway secured in SHA1 or SHA256 mode
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function calcHMAC (Ra, password) {
   const HMAC_COPEN = '736F70653E';
   const HMAC_SOPEN = '636F70653E';
@@ -336,7 +375,8 @@ function calcHMAC (Ra, password) {
   return [connectionRequest, expectedResponse];
 }
 
-// Function required for HMAC connection to convert BUS received values (numbers) to Hexa values
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MHUtils INTERNAL function : required for HMAC connection to convert BUS received values (numbers) to Hexa values
 function digitToHex (toConvertVal){
     let convertedVal = "";
     for (let i = 0; i < toConvertVal.length; i=i+2) {
@@ -346,7 +386,8 @@ function digitToHex (toConvertVal){
     return convertedVal;
 }
 
-// Function required for HMAC connection to convert Hexa values to BUS acceptable values (numbers)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MHUtils INTERNAL function : required for HMAC connection to convert Hexa values to BUS acceptable values (numbers)
 function hexToDigit (toConvertVal){
     let convertedVal = "";
     for (let i = 0; i < toConvertVal.length; i++) {
@@ -356,7 +397,8 @@ function hexToDigit (toConvertVal){
     return convertedVal;
 }
 
-// Function used in basic authentication mode to 'hash' the Open password
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MHUtils INTERNAL function : used in basic authentication mode to 'hash' the Open password
 function calcPass (pass, nonce) {
   let flag = true;
   let num1 = 0x0;
@@ -429,4 +471,3 @@ function calcPass (pass, nonce) {
   }
   return (num1 >>> 0).toString();
 }
-exports.calcPass = calcPass;
