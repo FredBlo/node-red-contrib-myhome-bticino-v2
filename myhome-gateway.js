@@ -37,7 +37,7 @@ module.exports = function (RED) {
           let packet = packetMatch[1] || '';
           bufferedFrames = packetMatch[2] || '';
           if (packet) {
-//            node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')"); // DISABLED in dev phase, too verbose, to re-enable afterwards DEBUG
+            node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
             // As long as initial connection is not OK, all packets are transmitted to a central function managing this
             if (mhutils.processInitialConnection (START_MONITOR, packet, node.client, node, node, persistentObj, internalError)) {
               // We are connected OK, pass the packet to the commands & responses management part
