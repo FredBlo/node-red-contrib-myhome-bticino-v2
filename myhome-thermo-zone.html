@@ -32,6 +32,14 @@
     paletteLabel: 'MH Thermo Zone',
     label: function() {
       return this.name || 'MH Thermo Zone';
+    },
+    oneditprepare: function() {
+      $(document).on('change', '#node-input-topic', function() {
+        let infoVar = $('#node-input-topic').val();
+        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
+        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
+        $('#node-info-topic').prop('title' , infoMsg);
+      });
     }
   });
 </script>
@@ -48,6 +56,7 @@
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
       <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
     <div class="form-row">
         <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
