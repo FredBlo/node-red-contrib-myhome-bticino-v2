@@ -3,17 +3,17 @@
     category: 'config',
     color: '#a6bbcf',
     defaults: {
-      name: { value: "", required: true },
-      host: { value: "", required: true },
-      port: { value: "20000", required: true },
-      pass: { value: "12345", required: false },
-      timeout: { value: "600", required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
-      log_in_lights: { value: false , required: false},
-      log_in_shutters: { value: false , required: false},
-      log_in_temperature: { value: false , required: false},
-      log_in_energy: { value: false , required: false},
-      log_in_others: { value: false , required: false},
-      log_out_cmd: { value: false , required: false}
+      name: { value: '', required: true },
+      host: { value: '', required: true },
+      port: { value: '20000', required: true },
+      pass: { value: '12345', required: false },
+      timeout: { value: '600', required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
+      log_in_lights: { value: false, required: false},
+      log_in_shutters: { value: false, required: false},
+      log_in_temperature: { value: false, required: false},
+      log_in_energy: { value: false, required: false},
+      log_in_others: { value: false, required: false},
+      log_out_cmd: { value: false, required: false}
     },
     label: function() {
       return this.name;
@@ -92,6 +92,12 @@
 </script>
 
 <script type="text/x-red" data-help-name="myhome-gateway">
+  <style>
+    #mh-tableinfo {width: 95%;font-size: small;}
+    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
+    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
+    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
+  </style>
   <p>The Gateway configuration Node</p>
   <ul>
     <li><strong>Name, IP Address, Port</strong> ... quite self explanatory :-)</li>
@@ -102,17 +108,23 @@
         <li><em>alphanumeric</em> : for advanced authentication (HMAC-1 (SHA-1) or HMAC-2 (SHA-2 / 256)</li>
       </ul>
     <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
-      <br>
-      During my test phases, I found most gateways worked very fine without it (i.e. simply set it to '0') :
-      <ul>
-        <li><em>F-455</em> : did close the connection every hour. Using a 'keep alive' of 600 (i.e. every 10 minutes) is fine.</li>
-        <li><em>MH202</em> : did not close the connection automatically</li>
-        <li><em>F-459</em> : did not close the connection automatically</li>
-        <li><em>myHOMEServer1</em> : did not close the connection automatically</li>
-      </ul>
-      <i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i>
-    </li>
+    <i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
   </ul>
+  <br>
+  Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :
+  <table id="mh-tableinfo">
+      <tr>  <th>Gateway</th>                         <th>Authentication (tested)</th>               <th>Lights</th>   <th>Shutters</th>  <th>Temperature</th>	</tr>
+      <tr>  <td><strong>MH201 *</strong></td>          <td>IP, OPEN pwd</td>                          <td>OK</td>       <td>OK</td>        <td>?</td>            </tr>
+      <tr>  <td><strong>MH202</strong></td>          <td>OPEN pwd</td>                              <td>OK</td>       <td>OK</td>        <td>OK [2][3]</td>    </tr>
+      <tr>  <td><strong>F455</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-1) pwd [1]</td>    <td>OK</td>       <td>OK</td>        <td>OK [3]</td>       </tr>
+      <tr>  <td><strong>F459</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>        <td>OK</td>       <td>OK</td>        <td>OK</td>           </tr>
+      <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                      <td>OK</td>       <td>OK</td>        <td>OK [4]</td>       </tr>
+  </table>
+  <i>* based on *Fabio Bui* feedback</i>
+  <br> <i>[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.</i>
+  <br> <i>[2] MH202 gateway returns the temperature set-point without taking the local offset into account</i>
+  <br> <i>[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)</i>
+  <br> <i>[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
 
   <h3>BUS logging options</h3>
     <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>

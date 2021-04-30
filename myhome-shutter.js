@@ -9,72 +9,117 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
+    // Build the shutter point name. If node is configured as being a group, add '#' as prefix
+    node.shuttergroupid = ((config.isgroup) ? '#' : '') + config.shutterid;
+
+    // All current zone received values stored in memory from the moment node is loaded
+    let payloadInfo = node.payloadInfo = {};
+    payloadInfo.state = '?';
+    node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Register node for updates
     node.on ('input', function (msg) {
       node.processInput (msg);
     });
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    if (!config.skipevents) {
-      const listenerFunction = function (packet) {
-        let msg = {};
-        node.processReceivedBUSCommand (msg, packet);
-      };
-      runningMonitor.addMonitoredEvent ('OWN_SHUTTERS', listenerFunction);
-    }
+    const listenerFunction = function (packet) {
+      let msg = {};
+      node.processReceivedBUSCommand (msg, packet);
+    };
+    runningMonitor.addMonitoredEvent ('OWN_SHUTTERS', listenerFunction);
 
-    // Function called when a MyHome BUS command is received
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processReceivedBUSCommand = function (msg, packet) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
+      // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
+      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
-      // Build the light point name. If node is configured as being a group, add '#' as prefix
-      let shuttergroupid = ((config.isgroup) ? '#' : '') + config.shutterid;
-
-      // CHeck whether received command is linked to current configured node shutter group/id
-      let m = packet.match ('^\\*2\\*(\\d+)\\*(' + shuttergroupid + '|0)##');
-      if (m === null) {
+      // Check whether received command is linked to current configured shutter point
+      let processedPackets = 0;
+      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
+        let packetMatch;
+        // Checks 1 : Shutter point/group update [*2*<status>*where##]
+        //    - <status> [0-2] : 0 = Stop / 1 = Up / 2 = Down
+        packetMatch = curPacket.match ('^\\*2\\*(\\d+)\\*(' + node.shuttergroupid + '|0)##');
+        if (packetMatch !== null) {
+          switch (packetMatch[1]) {
+            case '0':
+              // STOP
+              payloadInfo.state = 'STOP';
+              node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Stopped'});
+              break;
+            case '1':
+              // OPEN
+              payloadInfo.state = 'OPEN';
+              node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Opened'});
+              break;
+            case '2':
+              // CLOSE
+              payloadInfo.state = 'CLOSE';
+              node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Closed'});
+              break;
+          }
+        }
+        // If we reached here with a non null match, it means command was useful for node
+        if (packetMatch !== null) {
+          processedPackets++;
+        }
+      }
+      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      if (processedPackets === 0 && !forceRefreshAndMsg) {
         return;
       }
 
-      switch (m[1]) {
-        case '0':
-          // STOP
-          payload.state = 'STOP';
-          node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Stopped'});
-          break;
-        case '1':
-          // OPEN
-          payload.state = 'OPEN';
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Opened'});
-          break;
-        case '2':
-          // CLOSE
-          payload.state = 'CLOSE';
-          node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Closed'});
-          break;
-        default:
-      }
-      // Additional info : include initial SCS/BUS message which was read in payload
-      payload.command_received = packet;
-      // Build secondary payload
-      let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
+      // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
+      // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
+      if (!config.skipevents || forceRefreshAndMsg) {
+        let newPayloadinfo = JSON.stringify (payloadInfo);
+        if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
+          // MSG1 : Build primary msg
+          // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
+          if (!Array.isArray(packet)) {
+            payload.command_received = packet;
+          }
+          // MSG1 : Add all current node stored values to payload
+          payload.state = payloadInfo.state;
+          // MSG1 : Add misc info
+          msg.topic = 'state/' + config.topic;
 
-      msg.topic = 'state/' + config.topic;
-      node.send([msg, msg2]);
+          // MSG2 : Build secondary payload
+          let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', 'OPEN', 'CLOSE');
+
+          // Store last sent payload info & send both msg to output1 and output2
+          node.lastPayloadInfo = newPayloadinfo;
+          node.send ([msg, msg2]);
+        }
+      }
     };
 
-    // Function called when a message (payload) is received from the node-RED flow
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function called when a message (payload) is received from the node-RED flow ///////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processInput = function (msg) {
       if (typeof(msg) === 'string') {
         try {msg = JSON.parse(msg);} catch(error){}
       }
       // Only process input received from flow when the topic matches with configuration of nodes
-      if (msg.topic !== 'cmd/' + config.topic) {
+      let isReadOnly = config.isstatusrequest || false;
+      if (msg.topic === 'state/' + config.topic) {
+        // Running in 'state/' mode, force read-only regardless of node config mode
+        isReadOnly = true;
+      } else if (msg.topic !== 'cmd/' + config.topic) {
         return;
       }
+
       // Get payload and apply conversions (asked state can be set in 'msg.payload',
       // 'msg.payload.state' or 'msg.payload.On', value being either true/false or OPEN/CLOSE/STOP
       // Final result is always kept in 'msg.payload.state' = 'OPEN', 'CLOSE' or 'STOP'
@@ -93,59 +138,50 @@ module.exports = function (RED) {
         msg.payload = {'state': msg.payload};
       }
       let payload = msg.payload;
-      let nodestatusinfo = '';
 
       // Build the OpenWebNet command to be sent
-      let shuttergroupid = ((config.isgroup) ? '#' : '') + config.shutterid;
-      let command = '';
-      if (config.isstatusrequest) {
-        // Working in read-only mode: build a status enquiry request (no status update sent)
-        nodestatusinfo = 'status refresh requested';
-        command = '*#2*' + shuttergroupid + '##';
-      } else if (payload.state === 'OPEN') {
-        nodestatusinfo = 'command sent (Open)';
-        command = '*2*1*' + shuttergroupid + '##';
-      } else if (payload.state === 'CLOSE') {
-        nodestatusinfo = 'command sent (Close)';
-        command = '*2*2*' + shuttergroupid + '##';
-      } else if (payload.state === 'STOP') {
-        nodestatusinfo = 'command sent (Stop)';
-        command = '*2*0*' + shuttergroupid + '##';
+      let commands = [];
+      if (!isReadOnly) {
+        if (payload.state === 'OPEN') {
+          commands.push ('*2*1*' + node.shuttergroupid + '##');
+        } else if (payload.state === 'CLOSE') {
+          commands.push ('*2*2*' + node.shuttergroupid + '##');
+        } else if (payload.state === 'STOP') {
+          commands.push ('*2*0*' + node.shuttergroupid + '##');
+        }
       }
-      if (command === '') {
+      if ((isReadOnly || commands.length) && !config.isgroup) {
+        // In Read-Only mode : build a status enquiry request (no status update sent)
+        // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
+        // Note : This does not work for groups
+        if (!config.isgroup) {
+          commands.push ('*#2*' + node.shuttergroupid + '##');
+        }
+      }
+      if (commands.length === 0) {
         return;
       }
 
       // Send the command on the BUS through the MyHome gateway
-      mhutils.executeCommand (node, command, gateway,
-        function (sdata, command, cmd_responses) {
-          // Return values to both outputs
-          // Build main payload
-          payload.command_sent = command; // Include initial SCS/BUS message which was sent in main payload
+      mhutils.executeCommand (node, commands, gateway, 0, false,
+        function (commands, cmd_responses, cmd_failed) {
+          // Build main payload to return payloads to outputs
+          payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload
           payload.command_responses = cmd_responses; // include the BUS responses when emitted command provides a result (can hold multiple values)
+          if (cmd_failed.length) {
+            // Also add failed requests, but only if some failed
+            payload.command_failed = cmd_failed;
+          }
+          // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          // When running in status refresh mode, if we received an update, we process it as it was received by the bus
-          // This also means process stops here and msg will be output by the called function itself
-          if (cmd_responses.length) {
-            node.processReceivedBUSCommand (msg, cmd_responses[0]);
-            return;
-          }
-          // Build secondary payload
-          let msg2 = mhutils.buildSecondaryOutput (payload.state, config, 'On', 'OPEN', 'CLOSE');
-          // When node is configured to skip BUS/SCS updates, we update the status on node itself
-          // (when node monitors BUS/SCS updates, the status gets updated through the command being monitored by the gateway, which starts a node refresh)
-          if (config.skipevents) {
-            node.status ({fill: (payload.state === 'OPEN') ? 'yellow' : 'grey', shape: 'ring', text: nodestatusinfo});
-          }
-          // Send both outputs
-          node.send([msg, msg2]);
-        }, function (sdata, command, errorMsg) {
-          node.error ('command [' + command + '] failed : ' + errorMsg);
+          node.processReceivedBUSCommand (msg, cmd_responses);
+        }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
-          node.status ({fill: 'red', shape: 'dot', text: 'command failed: ' + command});
+          node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});
         });
       };
 
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       node.on ('close', function(done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
         runningMonitor.clearAllMonitoredEvents ();

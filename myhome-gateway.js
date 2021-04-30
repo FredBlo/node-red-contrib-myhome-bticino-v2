@@ -26,10 +26,26 @@ module.exports = function (RED) {
     node.timeout = (Number(config.timeout) || 0)*1000; // ms
     node.setMaxListeners (100);
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.client = new net.Socket();
 
       node.client.on ('data', function (data) {
-        parsePacket (data);
+        let allframes = data.toString();
+        let bufferedFrames = allframes;
+        while (bufferedFrames.length > 0) {
+          let packetMatch = bufferedFrames.match (/(\*.+?##)(.*)/) || [];
+          let packet = packetMatch[1] || '';
+          bufferedFrames = packetMatch[2] || '';
+          if (packet) {
+            node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
+            // As long as initial connection is not OK, all packets are transmitted to a central function managing this
+            if (mhutils.processInitialConnection (START_MONITOR, packet, node.client, node, node, persistentObj, internalError)) {
+              // We are connected OK, pass the packet to the commands & responses management part
+              failedConnectionAttempts = 0;
+              parsePacket (packet);
+            }
+          }
+        }
       });
 
       node.client.on ('error', function () {
@@ -40,12 +56,13 @@ module.exports = function (RED) {
         internalError ('', 'socket connection closed');
       });
 
-    function internalError (packet, errorMsg) {
+    function internalError (cmd_failed, errorMsg) {
       // In case of error / disconnection / close, try automated restart
       node.warn ("gateway connection issue (" + errorMsg + "): last known state was '" + persistentObj.state + "', trying to re-connect...");
       node.disconnect (RESTART_CONNECT_TIMEOUT);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     function instanciateClient (delayBeforeRestart) {
       // Try to connect (but do not allow 2 parallel calls)
       if (isTryingToConnect) {
@@ -80,73 +97,55 @@ module.exports = function (RED) {
       }
     }
 
-    function parsePacket (data) {
-      let sdata = data.toString();
-      let bufferedReadCount = 0;
+    function parsePacket (packet) {
+      if (packet === NACK) {
+        // When we have a non acknowledged return, always generate an internal error
+        internalError (START_MONITOR, 'Command not acknowledged (NACK) when already connected');
+        return;
+      }
 
-      while (sdata.length > 0) {
-        bufferedReadCount++;
-
-        let m = sdata.match (/(\*.+?##)(.*)/) || [];
-        let packet = m[1] || '';
-        sdata = m[2] || '';
-
-        if (persistentObj.state !== 'connected') {
-          // As long as initial connection is not OK, all packets are transmitted to a central function managing this
-          mhutils.processInitialConnection (START_MONITOR, packet, node.client, node, node, persistentObj, internalError);
-        }
-        if (persistentObj.state !== 'connected') {
-          // Still not connected
-          return;
-        } else if (packet === NACK) {
-          // When we have a non acknowledged return, always generate an internal error
-          internalError (packet, 'Command not acknowledged (NACK) when already connected');
-        } else {
-          // Connexion is OK, running in MONITORING mode
-          failedConnectionAttempts = 0;
-          // Get the OpenWebNet WHO family linked to this command (structure is '*WHO*WHAT*WHERE##', and can be '*#WHO*WHAT*WHERE' for some kind of calls)
-          let ownFamily = packet.match (/^\*#{0,1}(\d+)\*.+?##/);
-          if (ownFamily !== null) {
-            let loggingEnabled = false;
-            let emitterTrigger = "";
-            if (ownFamily !== null) {
-              switch (ownFamily[1]) {
-                case '1':
-                  // WHO = 1 : Lighting
-                  loggingEnabled = config.log_in_lights;
-                  emitterTrigger = 'OWN_LIGHTS';
-                  break;
-                case '2':
-                  // WHO = 2 : Automation (Shutters management)
-                  loggingEnabled = config.log_in_shutters;
-                  emitterTrigger = 'OWN_SHUTTERS';
-                  break;
-                case '4':
-                  // WHO = 4 : Temperature Control/Heating
-                  loggingEnabled = config.log_in_temperature;
-                  emitterTrigger = 'OWN_TEMPERATURE';
-                  break;
-                case '18':
-                  // WHO = 18 : Energy Management
-                  loggingEnabled = config.log_in_energy;
-                  emitterTrigger = 'OWN_ENERGY';
-                  break;
-                default:
-                  loggingEnabled = config.log_in_others;
-                  emitterTrigger = 'OWN_OTHERS';
-              }
-            }
-            if (loggingEnabled) {
-              node.log ('Received OpenWebNet command [' + packet.toString() + ']; buffered index is ' + (bufferedReadCount-1).toString());
-            }
-            if (emitterTrigger !== '') {
-              node.emit (emitterTrigger, packet);
-            }
+      // Get the OpenWebNet WHO family linked to this command (structure is '*WHO*WHAT*WHERE##', and can be '*#WHO*WHAT*WHERE' for some kind of calls)
+      let ownFamily = packet.match (/^\*#{0,1}(\d+)\*.+?##/);
+      if (ownFamily !== null) {
+        let loggingEnabled = false;
+        let emitterTrigger = "";
+        if (ownFamily !== null) {
+          switch (ownFamily[1]) {
+            case '1':
+              // WHO = 1 : Lighting
+              loggingEnabled = config.log_in_lights;
+              emitterTrigger = 'OWN_LIGHTS';
+              break;
+            case '2':
+              // WHO = 2 : Automation (Shutters management)
+              loggingEnabled = config.log_in_shutters;
+              emitterTrigger = 'OWN_SHUTTERS';
+              break;
+            case '4':
+              // WHO = 4 : Temperature Control/Heating
+              loggingEnabled = config.log_in_temperature;
+              emitterTrigger = 'OWN_TEMPERATURE';
+              break;
+            case '18':
+              // WHO = 18 : Energy Management
+              loggingEnabled = config.log_in_energy;
+              emitterTrigger = 'OWN_ENERGY';
+              break;
+            default:
+              loggingEnabled = config.log_in_others;
+              emitterTrigger = 'OWN_OTHERS';
           }
+        }
+        if (loggingEnabled) {
+          node.log ("Received OpenWebNet command (" + emitterTrigger + ") : '" + packet + "'");
+        }
+        if (emitterTrigger !== '') {
+          node.emit (emitterTrigger, packet);
         }
       }
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.disconnect = function (restartTimeout) {
       // Only warn / update status when status is not already 'disconnected'
       if (persistentObj.state !== 'disconnected') {
@@ -170,7 +169,6 @@ module.exports = function (RED) {
     function checkConnection() {
       if (failedConnectionAttempts === 0) {
         node.debug ('gateway connection : keeping connection alive every ' + node.timeout/1000 + 's ...');
-        // node.client.write (); // TEST DEBUG
         node.client.write (ACK);
       }
     }
@@ -179,6 +177,7 @@ module.exports = function (RED) {
       autoCheckConnection = setInterval (checkConnection, node.timeout);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.on('close', function (done)	{
       // Disable auto-refresh of connection & close connection properly
       if (autoCheckConnection !== undefined) {

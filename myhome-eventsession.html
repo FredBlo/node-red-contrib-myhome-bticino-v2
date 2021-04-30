@@ -3,19 +3,17 @@
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
+      name: { value: '', required: true },
       gateway: { type: 'myhome-gateway', required: true },
-      name: { value:'', required: true },
-      own_lights: { value: true , required: false},
-      own_shutters: { value: true , required: false},
-      own_temperature: { value: true , required: false},
-      own_energy: { value: true , required: false},
-      own_others: { value: false , required: false}
+      own_lights: { value: true, required: false},
+      own_shutters: { value: true, required: false},
+      own_temperature: { value: true, required: false},
+      own_energy: { value: true, required: false},
+      own_others: { value: false, required: false}
     },
-    outputs:1,
-    icon: "font-awesome/fa-rss",
-    paletteLabel: function() {
-      return 'MH Monitoring';
-    },
+    outputs: 1,
+    icon: 'font-awesome/fa-rss',
+    paletteLabel: 'MH Monitoring',
     label: function() {
       return this.name || 'MH Monitoring';
     }
@@ -23,59 +21,58 @@
 </script>
 
 <script type="text/x-red" data-template-name="myhome-eventsession">
-    <div class="form-row">
-        <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-        <input type="text" id="node-input-gateway">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Monitoring identifier">
+  </div>
+  <div class="form-row">
+      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+      <input type="text" id="node-input-gateway">
+  </div>
+  <div class="form-tips form-row" style="background:#EFEFEF">
+      <i class="fa fa-filter"></i> <b>Define command family filters</b>
+      <br>
+      You may define which families of MyHome events must trigger new Node-RED flows.
+      <br>
+        &nbsp;
+        <div class="form-row">
+            <label for="node-input-own_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> Lights</label>
+            <label for="node-input-own_lights" style="width:70%" title="OpenWebNet WHO=1">
+              <input type="checkbox" id="node-input-own_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All lights events
+            </label>
+        </div>
+        <div class="form-row">
+            <label for="node-input-own_shutters">&nbsp;<i class="fa fa-align-justify"></i> Shutters</label>
+            <label for="node-input-own_shutters" style="width:70%" title="OpenWebNet WHO=2">
+              <input type="checkbox" id="node-input-own_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All shutters events
+            </label>
+        </div>
+        <div class="form-row">
+            <label for="node-input-own_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
+            <label for="node-input-own_temperature" style="width:70%" title="OpenWebNet WHO=4">
+              <input type="checkbox" id="node-input-own_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
+            </label>
+        </div>
+        <div class="form-row">
+            <label for="node-input-own_energy">&nbsp;<i class="fa fa-bolt"></i> Energy</label>
+            <label for="node-input-own_energy" style="width:70%" title="OpenWebNet WHO=18">
+              <input type="checkbox" id="node-input-own_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All energy management events
+            </label>
+        </div>
+        <div class="form-row">
+            <label for="node-input-own_others">&nbsp;<i class="fa fa-plus-square-o "></i> Others</label>
+            <label for="node-input-own_others" style="width:70%">
+              <input type="checkbox" id="node-input-own_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All all OTHER events
+            </label>
+        </div>
     </div>
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-        <input type="text" id="node-input-name" placeholder="event session identifier">
-    </div>
-    <div class="form-tips form-row" style="background:#EFEFEF">
-        <i class="fa fa-filter"></i> <b>Define command family filters</b>
-        <br>
-        You may define which families of MyHome events must trigger new Node-RED flows.
-        <br>
-          &nbsp;
-          <div class="form-row">
-              <label for="node-input-own_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> Lights</label>
-              <label for="node-input-own_lights" style="width:70%" title="OpenWebNet WHO=1">
-                <input type="checkbox" id="node-input-own_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All lights events
-              </label>
-          </div>
-          <div class="form-row">
-              <label for="node-input-own_shutters">&nbsp;<i class="fa fa-align-justify"></i> Shutters</label>
-              <label for="node-input-own_shutters" style="width:70%" title="OpenWebNet WHO=2">
-                <input type="checkbox" id="node-input-own_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All shutters events
-              </label>
-          </div>
-          <div class="form-row">
-              <label for="node-input-own_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
-              <label for="node-input-own_temperature" style="width:70%" title="OpenWebNet WHO=4">
-                <input type="checkbox" id="node-input-own_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
-              </label>
-          </div>
-          <div class="form-row">
-              <label for="node-input-own_energy">&nbsp;<i class="fa fa-bolt"></i> Energy</label>
-              <label for="node-input-own_energy" style="width:70%" title="OpenWebNet WHO=18">
-                <input type="checkbox" id="node-input-own_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All energy management events
-              </label>
-          </div>
-          <div class="form-row">
-              <label for="node-input-own_others">&nbsp;<i class="fa fa-plus-square-o "></i> Others</label>
-              <label for="node-input-own_others" style="width:70%">
-                <input type="checkbox" id="node-input-own_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All all OTHER events
-              </label>
-          </div>
-      </div>
-
 </script>
 
 <script type="text/x-red" data-help-name="myhome-eventsession">
   <p>The monitoring node used to trigger flows based on any command read on the MyHome system BUS.</p>
     <ul>
-      <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
       <li><strong>Name</strong> (mandatory) is the name of the node</li>
+      <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
       <li><strong>Command family filters</strong> allows you to define which kind of MyHome commands have to trigger new flows.</li>
     </ul>
 

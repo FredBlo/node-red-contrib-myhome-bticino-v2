@@ -3,25 +3,33 @@
     category: 'Bticino MyHome',
     color: '#a6bbcf',
     defaults: {
+      name: { value: '', required: true },
       shutterid: { value: '', required: true, validate: RED.validators.number() },
-      isgroup: { value: false , required: false},
+      isgroup: { value: false, required: false},
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
-      name: { value: '', required: true },
-      skipevents: { value: false , required: false},
-      isstatusrequest: { value: false , required: false},
-      output2_name: { value: 'On' , required: false},
-      output2_type: { value: 'boolean' , required: false}
+      smartfilter: { value: true, required: false},
+      skipevents: { value: false, required: false},
+      isstatusrequest: { value: false, required: false},
+      output2_name: { value: 'On', required: false},
+      output2_type: { value: 'boolean', required: false}
     },
-    inputs:1,
-    outputs:2,
-    outputLabels: function(index) {
-            if (index === 0) {
-              return 'payload';
-            } else if (index === 1) {
-              return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + "=" + ((this.output2_type === 'boolean') ? 'true/false' : 'OPEN/CLOSE/STOP');
-            }
-            return '';
+    inputs: 1,
+    outputs: 2,
+    outputLabels: function (index) {
+      if (index === 0) {
+        return 'payload';
+      } else if (index === 1) {
+        let outputTypeDescr;
+        if (this.output2_type === 'boolean') {
+          outputTypeDescr = 'true/false';
+        } else if (this.output2_type === 'text_state') {
+          outputTypeDescr = 'OPEN/CLOSE/STOP';
+        } else {
+          outputTypeDescr = 'string';
+        }
+        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
+      }
     },
     icon: function() {
       if (this.isgroup) {
@@ -30,16 +38,26 @@
         return 'font-awesome/fa-align-justify';
       }
     },
-    paletteLabel: function() {
-      return 'MH Shutter';
-    },
+    paletteLabel: 'MH Shutter',
     label: function() {
       return this.name || 'MH Shutter';
+    },
+    oneditprepare: function() {
+      $(document).on('change', '#node-input-topic', function() {
+        let infoVar = $('#node-input-topic').val();
+        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
+        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
+        $('#node-info-topic').prop('title' , infoMsg);
+      });
     }
   });
 </script>
 
 <script type="text/x-red" data-template-name="myhome-shutter">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Shutter name" />
+  </div>
   <div class="form-row">
       <label for="node-input-shutterid"><i class="fa fa-align-justify"></i> Shutter</label>
       <input type="text" id="node-input-shutterid" placeholder="32 for shutter 3.2 or group 32" />
@@ -53,14 +71,21 @@
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
       <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
       <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
       <input type="text" id="node-input-gateway" />
   </div>
   <div class="form-row">
-      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-      <input type="text" id="node-input-name" placeholder="Shutter name" />
+    <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
+    <label for="node-input-smartfilter" style="width:70%">
+      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
+      &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
+      This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+      &#13;
+      Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+    </label>
   </div>
   <div class="form-row">
       <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
@@ -91,8 +116,8 @@
       <div class="form-row">
         <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
         <select id="node-input-output2_type" style="width:55%">
-          <option value="boolean">Boolean (true / false)</option>
-          <option value="text_state">String (OPEN / CLOSE / STOP)</option>
+          <option value="boolean">.state (boolean: true / false)</option>
+          <option value="text_state">.state (string: OPEN / CLOSE / STOP)</option>
         </select>
       </div>
     </div>
@@ -101,13 +126,14 @@
 <script type="text/x-red" data-help-name="myhome-shutter">
 <p>Adds a MyHome Shutter Node to your flow.</p>
   <ul>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
     <li><strong>Shutter</strong> is the address of the shutter in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
       <ul>
       <li><strong>This is a group reference</strong> is to be checked when the shutter address defined has to be used as a group-call address instead of a single shutter (point-to-point call)</li>
       </ul>
     <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
     <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
-    <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, a new msg (output) is only generated when a status CHANGE was detected. Not applicable in read-only (status refresh request) mode.</li>
     <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Read-only</strong> : when enabled, the received payload (being 'OPEN', 'CLOSE', or whatever) is ignored and a status request is sent to gather current shutter state without applying any change.</li>
   </ul>
@@ -133,9 +159,10 @@
   <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
     <ul>
       <li> <code>payload.state</code> <em>[string]</em> value is 'OPEN', 'CLOSE' or 'STOP'</li>
-      <li> <code>payload.command_sent</code> <em>[string]</em> when the node was triggered from Node-RED (i.e. a command was sent to the MyHome gateway), contains the command which was sent in OpenWebNet protocol (e.g. <em>'*2*1*15##'</em> to open shutter 1.5)</li>
+      <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*2*1*15##'</em> to open shutter 1.5)</li>
       <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured shutter), contains the command which was read in OpenWebNet protocol (ex: <em>'*2*2*25##'</em> means shutter 2.5 'close' action was started)</li>
       <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+      <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
     </ul>
 
   <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector

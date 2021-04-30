@@ -9,11 +9,13 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add all listerners on gateway based on types we have to monitor
     // Define the function which is to be called on any triggered command received from the gateway
     const listenerFunction = function (packet) {
       node.send ({payload: packet});
     };
+
     // LIGHTS
     if (config.own_lights) {
       runningMonitor.addMonitoredEvent ('OWN_LIGHTS', listenerFunction);
@@ -35,7 +37,7 @@ module.exports = function (RED) {
       runningMonitor.addMonitoredEvent ('OWN_OTHERS', listenerFunction);
     }
 
-
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     node.on('close', function(done)	{
       runningMonitor.clearAllMonitoredEvents ();
       done();
