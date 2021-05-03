@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-myhome-bticino-v2",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Control Bticino / Legrand MyHome components from Node-RED",
   "homepage": "https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2#readme",
   "repository": {
@@ -19,6 +19,7 @@
     "MyHome",
     "OpenWebNet",
     "OWN",
+    "CEN","CEN+",
     "SCS"
   ],
   "bundleDependencies": false,
@@ -30,6 +31,7 @@
       "myhome-commandsession": "myhome-commandsession.js",
       "myhome-light": "myhome-light.js",
       "myhome-shutter": "myhome-shutter.js",
+      "myhome-scenario": "myhome-scenario.js",
       "myhome-thermo-central": "myhome-thermo-central.js",
       "myhome-thermo-zone": "myhome-thermo-zone.js"
     }

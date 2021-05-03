@@ -11,6 +11,7 @@
       log_in_lights: { value: false, required: false},
       log_in_shutters: { value: false, required: false},
       log_in_temperature: { value: false, required: false},
+      log_in_scenario: { value: false, required: false},
       log_in_energy: { value: false, required: false},
       log_in_others: { value: false, required: false},
       log_out_cmd: { value: false, required: false}
@@ -67,6 +68,12 @@
           <label for="node-config-input-log_in_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
           <label for="node-config-input-log_in_temperature" style="width:70%" title="OpenWebNet WHO=4">
             <input type="checkbox" id="node-config-input-log_in_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
+          </label>
+      </div>
+      <div class="form-row">
+          <label for="node-config-input-log_in_scenario">&nbsp;<i class="fa fa-magic"></i> Scenario</label>
+          <label for="node-config-input-log_in_scenario" style="width:70%" title="OpenWebNet WHO=15 & 25">
+            <input type="checkbox" id="node-config-input-log_in_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All scenario (CEN/CEN+) events
           </label>
       </div>
       <div class="form-row">

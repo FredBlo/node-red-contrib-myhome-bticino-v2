@@ -8,6 +8,7 @@
       own_lights: { value: true, required: false},
       own_shutters: { value: true, required: false},
       own_temperature: { value: true, required: false},
+      own_scenario: { value: true, required: false},
       own_energy: { value: true, required: false},
       own_others: { value: false, required: false}
     },
@@ -51,6 +52,12 @@
             <label for="node-input-own_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
             <label for="node-input-own_temperature" style="width:70%" title="OpenWebNet WHO=4">
               <input type="checkbox" id="node-input-own_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
+            </label>
+        </div>
+        <div class="form-row">
+            <label for="node-input-own_scenario">&nbsp;<i class="fa fa-magic"></i> Scenario</label>
+            <label for="node-input-own_scenario" style="width:70%" title="OpenWebNet WHO=15 & 25">
+              <input type="checkbox" id="node-input-own_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All scenario (CEN/CEN+) events
             </label>
         </div>
         <div class="form-row">

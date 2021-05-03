@@ -126,6 +126,11 @@ module.exports = function (RED) {
               loggingEnabled = config.log_in_temperature;
               emitterTrigger = 'OWN_TEMPERATURE';
               break;
+            case '15' : case '25' :
+              // WHO = 15 (CEN) / 25 (CEN+) : Scenario Management
+              loggingEnabled = config.log_in_scenario;
+              emitterTrigger = 'OWN_SCENARIO';
+              break;
             case '18':
               // WHO = 18 : Energy Management
               loggingEnabled = config.log_in_energy;

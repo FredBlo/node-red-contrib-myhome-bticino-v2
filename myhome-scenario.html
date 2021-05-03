@@ -1,0 +1,118 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-scenario',{
+    category: 'Bticino MyHome',
+    color: '#a6bbcf',
+    defaults: {
+      name: { value: '', required: true },
+      scenarioid: { value: '', required: true, validate: RED.validators.number() },
+      topic: { value: '', required: true},
+      gateway: { type: 'myhome-gateway', required: true },
+      smartfilter: { value: true, required: false},
+      skipevents: { value: false, required: false},
+      isstatusrequest: { value: false, required: false},
+      output2_name: { value: 'On', required: false},
+      output2_type: { value: 'boolean', required: false}
+    },
+    inputs: 1,
+    outputs: 2,
+    outputLabels: function (index) {
+      if (index === 0) {
+        return 'payload';
+      } else if (index === 1) {
+        let outputTypeDescr;
+        if (this.output2_type === 'boolean') {
+          outputTypeDescr = 'true/false';
+        } else if (this.output2_type === 'text_state') {
+          outputTypeDescr = 'ON/OFF';
+        } else {
+          outputTypeDescr = 'string';
+        }
+        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
+      }
+    },
+    icon: 'font-awesome/fa-magic',
+    paletteLabel: 'MH Scenario',
+    label: function() {
+      return this.name || 'MH Scenario';
+    },
+    oneditprepare: function() {
+      $(document).on('change', '#node-input-topic', function() {
+        let infoVar = $('#node-input-topic').val();
+        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
+        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
+        $('#node-info-topic').prop('title' , infoMsg);
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-scenario">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Scenario name" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
+      <input type="text" id="node-input-scenarioid" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
+  </div>
+  <div class="form-row">
+      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
+      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+  </div>
+  <div class="form-row">
+      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+      <input type="text" id="node-input-gateway" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
+    <label for="node-input-smartfilter" style="width:70%">
+      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
+      &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
+      This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+      &#13;
+      Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+    </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
+      <label for="node-input-skipevents" style="width:70%">
+        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
+        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
+      </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
+      <label for="node-input-isstatusrequest" style="width:70%">
+        <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current load status
+        &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change."></i>
+      </label>
+  </div>
+  <div class="form-tips form-row" style="background:#EFEFEF">
+    <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
+    <br>
+    You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
+    <br>
+    <div class="form-row">
+      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
+      <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
+      <label for="node-input-output2_name" style="width:15px">
+        &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
+      </label>
+    </div>
+    <div class="form-row">
+      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
+      <select id="node-input-output2_type" style="width:55%">
+        <option value="boolean">.state (boolean: true / false)</option>
+        <option value="text_state">.state (string: ON / OFF)</option>
+        <option value="brightness">.brightness (number: 20-100)</option>
+      </select>
+    </div>
+  </div>
+</script>
+
+
+
+<script type="text/x-red" data-help-name="myhome-scenario">
+<p>Adds a MyHome Scenario Node to your flow.</p>
+</script>
