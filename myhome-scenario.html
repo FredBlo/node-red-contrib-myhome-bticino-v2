@@ -10,11 +10,19 @@
       smartfilter: { value: true, required: false},
       skipevents: { value: false, required: false},
       isstatusrequest: { value: false, required: false},
-      output2_name: { value: 'On', required: false},
-      output2_type: { value: 'boolean', required: false}
+      rules: {value:[{
+        buttonFrom:'0',
+        buttonTo:'31',
+        onStartPress:false,
+        onEndShortPress:true,
+        onEndLongPress:true,
+        onDuringLongPress:false,
+        minLongPressDuration:1000
+      }]},
+      outputs: {value:1}
     },
     inputs: 1,
-    outputs: 2,
+    outputs: 1,
     outputLabels: function (index) {
       if (index === 0) {
         return 'payload';
@@ -42,6 +50,127 @@
         + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
         $('#node-info-topic').prop('title' , infoMsg);
       });
+
+      var outputCount = $("#node-input-outputs").val(1);
+      $("#node-input-rule-container").css('min-height','300px').css('min-width','450px').editableList({
+          addItem: function (container, i, rules) {
+              if (!rules.hasOwnProperty('rule')) {
+                rules.rule = {};
+              }
+              var rule = rules.rule;
+              // When object is new, apply default values
+              if (!rule.hasOwnProperty('buttonFrom')) {
+                rule.buttonFrom = '0';
+              }
+              if (!rule.hasOwnProperty('buttonTo')) {
+                rule.buttonTo = '31';
+              }
+              if (!rule.hasOwnProperty('onEndShortPress')) {
+                rule.onEndShortPress = true;
+              }
+              if (!rule.hasOwnProperty('onEndLongPress')) {
+                rule.onEndLongPress = true;
+              }
+              if (!rule.hasOwnProperty('minLongPressDuration')) {
+                rule.minLongPressDuration = 1000;
+              }
+
+              // if (!opt.hasOwnProperty('i')) {
+              //     opt._i = Math.floor((0x99999-0x10000)*Math.random()).toString();
+              // }
+              container.css({
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap'
+              });
+
+              // ROW 1
+              var row1 = $('<div/>').appendTo(container);
+              row1.append('<span style="display:inline-block; width:100px; margin-left: 5px; font-weight:bold;">Buttons</span>');
+              row1.append('<span style="margin-left: 5px; font-weight:bold;">Trigger a new flow on...</span>');
+              // ROW 2
+              var row2 = $('<div/>').appendTo(container);
+              row2.append('<span style="display:inline-block; width:100px; margin-left: 20px;">From...</span>');
+              var field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + i, class:"node-input-onStartPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row2);
+              row2.append('<label for="node-input-onStartPress_' + i + '">Start press</label>');
+              // ROW 3
+              var row3 = $('<div/>').appendTo(container);
+              var field_buttonFrom = $('<select/>',{class:"node-input-buttonFrom",style:"width:60px; margin-left: 25px; margin-right: 35px; text-align: center;"}).appendTo(row3);
+              var field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + i, class:"node-input-onEndShortPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row3);
+              row3.append('<label for="node-input-onEndShortPress_' + i + '">Short press</label>');
+              var finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row3);
+              finalspan.append(' &#8594; <span class="node-input-rule-index">'+(i+2)+'</span> ');
+              // ROW 4
+              var row4 = $('<div/>').appendTo(container);
+              row4.append('<span style="display:inline-block; width:100px; margin-left: 20px;">To...</span>');
+              var field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + i, class:"node-input-onEndLongPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row4);
+              row4.append('<label for="node-input-onEndLongPress_' + i + '" style="width:unset";>Long press after &nbsp</label>');
+              var field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + i, class:"node-input-minLongPressDuration",type:"text",style:"width:55px;"}).appendTo(row4);
+              row4.append('<label for="node-input-minLongPressDuration_' + i + '">&nbsp ms</label>');
+              // ROW 5
+              var row5 = $('<div/>').appendTo(container);
+              var field_buttonTo = $('<select/>',{class:"node-input-buttonTo",style:"width:60px; margin-left: 25px; margin-right: 35px; text-align: center;"}).appendTo(row5);
+              var field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + i, class:"node-input-onDuringLongPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row5);
+              row5.append('<label for="node-input-onDuringLongPress_' + i + '">Long press (repeat)</label>');
+
+              // Build all 0-31 choices to both fields inputs
+              for (let i = 0; i <= 31; i++) {
+                field_buttonFrom.append($("<option></option>").val(i.toString()).text(i.toString()));
+                field_buttonTo.append($("<option></option>").val(i.toString()).text(i.toString()));
+              }
+
+              // field_buttonFrom.on("change", function() {
+              //     var type = selectField.val();
+              //
+              //     // resizeRule(container);
+              //
+              // });
+
+              // Copy memory info back on fields ??
+              field_buttonFrom.val (rule.buttonFrom);
+              field_buttonTo.val (rule.buttonTo);
+              field_minLongPressDuration.val (rule.minLongPressDuration);
+              // Checkboxes
+              field_onStartPress.attr ('checked', rule.onStartPress);
+              field_onEndShortPress.attr ('checked', rule.onEndShortPress);
+              field_onEndLongPress.attr ('checked', rule.onEndLongPress);
+              field_onDuringLongPress.attr ('checked', rule.onDuringLongPress);
+
+
+              // selectField.change();
+
+              // var currentOutputs = JSON.parse(outputCount.val()||"{}");
+              // currentOutputs[opt.hasOwnProperty('i')?opt.i:opt._i] = i;
+              // outputCount.val(JSON.stringify(currentOutputs));
+              outputCount.val(i+2)
+          },
+          removeItem: function (opt) {
+              var currentOutputs = JSON.parse(outputCount.val()||"{}");
+              if (opt.hasOwnProperty('i')) {
+                  currentOutputs[opt.i] = -1;
+              } else {
+                  delete currentOutputs[opt._i];
+              }
+              var rules = $("#node-input-rule-container").editableList('items');
+              rules.each(function(i) {
+                  $(this).find(".node-input-rule-index").html(i+1);
+                  var data = $(this).data('data');
+                  currentOutputs[data.hasOwnProperty('i')?data.i:data._i] = i;
+              });
+              outputCount.val(JSON.stringify(currentOutputs));
+          },
+          sortItems: function (rules) {
+              var currentOutputs = JSON.parse(outputCount.val()||"{}");
+              var rules = $("#node-input-rule-container").editableList('items');
+              rules.each(function(i) {
+                  $(this).find(".node-input-rule-index").html(i+1);
+                  var data = $(this).data('data');
+                  currentOutputs[data.hasOwnProperty('i')?data.i:data._i] = i;
+              });
+              outputCount.val(JSON.stringify(currentOutputs));
+          },
+          sortable: true,
+          removable: true
+      });
     }
   });
 </script>
@@ -54,6 +183,10 @@
   <div class="form-row">
       <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
       <input type="text" id="node-input-scenarioid" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
+  </div>
+  <div class="form-row node-input-rule-container-row" style="width:100%">
+    <input type="hidden" id="node-input-outputs"/>
+    <ol id="node-input-rule-container"></ol>
   </div>
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
@@ -93,21 +226,6 @@
     <br>
     You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
     <br>
-    <div class="form-row">
-      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
-      <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
-      <label for="node-input-output2_name" style="width:15px">
-        &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
-      </label>
-    </div>
-    <div class="form-row">
-      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
-      <select id="node-input-output2_type" style="width:55%">
-        <option value="boolean">.state (boolean: true / false)</option>
-        <option value="text_state">.state (string: ON / OFF)</option>
-        <option value="brightness">.brightness (number: 20-100)</option>
-      </select>
-    </div>
   </div>
 </script>
 
