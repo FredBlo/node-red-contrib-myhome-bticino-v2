@@ -3,6 +3,8 @@
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
 
+  const LONGPRESS_ONGOING_INTERVAL = 400;
+
   function MyHomeScenarioNode (config) {
     RED.nodes.createNode (this, config);
     var node = this;
@@ -12,7 +14,6 @@ module.exports = function (RED) {
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
     payloadInfo.state = '?';
-    payloadInfo.buttonsState = [];
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,33 +43,38 @@ module.exports = function (RED) {
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured light point
+      let multiOutput = [];
       let processedPackets = 0;
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
+        let curButtonID = '';
+        let curActionType = '';
+        let nodeStatusIcon = ['grey','ring'];
+        let nodeStatusText = '';
         let packetMatch;
+        let curButtonLastState;
         // Checks 1 : Basic scenario (CEN) [*15*WHAT(#<ACTION_TYPE>)*WHERE##]
         //    - WHAT = push button N value [00-31]
         //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
     		//    - WHERE = push button virtual address (A/PL)
         packetMatch = curPacket.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + config.scenarioid + '##');
         if (packetMatch !== null) {
-          let curButtonState = payloadInfo[packetMatch[1]] || {};
+          curButtonID = packetMatch[1];
           switch (packetMatch[2]) {
             case '1':
               // Release after short pressure (<0.5s)
-              curButtonState.startPressure = Date.now;
+              curActionType = 'SHORT';
               break;
             case '2':
               // Release after an extended pressure (>= 0.5s)
-              curButtonState.endPressure = Date.now;
+              curActionType = 'LONG';
               break;
             case '3':
               // Extended pressure (sent every 0.5s as long as button is pressed)
-              curButtonState.endPressure = Date.now;
-              curButtonState.countExtPressures++;
+              curActionType = 'LONG_ONGOING';
               break;
             default:
               // no param provided, means initial pressure
-              curButtonState.startPressure = Date.now;
+              curActionType = 'PRESS_START';
           }
         }
         // Checks 2 : Advanced scenario (CEN+) [*25*<ACTION_TYPE>#WHAT*WHERE##]
@@ -78,22 +84,23 @@ module.exports = function (RED) {
         if (packetMatch === null) {
           packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d)\\*2' + config.scenarioid + '##');
           if (packetMatch !== null) {
-            switch (packetMatch[2]) {
+            curButtonID = packetMatch[2];
+            switch (packetMatch[1]) {
               case '21':
                 // Short pressure (<0.5s)
-
-                break;
+                curActionType = 'SHORT';
+              break;
               case '22':
                 // Start of extended pressure (>= 0.5s)
-
+                curActionType = 'LONG_START';
                 break;
               case '23':
                 // Extended pressure (sent every 0.5s as long as button is pressed)
-
+                curActionType = 'LONG_ONGOING';
                 break;
               case '24':
                 // Release after an extended pressure
-
+                curActionType = 'LONG';
                 break;
             }
           }
@@ -101,26 +108,78 @@ module.exports = function (RED) {
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
           processedPackets++;
+          // Define action info based on type
+          curButtonLastState = payloadInfo['buttonsLastState_' + curButtonID] || {};
+          switch (curActionType) {
+            case 'SHORT':
+              // Short pressure (<0.5s)
+              curButtonLastState = {};
+              curButtonLastState.actionStart = Date.now();
+              curButtonLastState.actionEnd = Date.now();
+              nodeStatusText = 'short pressed (<0.5s)';
+              break;
+            case 'LONG_START':
+              // Start of extended pressure (>= 0.5s)
+              curButtonLastState = {};
+              curButtonLastState.actionStart = Date.now();
+              nodeStatusText = 'long pressed (>0.5s) started';
+              break;
+            case 'LONG_ONGOING':
+              // Extended pressure (sent every 0.5s as long as button is pressed)
+              curButtonLastState.actionEnd = Date.now();
+              curButtonLastState.countExtPressures = (curButtonLastState.countExtPressures||0) + 1;
+              nodeStatusText = 'long pressed going on';
+              break;
+            case 'LONG':
+              // Release after an extended pressure
+              curButtonLastState.actionEnd = Date.now();
+              nodeStatusText = 'long pressed';
+              break;
+          }
+          // Append info which are common to all states
+          curButtonLastState.buttonID = parseInt(curButtonID);
+          curButtonLastState.actionType = curActionType;
+          curButtonLastState.actionDuration = (curButtonLastState.actionEnd - curButtonLastState.actionStart) || 0;
+          curButtonLastState.state = curButtonLastState.actionType + ((curButtonLastState.actionDuration > 0) ? ':' + curButtonLastState.actionDuration.toString() : '');
+          nodeStatusText = 'Button #' + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
+          payloadInfo['buttonsLastState_' + curButtonID] = curButtonLastState;
+
+          // See if such action is monitored for a defined rule to be sent to a secondary output
+          for (let i = 0; i < config.rules.length; i++) {
+            multiOutput[i+1] = null;
+            let curRule = config.rules[i];
+            // Check whether pressed button is within a range this rule must monitor
+            if (curButtonLastState.buttonID < curRule.buttonFrom && curButtonLastState.buttonID > curRule.buttonTo) {
+              continue;
+            }
+            // Check whether action is a monitored one
+            let toMonitor = false;
+            if (curButtonLastState.actionType == 'SHORT' && curRule.onEndShortPress) {
+              toMonitor = true;
+            } else if ((curButtonLastState.actionType == 'LONG_START' || curButtonLastState.actionType == 'PRESS_START') && curRule.onStartPress) {
+              toMonitor = true;
+            } else if (curButtonLastState.actionType == 'LONG_ONGOING' && curRule.onDuringLongPress) {
+              toMonitor = true;
+            } else if (curButtonLastState.actionType == 'LONG' && curRule.onEndLongPress) {
+              if (curButtonLastState.actionDuration >= curRule.minLongPressDuration) {
+                toMonitor = true;
+              }
+            }
+            // Reached here : monitored action, build payload
+            if (toMonitor) {
+              let curMsg = multiOutput[i+1] = {};
+              curMsg.payload = curButtonLastState.state;
+              nodeStatusIcon[0] = 'green';
+            }
+          }
+          // Update Node displayed status
+          node.status ({fill: nodeStatusIcon[0], shape: nodeStatusIcon[1], text: nodeStatusText});
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
       if (processedPackets === 0 && !forceRefreshAndMsg) {
         return;
       }
-
-      // Update Node displayed status
-// if (payloadInfo.state === 'OFF') {
-//   // turned OFF is the same for all lights (dimmed or not)
-//   node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Off'});
-// } else if (payloadInfo.state === 'ON') {
-//   if (payloadInfo.brightness) {
-//     // Dimmed light, include brightness in state
-//     node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On (' + payloadInfo.brightness +'%)'});
-//   } else {
-//     // No brightness provided : is a simple 'ON' state
-//     node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On'});
-//   }
-// }
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
       // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
@@ -134,18 +193,18 @@ module.exports = function (RED) {
           }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
-          if (payloadInfo.brightness !== undefined) {
-            payload.brightness = payloadInfo.brightness;
-          }
-          // MSG1 : Add misc info
+          Object.getOwnPropertyNames(payloadInfo).forEach ( function(objectName , i) {
+          	if (objectName.match('buttonsLastState_\\d+')) {
+              payload[objectName] = payloadInfo[objectName];
+          	}
+          });
+          // MSG1 : Add misc info and add primary output to outputs
           msg.topic = 'state/' + config.topic;
-
-          // MSG2 : Build secondary payload
-// let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', 'ON', 'OFF');
+          multiOutput[0] = msg;
 
           // Store last sent payload info & send both msg to output1 and output2
           node.lastPayloadInfo = newPayloadinfo;
-//          node.send ([msg, msg2]);
+          node.send(multiOutput);
         }
       }
     };
@@ -166,58 +225,47 @@ module.exports = function (RED) {
         return;
       }
 
-      // Get payload and apply conversions (asked state can be set in 'msg.payload',
-      // 'msg.payload.state' or 'msg.payload.On', value being either true/false or ON/OFF
-      // Final result is always kept in 'msg.payload.state' = 'ON' or 'OFF'
+      // Get payload and apply conversions (asked state can be set in 'msg.payload' or 'msg.payload.state'
       if (msg.payload === undefined) {
         msg.payload = {};
       } else if (typeof(msg.payload) === 'string') {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
-      if (typeof(msg.payload) === 'object') {
-        if (msg.payload.state === undefined && msg.payload.On !== undefined) {
-          msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
+      if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
+        msg.payload = {'state': msg.payload.toString()};
+        // Get values of buttonID and duration from payload text to object (assumig structure is 'ButtonID:Duration')
+        if (typeof(msg.payload.state) === 'string') {
+          let stateValue = msg.payload.state.split(/:|,|;/);
+          msg.payload.buttonID = stateValue[0];
+          msg.payload.actionDuration = parseInt(stateValue[1]) || 0;
         }
-      } else if (typeof(msg.payload) === 'boolean') {
-        msg.payload = {'state': (msg.payload) ? 'ON' : 'OFF'};
-      } else if (typeof(msg.payload) === 'string') {
-        msg.payload = {'state': msg.payload};
       }
       let payload = msg.payload;
 
       let commands = [];
       if (!isReadOnly) {
-        // Working in update mode: build the status change request
-        let cmd_what = '';
-        if (payload.state === 'OFF') {
-          // turning OFF is the same for all lights (dimmed or not)
-          cmd_what = '0';
-        } else if (payload.state === 'ON') {
-          if(payload.brightness) {
-            // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
-            let requested_brightness = Math.round(parseInt(payload.brightness)/10);
-            if (requested_brightness < 2) {
-              requested_brightness = 2;
-            } else if (requested_brightness > 10) {
-              requested_brightness = 10;
-            }
-            cmd_what = requested_brightness.toString();
-          } else {
-            // No brightness provided : is a simple 'ON' call
-            cmd_what = '1';
+        // Ensure data is valid to build command
+        if (isNaN (payload.buttonID) || parseInt(payload.buttonID) < 0 || parseInt(payload.buttonID) > 31) {
+          node.warn ('Button ID (' + payload.buttonID + ') is invalid or not in allowed [0-31] range.');
+          return;
+        }
+        // Duration defaults to 0
+        let actionDuration = parseInt(payload.actionDuration) || 0;
+        if (actionDuration < 500) {
+          // Command must be sent in short press mode
+          commands.push ('TODO COMMAND TO BE BUILT = SHORT');
+        } else {
+          // Command must be sent in long press mode (we need to have a repeat command sent at least every 500ms)
+          commands.push ('TODO COMMAND TO BE BUILT @START');
+          while (actionDuration > LONGPRESS_ONGOING_INTERVAL) {
+            commands.push ('TODO COMMAND TO BE BUILT @REPEAT');
+            actionDuration = actionDuration - LONGPRESS_ONGOING_INTERVAL;
           }
-        }
-        if (cmd_what) {
-          commands.push ('*1*' + cmd_what + '*' + config.scenarioid + '##');
+          commands.push ('TODO COMMAND TO BE BUILT @END');
         }
       }
-      if (isReadOnly || commands.length) {
-        // In Read-Only mode : build a status enquiry request (no status update sent)
-        // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
-        // Note : This does not work for groups
-        commands.push ('*#1*' + config.scenarioid + '##');
-      }
-      if (commands.length === 0) {
+      // when no command to send (and not working in read only mode where we only send current node info), abord
+      if (commands.length === 0 & !isReadOnly) {
         return;
       }
 

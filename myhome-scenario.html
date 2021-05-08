@@ -7,12 +7,10 @@
       scenarioid: { value: '', required: true, validate: RED.validators.number() },
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
-      smartfilter: { value: true, required: false},
       skipevents: { value: false, required: false},
-      isstatusrequest: { value: false, required: false},
       rules: {value:[{
-        buttonFrom:'0',
-        buttonTo:'31',
+        buttonFrom: 0,
+        buttonTo: 31,
         onStartPress:false,
         onEndShortPress:true,
         onEndLongPress:true,
@@ -23,20 +21,35 @@
     },
     inputs: 1,
     outputs: 1,
-    outputLabels: function (index) {
-      if (index === 0) {
-        return 'payload';
-      } else if (index === 1) {
-        let outputTypeDescr;
-        if (this.output2_type === 'boolean') {
-          outputTypeDescr = 'true/false';
-        } else if (this.output2_type === 'text_state') {
-          outputTypeDescr = 'ON/OFF';
+    outputLabels: function(index) {
+      let rule = this.rules[index-1];
+      let label = '';
+      if (rule) {
+        if (rule.buttonFrom == rule.buttonTo) {
+          label = 'button #' + rule.buttonFrom;
         } else {
-          outputTypeDescr = 'string';
+          label = 'buttons #' + rule.buttonFrom + ' to #' + rule.buttonTo;
         }
-        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
+        let onEvents = [];
+        if (rule.onStartPress) {
+          onEvents.push ('Start press');
+        }
+        if (rule.onEndShortPress) {
+          onEvents.push ('Short press');
+        }
+        if (rule.onEndLongPress) {
+          onEvents.push ('Long press');
+        }
+        if (rule.onDuringLongPress) {
+          onEvents.push ('Long press (while pressed)');
+        }
+        if (onEvents.length) {
+          label += ' on ' + onEvents.join (', ');
+        }
+      } else {
+        label = 'Main payload';
       }
+      return label;
     },
     icon: 'font-awesome/fa-magic',
     paletteLabel: 'MH Scenario',
@@ -51,9 +64,16 @@
         $('#node-info-topic').prop('title' , infoMsg);
       });
 
-      $("#node-input-rule-container").css('min-height','300px').css('min-width','430px').editableList({
+      // Styles used in rules container
+      $("style").append("#node-input-rule-container .mhrule-fromtolabel {display:inline-block; width:100px; margin-left: 20px;}");
+      $("style").append("#node-input-rule-container .mhrule-checkbox {display:inline-block; width:22px; margin-left:0px; vertical-align:baseline;}");
+      $("style").append("#node-input-rule-container .mhrule-select {width:60px; height: 23px; padding: 2px 2px; margin-left: 25px; margin-right: 35px; text-align: center;}");
+      $("style").append("#node-input-rule-container .mhrule-checkbox-label {width: auto; margin-bottom: 2px;}");
+
+      $("#node-input-rule-container").css('min-height','300px').css('min-width','450px').editableList({
+        addButton: 'add new buttons range',
         header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
-            +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>Buttons...</div>"
+            +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>Buttons range...</div>"
             +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>Trigger a new flow on...</div>"
             +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>Output n°</div>"
             +"</div>"),
@@ -79,35 +99,31 @@
           if (!rule.hasOwnProperty('minLongPressDuration')) {
             rule.minLongPressDuration = 1000;
           }
-          container.css({
-            overflow: 'hidden',
-            whiteSpace: 'nowrap'
-          });
-
           // ROW 1
-          var row1 = $('<div/>').appendTo(container);
-          row1.append('<span style="display:inline-block; width:100px; margin-left: 20px;">From...</span>');
-          var field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + i, class:"node-input-onStartPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row1);
-          row1.append('<label for="node-input-onStartPress_' + i + '">Start press</label>');
+          let row1 = $('<div/>').appendTo(container);
+          row1.append('<span class="mhrule-fromtolabel">From...</span>');
+          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + i,type:"checkbox", class:"mhrule-checkbox"}).appendTo(row1);
+          row1.append('<label class="mhrule-checkbox-label" for="node-input-onStartPress_' + i + '">Start press</label>');
+          // ROW1 : output info (rightest part)
+          let finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row1);
+          finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span> ');
           // ROW 2
-          var row2 = $('<div/>').appendTo(container);
-          var field_buttonFrom = $('<select/>',{class:"node-input-buttonFrom",style:"width:60px; margin-left: 25px; margin-right: 35px; text-align: center;"}).appendTo(row2);
-          var field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + i, class:"node-input-onEndShortPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row2);
-          row2.append('<label for="node-input-onEndShortPress_' + i + '">Short press</label>');
-          var finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row2);
-          finalspan.append(' &#8594; <span class="node-input-rule-index">'+(i+2)+'</span> ');
+          let row2 = $('<div/>').appendTo(container);
+          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + i, class:"mhrule-select"}).appendTo(row2);
+          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row2);
+          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + i + '">Short press (<0.5s)</label>');
           // ROW 3
-          var row3 = $('<div/>').appendTo(container);
-          row3.append('<span style="display:inline-block; width:100px; margin-left: 20px;">To...</span>');
-          var field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + i, class:"node-input-onEndLongPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row3);
-          row3.append('<label for="node-input-onEndLongPress_' + i + '" style="width:unset";>Long press after &nbsp</label>');
-          var field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + i, class:"node-input-minLongPressDuration",type:"text",style:"width:55px;"}).appendTo(row3);
-          row3.append('<label for="node-input-minLongPressDuration_' + i + '">&nbsp ms</label>');
+          let row3 = $('<div/>').appendTo(container);
+          row3.append('<span class="mhrule-fromtolabel">To...</span>');
+          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row3);
+          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + i + '" style="width:unset";>Long press when >&nbsp</label>');
+          let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + i, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
+          row3.append('<label class="mhrule-checkbox-label" for="node-input-minLongPressDuration_' + i + '">&nbsp ms</label>');
           // ROW 4
-          var row4 = $('<div/>').appendTo(container);
-          var field_buttonTo = $('<select/>',{class:"node-input-buttonTo",style:"width:60px; margin-left: 25px; margin-right: 35px; text-align: center;"}).appendTo(row4);
-          var field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + i, class:"node-input-onDuringLongPress",type:"checkbox",style:"display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"}).appendTo(row4);
-          row4.append('<label for="node-input-onDuringLongPress_' + i + '">Long press (repeat)</label>');
+          let row4 = $('<div/>').appendTo(container);
+          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + i, class:"mhrule-select"}).appendTo(row4);
+          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row4);
+          row4.append('<label class="mhrule-checkbox-label" for="node-input-onDuringLongPress_' + i + '">Long press (while pressed)</label>');
 
           // Build all 0-31 choices to both fields inputs
           for (let i = 0; i <= 31; i++) {
@@ -127,22 +143,26 @@
             }
           });
 
-          // Copy memory info back on fields ??
-          field_buttonFrom.val (rule.buttonFrom).toString();
-          field_buttonTo.val (rule.buttonTo).toString();
-          field_minLongPressDuration.val (rule.minLongPressDuration);
+          // Copy memory info back on fields
+          field_buttonFrom.val (rule.buttonFrom.toString());
+          field_buttonTo.val (rule.buttonTo.toString());
+          field_minLongPressDuration.val (rule.minLongPressDuration.toString());
           // Checkboxes
           field_onStartPress.prop ('checked', rule.onStartPress);
           field_onEndShortPress.prop ('checked', rule.onEndShortPress);
           field_onEndLongPress.prop ('checked', rule.onEndLongPress);
           field_onDuringLongPress.prop ('checked', rule.onDuringLongPress);
+          // Update total number of outputs (Primary is 1 + 1 per rule defined)
+          $("#node-input-outputs").val(i+2);
         },
         removeItem: function (rule) {
           // Re-parse all remaining rules to re-number them in UI
-          var rules = $("#node-input-rule-container").editableList('items');
+          let rules = $("#node-input-rule-container").editableList('items');
           rules.each(function(i) {
             $(this).find(".node-input-rule-index").html(i+2);
           });
+          // Update total number of outputs (Primary is 1 + 1 per rule defined)
+          $("#node-input-outputs").val(rules.length+1);
         },
         sortItems: function (rules) {
           // Re-parse all remaining rules to re-number them in UI
@@ -161,36 +181,33 @@
     },
 
     oneditresize: function(size) {
-        var rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
-        var height = size.height;
-        for (var i=0;i<rows.length;i++) {
+        let rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
+        let height = size.height;
+        for (let i = 0 ; i<rows.length ; i++) {
             height -= $(rows[i]).outerHeight(true);
         }
-        var editorRow = $("#dialog-form>div.node-input-rule-container-row");
+        let editorRow = $("#dialog-form>div.node-input-rule-container-row");
         height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
         height += 16;
         $("#node-input-rule-container").editableList('height',height);
     },
 
-
     oneditsave: function() {
-      var rules = $("#node-input-rule-container").editableList('items');
-      var node = this;
+      let rules = $("#node-input-rule-container").editableList('items');
+      let node = this;
       node.rules = [];
       rules.each (function (i) {
-        var rule = $(this);
+        let rule = $(this);
         let savedRule = {};
-        savedRule.buttonFrom = parseInt(rule.find(".node-input-buttonFrom").val());
-        savedRule.buttonTo = parseInt(rule.find(".node-input-buttonTo").val());
-        savedRule.onStartPress = rule.find(".node-input-onStartPress").prop("checked");
-        savedRule.onEndShortPress = rule.find(".node-input-onEndShortPress").prop("checked");
-        savedRule.onEndLongPress = rule.find(".node-input-onEndLongPress").prop("checked");
-        savedRule.onDuringLongPress = rule.find(".node-input-onDuringLongPress").prop("checked");
-        savedRule.minLongPressDuration = rule.find(".node-input-minLongPressDuration").val();
+        savedRule.buttonFrom = parseInt(rule.find("#node-input-buttonFrom_" + i).val());
+        savedRule.buttonTo = parseInt(rule.find("#node-input-buttonTo_" + i).val());
+        savedRule.onStartPress = rule.find("#node-input-onStartPress_" + i).prop("checked");
+        savedRule.onEndShortPress = rule.find("#node-input-onEndShortPress_" + i).prop("checked");
+        savedRule.onEndLongPress = rule.find("#node-input-onEndLongPress_" + i).prop("checked");
+        savedRule.onDuringLongPress = rule.find("#node-input-onDuringLongPress_" + i).prop("checked");
+        savedRule.minLongPressDuration = parseInt(rule.find("#node-input-minLongPressDuration_" + i).val());
         node.rules.push (savedRule);
       });
-      // Update total number of outputs (Primary is 1 + 1 per rule defined)
-      var outputCount = $("#node-input-outputs").val(node.rules.length+1);
     }
   });
 </script>
@@ -204,10 +221,6 @@
       <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
       <input type="text" id="node-input-scenarioid" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
   </div>
-  <div class="form-row node-input-rule-container-row" style="width:100%">
-    <input type="hidden" id="node-input-outputs"/>
-    <ol id="node-input-rule-container"></ol>
-  </div>
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
       <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
@@ -218,16 +231,6 @@
       <input type="text" id="node-input-gateway" />
   </div>
   <div class="form-row">
-    <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
-    <label for="node-input-smartfilter" style="width:70%">
-      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
-      &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
-      This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
-      &#13;
-      Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
-    </label>
-  </div>
-  <div class="form-row">
       <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
       <label for="node-input-skipevents" style="width:70%">
         <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
@@ -235,17 +238,11 @@
       </label>
   </div>
   <div class="form-row">
-      <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
-      <label for="node-input-isstatusrequest" style="width:70%">
-        <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current load status
-        &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change."></i>
-      </label>
+    <i class="fa fa-sign-out"></i> <b>Additional outputs...</b>
   </div>
-  <div class="form-tips form-row" style="background:#EFEFEF">
-    <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
-    <br>
-    You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
-    <br>
+  <div class="form-row node-input-rule-container-row" style="width:100%">
+    <input type="hidden" id="node-input-outputs"/>
+    <ol id="node-input-rule-container"></ol>
   </div>
 </script>
 
