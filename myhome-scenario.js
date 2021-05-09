@@ -56,33 +56,35 @@ module.exports = function (RED) {
         //    - WHAT = push button N value [00-31]
         //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
     		//    - WHERE = push button virtual address (A/PL)
-        packetMatch = curPacket.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + config.scenarioid + '##');
-        if (packetMatch !== null) {
-          curButtonID = packetMatch[1];
-          switch (packetMatch[2]) {
-            case '1':
-              // Release after short pressure (<0.5s)
-              curActionType = 'SHORT';
-              break;
-            case '2':
-              // Release after an extended pressure (>= 0.5s)
-              curActionType = 'LONG';
-              break;
-            case '3':
-              // Extended pressure (sent every 0.5s as long as button is pressed)
-              curActionType = 'LONG_ONGOING';
-              break;
-            default:
-              // no param provided, means initial pressure
-              curActionType = 'PRESS_START';
+        if (config.scenariotype === 'CEN') {
+          packetMatch = curPacket.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + config.scenarioid + '##');
+          if (packetMatch !== null) {
+            curButtonID = packetMatch[1];
+            switch (packetMatch[2]) {
+              case '1':
+                // Release after short pressure (<0.5s)
+                curActionType = 'SHORT';
+                break;
+              case '2':
+                // Release after an extended pressure (>= 0.5s)
+                curActionType = 'LONG';
+                break;
+              case '3':
+                // Extended pressure (sent every 0.5s as long as button is pressed)
+                curActionType = 'LONG_ONGOING';
+                break;
+              default:
+                // no param provided, means initial pressure
+                curActionType = 'PRESS_START';
+            }
           }
         }
         // Checks 2 : Advanced scenario (CEN+) [*25*<ACTION_TYPE>#WHAT*WHERE##]
         //    - <ACTION_TYPE> = 21: Short pressure (<0.5s) / 22: Start of extended pressure (>= 0.5s) / 23: Extended pressure (sent every 500ms) / 24: Release after an extended pressure
-        //    - WHAT = push button N value [00-31]
+        //    - WHAT = push button N value [0-31]
         //    - WHERE = 2 [0-2047] Virtual Address
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d)\\*2' + config.scenarioid + '##');
+        if (config.scenariotype === 'CEN+') {
+          packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d+)\\*2' + config.scenarioid + '##');
           if (packetMatch !== null) {
             curButtonID = packetMatch[2];
             switch (packetMatch[1]) {
@@ -140,9 +142,10 @@ module.exports = function (RED) {
           curButtonLastState.buttonID = parseInt(curButtonID);
           curButtonLastState.actionType = curActionType;
           curButtonLastState.actionDuration = (curButtonLastState.actionEnd - curButtonLastState.actionStart) || 0;
-          curButtonLastState.state = curButtonLastState.actionType + ((curButtonLastState.actionDuration > 0) ? ':' + curButtonLastState.actionDuration.toString() : '');
+          curButtonLastState.state = curButtonID + ':' + curButtonLastState.actionType + ((curButtonLastState.actionDuration > 0) ? ':' + curButtonLastState.actionDuration.toString() : '');
           nodeStatusText = 'Button #' + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
           payloadInfo['buttonsLastState_' + curButtonID] = curButtonLastState;
+          payloadInfo.state = curButtonLastState.state;
 
           // See if such action is monitored for a defined rule to be sent to a secondary output
           for (let i = 0; i < config.rules.length; i++) {
@@ -168,7 +171,9 @@ module.exports = function (RED) {
             // Reached here : monitored action, build payload
             if (toMonitor) {
               let curMsg = multiOutput[i+1] = {};
-              curMsg.payload = curButtonLastState.state;
+              let curMsgPayload = curMsg.payload = {};
+              curMsgPayload.state = curButtonLastState.state;
+              curMsgPayload['buttonsLastState_' + curButtonID] = curButtonLastState;
               nodeStatusIcon[0] = 'green';
             }
           }
@@ -243,25 +248,53 @@ module.exports = function (RED) {
       let payload = msg.payload;
 
       let commands = [];
+      let commandsDelay = 0;
       if (!isReadOnly) {
         // Ensure data is valid to build command
         if (isNaN (payload.buttonID) || parseInt(payload.buttonID) < 0 || parseInt(payload.buttonID) > 31) {
           node.warn ('Button ID (' + payload.buttonID + ') is invalid or not in allowed [0-31] range.');
           return;
         }
-        // Duration defaults to 0
+        // Define all based commands which can be used
+        let baseCommands = {};
+        if (config.scenariotype === 'CEN') {
+          // Basic scenario (CEN) [*15*WHAT(#<ACTION_TYPE>)*WHERE##]
+          //    - WHAT = push button N value [00-31]
+          //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
+          //    - WHERE = push button virtual address (A/PL)
+          baseCommands.SHORT = '*15*WHAT*WHERE##;*15*WHAT#1*WHERE##'; // must sent 2 commands (START and direct STOP)
+          baseCommands.LONG_START = '*15*WHAT*WHERE##';
+          baseCommands.LONG_ONGOING = '*15*WHAT#3*WHERE##';
+          baseCommands.LONG_END = '*15*WHAT#2*WHERE##';
+          payload.buttonID = ('0' + payload.buttonID).slice(-2); // for CEN commands, the WHAT is always 2 digits
+        } else if (config.scenariotype === 'CEN+') {
+          // Advanced scenario (CEN+) [*25*<ACTION_TYPE>#WHAT*WHERE##]
+          //    - <ACTION_TYPE> = 21: Short pressure (<0.5s) / 22: Start of extended pressure (>= 0.5s) / 23: Extended pressure (sent every 500ms) / 24: Release after an extended pressure
+          //    - WHAT = push button N value [0-31]
+          //    - WHERE = 2 [0-2047] Virtual Address
+          baseCommands.SHORT = '*25*21#WHAT*2WHERE##';
+          baseCommands.LONG_START = '*25*22#WHAT*2WHERE##';
+          baseCommands.LONG_ONGOING = '*25*23#WHAT*2WHERE##';
+          baseCommands.LONG_END = '*25*24#WHAT*2WHERE##';
+        }
+        // Based on duration asked (it defaults to 0), we have to send 1 or multiple commands
         let actionDuration = parseInt(payload.actionDuration) || 0;
         if (actionDuration < 500) {
           // Command must be sent in short press mode
-          commands.push ('TODO COMMAND TO BE BUILT = SHORT');
+          commands.push (baseCommands.SHORT);
         } else {
           // Command must be sent in long press mode (we need to have a repeat command sent at least every 500ms)
-          commands.push ('TODO COMMAND TO BE BUILT @START');
-          while (actionDuration > LONGPRESS_ONGOING_INTERVAL) {
-            commands.push ('TODO COMMAND TO BE BUILT @REPEAT');
-            actionDuration = actionDuration - LONGPRESS_ONGOING_INTERVAL;
+          commandsDelay = LONGPRESS_ONGOING_INTERVAL;
+          commands.push (baseCommands.LONG_START);
+          while (actionDuration > commandsDelay) {
+            commands.push (baseCommands.LONG_ONGOING);
+            actionDuration = actionDuration - commandsDelay;
           }
-          commands.push ('TODO COMMAND TO BE BUILT @END');
+          commands.push (baseCommands.LONG_END);
+        }
+        // Replace all the 'WHAT' & 'WHERE' by the current button ID & Scneario ID
+        for (let i = 0; i < commands.length; i++) {
+          commands[i] = commands[i].replace ('WHAT', payload.buttonID).replace ('WHERE', config.scenarioid);
         }
       }
       // when no command to send (and not working in read only mode where we only send current node info), abord
@@ -270,7 +303,7 @@ module.exports = function (RED) {
       }
 
       // Send the command on the BUS through the MyHome gateway
-      mhutils.executeCommand (node, commands, gateway, 0, false,
+      mhutils.executeCommand (node, commands, gateway, commandsDelay, false,
         function (commands, cmd_responses, cmd_failed) {
           // Build main payload to return payloads to outputs
           payload.command_sent = commands; // Include initial SCS/BUS message which was sent in main payload

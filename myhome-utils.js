@@ -152,6 +152,10 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
   persistentObj.logEnabled = gateway.log_out_cmd;
   // Convert commands (which could be an array... or a string) to a single string and only take valid MyHome commands (back) to an array
   commands = commands.toString().match(/\*.+?##/g);
+  if (commands === null) {
+    success ([], cmd_responses , cmd_failed);
+    return;
+  }
 
   function internalError (cmd_failed, errorMsg) {
     // Disconnect & reset state
@@ -199,7 +203,6 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
       }
     }
   });
-
   logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + commands.join(',') + "'), opening connexion to gateway...");
   client.connect (gateway.port, gateway.host, function() {
     // opening command session

@@ -5,9 +5,10 @@
     defaults: {
       name: { value: '', required: true },
       scenarioid: { value: '', required: true, validate: RED.validators.number() },
+      scenariotype: { value: 'CEN+', required: true },
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
-      skipevents: { value: false, required: false},
+      skipevents: { value: false, required: false },
       rules: {value:[{
         buttonFrom: 0,
         buttonTo: 31,
@@ -218,8 +219,16 @@
     <input type="text" id="node-input-name" placeholder="Scenario name" />
   </div>
   <div class="form-row">
-      <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
-      <input type="text" id="node-input-scenarioid" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
+    <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
+    <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+      <select id="node-input-scenariotype" style="width:80px">
+        <option value="CEN">CEN</option>
+        <option value="CEN+">CEN+</option>
+      </select>
+      <div style="position: absolute; left: 85px; right: 0px; top:0px;">
+        <input type="text" id="node-input-scenarioid" style="width:100%" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
+      </div>
+    </div>
   </div>
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
