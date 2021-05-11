@@ -39,7 +39,7 @@
           onEvents.push ('Short press');
         }
         if (rule.onEndLongPress) {
-          onEvents.push ('Long press');
+          onEvents.push ('Long press (>' + (rule.minLongPressDuration/1000).toFixed(1).toString() + 's)');
         }
         if (rule.onDuringLongPress) {
           onEvents.push ('Long press (while pressed)');
