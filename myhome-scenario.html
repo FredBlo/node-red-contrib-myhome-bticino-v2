@@ -65,6 +65,21 @@
         $('#node-info-topic').prop('title' , infoMsg);
       });
 
+      // When scenario type is changed from CEN <> CEN+, update labels for 'Start press'
+      $(document).on('change', '#node-input-scenariotype', function() {
+        let onStartLabel = '';
+        if ($("#node-input-scenariotype").val() === "CEN") {
+          onStartLabel = 'Start short/long press';
+        } else {
+          onStartLabel = 'Start long press';
+        }
+        let rules = $("#node-input-rule-container").editableList('items');
+        rules.each (function (i) {
+            let rule = $(this);
+            rule.find("label[for='node-input-onStartPress_" + i + "']").text(onStartLabel);
+        });
+      });
+
       // Styles used in rules container
       $("style").append("#node-input-rule-container .mhrule-fromtolabel {display:inline-block; width:100px; margin-left: 20px;}");
       $("style").append("#node-input-rule-container .mhrule-checkbox {display:inline-block; width:22px; margin-left:0px; vertical-align:baseline;}");
