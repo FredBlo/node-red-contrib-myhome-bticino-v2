@@ -294,7 +294,7 @@ module.exports = function (RED) {
           commands.push (baseCommands.LONG_START);
           while (actionDuration > commandsDelay) {
             commands.push (baseCommands.LONG_ONGOING);
-            actionDuration = actionDuration - commandsDelay;
+            actionDuration = actionDuration - (commandsDelay + 50); // 50ms is added since it is +/- a normal delay required for each command to be technically sent
           }
           commands.push (baseCommands.LONG_END);
         }
@@ -328,7 +328,7 @@ module.exports = function (RED) {
       };
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      node.on('close', function (done)	{
+      node.on ('close', function (done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
         runningMonitor.clearAllMonitoredEvents ();
         done();

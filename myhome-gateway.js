@@ -183,7 +183,7 @@ module.exports = function (RED) {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    node.on('close', function (done)	{
+    node.on ('close', function (done)	{
       // Disable auto-refresh of connection & close connection properly
       if (autoCheckConnection !== undefined) {
         clearInterval(autoCheckConnection);

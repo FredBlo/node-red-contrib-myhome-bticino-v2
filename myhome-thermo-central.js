@@ -304,7 +304,7 @@ module.exports = function (RED) {
       };
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      node.on('close', function (done)	{
+      node.on ('close', function (done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls
         runningMonitor.clearAllMonitoredEvents ();
         done();
