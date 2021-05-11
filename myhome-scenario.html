@@ -272,6 +272,97 @@
 
 
 
+name: { value: '', required: true },
+scenarioid: { value: '', required: true, validate: RED.validators.number() },
+scenariotype: { value: 'CEN+', required: true },
+topic: { value: '', required: true},
+gateway: { type: 'myhome-gateway', required: true },
+skipevents: { value: false, required: false },
+rules: {value:[{
+  buttonFrom: 0,
+  buttonTo: 31,
+  onStartPress:false,
+  onEndShortPress:true,
+  onEndLongPress:true,
+  onDuringLongPress:false,
+  minLongPressDuration:1000
+}]},
+
 <script type="text/x-red" data-help-name="myhome-scenario">
-<p>Adds a MyHome Scenario Node to your flow.</p>
+  <p>Adds a MyHome Scenario Node to your flow.</p>
+  <ul>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Scenario</strong> defines the ID of the scenario, based on its type :
+      <ul>
+        <li><strong>CEN</strong> : A/PL number ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
+        <li><strong>CEN+</strong> : scenario number (0-2047)</li>
+      </ul>
+    </li>
+    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
+    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Rules</strong> : you can define different rules based on your needs. Each rule will output to a separate additional output.
+      <ul>
+        <li><strong>Buttons range</strong> : Defines which button(s) must be monitored to trigger a new flow. Defaults to 0-31, meaning the largest possible buttons range. </li>
+        <li><strong>Action type</strong> : Defines on which type of button press a flow must be started :
+          <ul>
+            <li><i>On start press</i> : when button is initially pressed. Note that the behaviour is a bit different based on scenario type. For CEN, this event is always triggered, even for a short press, while for CEN+, this event only occurs when a long press is started.</li>
+            <li><i>On short press</i> : when button was pressed for less than <strong>0.5s</strong>.</li>
+            <li><i>On long press (after xx ms)</i> : when button was pressed for at least <strong>0.5s</strong>. You can also define your own minimal duration before flow must be triggered.</li>
+            <li><i>On long press (while pressed)</i> : as long as button remains pressed, the BUS will emit such an event approximatively every 500ms</li>
+          </ul>
+        </li>
+        <p>Note : if an event occurs (i.e. button press) which matches multiple rules you defined, multiple flows will be started too.</p>
+      </ul>
+    </li>
+  </ul>
+
+<h3>Inputs</h3>
+<p><code>msg.payload</code> can be of 2 types</p>
+  <ul>
+    <li>A simple <em>string</em> value : <code>xx(:yyyy)</code>
+      <ul>
+        <li><code>xx</code> : the button number (0-31) to virtually press</li>
+        <li><code>yyyy</code> : the duration (ms) button must remain virtually pressed. Is optional, defaults to 0 if omitted, meaning a short press</li>
+      </ul>
+    </li>
+    <li>An <em>Object</em> with properties :
+      <ul>
+        <li> <code>payload.buttonID</code> <em>[string/number]</em> the button number (0-31) to virtually press</li>
+        <li> <code>payload.actionDuration</code> <em>[string/number]</em> the duration (ms) button must remain virtually pressed. Is optional, defaults to 0 if omitted, meaning a short press
+        </li>
+        <li> <code>payload.state</code> <em>[string]</em> (optional) when both <code>.buttonID</code> and <code>.actionDuration</code> are omitted, is tested for string content 'xx(:yyyy)' as described above for a simple input</li>
+      </ul>
+    </li>
+    <i>Note : Technically, for long press, repeat commands are sent every 400 ms to virtually keep button 'pressed'. This means a deviation can (and will) occur when comparing the requested time to the effective applied duration (e.g. when applying a duration of 900ms to node, it will make 3x 400, meaning 1200ms).</i>
+  </ul>
+<p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
+
+<h3>Outputs</h3>
+<p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
+  <ul>
+    <li> <code>payload.buttonsLastState_xx</code> <em>[object]</em> where xx is the button ID (0-31), meaning returned payload will contain one object per button for which at least one command was received since Node-RED was started. Each object will contain :
+      <ul>
+        <li> <code>.buttonID</code> <em>[number]</em> the button number (0-31)</li>
+        <li> <code>.state</code> <em>[string]</em> summarizes the information about button last state in a simplified form <code>xx:mmmm(:yyyy)</code> where :
+          <ul>
+            <li><code>xx</code> : button number (0-31)</li>
+            <li><code>mmmm</code> : action type, can be 'PRESS_START' / 'LONG_START' / 'LONG_ONGOING' / 'SHORT' / 'LONG'</li>
+            <li><code>yyyy</code> : -only in long pressed mode- duration (ms) button remained (virtually) pressed</li>
+          </ul>
+        </li>
+        <li> <code>.actionStart</code> <em>[date-time]</em> the date-time when button when last pressed (start of press)</li>
+        <li> <code>.actionEnd</code> <em>[date-time]</em> the date-time when button when last pressed (end of press)</li>
+        <li> <code>.actionDuration</code> <em>[number]</em> the duration (ms) button was pressed</li>
+        <li> <code>.countExtPressures</code> <em>[number]</em> (only in long press mode) the number of repeat commands received on the bus while button was pressed</li>
+        <li> <code>payload.state</code> <em>[string]</em> (optional) when both <code>.buttonID</code> and <code>.actionDuration</code> are omitted, is tested for string content 'xx(:yyyy)' as described above for a simple input</li>
+      </ul>
+      <i>Note : all properties of <strong>last pressed button</strong> are also directly included as direct properties of payload itself, allowing direct access to those without having to parse the button sub-object.</i>
+    </li>
+    <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*25*21#8*2100##'</em> to short press button 8 of scenarion CEN+ 100)</li>
+    <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured scenario), contains the command which was read in OpenWebNet protocol (ex: <em>'*25*24#14*287##'</em> means button 14 of scenario 87 finalized a long press)</li>
+    <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+    <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
+  </ul>
+  <p>Any <strong>additional output</strong> defined is also a JSON object <code>msg.payload</code> having the same (direct) properties as a <code>payload.buttonsLastState_xx</code> object described above.</p>
 </script>

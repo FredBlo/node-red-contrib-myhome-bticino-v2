@@ -148,18 +148,20 @@
 <h3>Inputs</h3>
   <p><code>msg.payload</code> can be of 2 types</p>
     <ul>
-      <li>A simple value</li>
+      <li>A simple value
         <ul>
           <li>a simple <em>string</em> being either 'ON' or 'OFF'</li>
           <li>a simple <em>boolean</em> being either 'true' or 'false'</li>
         </ul>
-      <li>An Object</li>
+      </li>
+      <li>An Object
         <ul>
           <li> <code>payload.state</code> <em>[string]</em> value must be 'ON' or 'OFF'</li>
           <li> <code>payload.On</code> <em>[boolean]</em> value must be 'True' or 'False'<br>
             (is a fallback when .state is undefined)</li>
           <li> <code>payload.brightness</code> <em>[integer]</em> (optional, for dimmers only) represents brightness percentage being applied to load, ranging from 20 to 100</li>
         </ul>
+      </li>
     </ul>
   <p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
 

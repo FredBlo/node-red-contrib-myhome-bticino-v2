@@ -8,6 +8,8 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 	- Dimming (percentage based)
 - **MH Shutter**
 	- OPEN / CLOSE /STOP
+- **MH Scenario**
+	- CEN and CEN+ scenario buttons management : Short and Long press (start / extended / release)
 - **MH Temperature Central Unit**
 	- MANUAL:xx.x°C / PROGRAM:x / SCENARIO:xx / OFF / ANTIFREEZE / THERMAL_PROTECT
 - **MH Temperature Zone**
@@ -20,7 +22,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-2.1.0 added support for ***temperature control*** with 2 new nodes : `MH Thermo Central` and `MH Thermo Zone`.
+2.2.0 added support for ***scenario (CEN/CEN+)*** with new node : `MH Scenario`.
 It also includes other improvements and bug fixes.
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or in [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
@@ -94,13 +96,13 @@ Test the Light injecting payload boolean message `true` (or `false`) and setting
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
 
-| Gateway             | Authentication (tested)           | Lights        | Shutters      | Temperature   |
-| ------------------- | --------------------------------- | ------------- | ------------- | ------------- |
-| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             |
-| ***MH202***         | OPEN pwd                          | OK            | OK            | OK [2][3]     |
-| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK [3]        |
-| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK [4]        |
+| Gateway             | Authentication (tested)           | Lights        | Shutters      | Scenario      | Temperature   |
+| ------------------- | --------------------------------- | ------------- | ------------- | ------------- | ------------- |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             | ?             |
+| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [2][3]     |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK            | OK [3]        |
+| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            | OK            |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [4]        |
 
 \*based on *Fabio Bui* feedback
 \

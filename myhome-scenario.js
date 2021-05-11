@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, node: true */
+/*jshint esversion: 6, strict: implied, loopfunc: true, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
@@ -13,7 +13,6 @@ module.exports = function (RED) {
 
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
-    payloadInfo.state = '?';
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +112,12 @@ module.exports = function (RED) {
           // Define action info based on type
           curButtonLastState = payloadInfo['buttonsLastState_' + curButtonID] || {};
           switch (curActionType) {
+            case 'PRESS_START':
+              // Start of (short or extended) pressure
+              curButtonLastState = {};
+              curButtonLastState.actionStart = Date.now();
+              nodeStatusText = 'short/long pressed started';
+              break;
             case 'SHORT':
               // Short pressure (<0.5s)
               curButtonLastState = {};
@@ -145,7 +150,11 @@ module.exports = function (RED) {
           curButtonLastState.state = curButtonID + ':' + curButtonLastState.actionType + ((curButtonLastState.actionDuration > 0) ? ':' + curButtonLastState.actionDuration.toString() : '');
           nodeStatusText = 'Button #' + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
           payloadInfo['buttonsLastState_' + curButtonID] = curButtonLastState;
-          payloadInfo.state = curButtonLastState.state;
+
+          // Transfer all current button info to main payload (as direct properties of it)
+          Object.getOwnPropertyNames(curButtonLastState).forEach (function(objectName , i) {
+            payload[objectName] = curButtonLastState[objectName];
+          });
 
           // See if such action is monitored for a defined rule to be sent to a secondary output
           for (let i = 0; i < config.rules.length; i++) {
@@ -168,12 +177,10 @@ module.exports = function (RED) {
                 toMonitor = true;
               }
             }
-            // Reached here : monitored action, build payload
+            // Reached here : monitored action, build payload (which is actually simply th current button state with all collected info)
             if (toMonitor) {
               let curMsg = multiOutput[i+1] = {};
-              let curMsgPayload = curMsg.payload = {};
-              curMsgPayload.state = curButtonLastState.state;
-              curMsgPayload['buttonsLastState_' + curButtonID] = curButtonLastState;
+              curMsg.payload = curButtonLastState;
               nodeStatusIcon[0] = 'green';
             }
           }
@@ -197,8 +204,7 @@ module.exports = function (RED) {
             payload.command_received = packet;
           }
           // MSG1 : Add all current node stored values to payload
-          payload.state = payloadInfo.state;
-          Object.getOwnPropertyNames(payloadInfo).forEach ( function(objectName , i) {
+          Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName , i) {
           	if (objectName.match('buttonsLastState_\\d+')) {
               payload[objectName] = payloadInfo[objectName];
           	}
@@ -238,12 +244,12 @@ module.exports = function (RED) {
       }
       if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
         msg.payload = {'state': msg.payload.toString()};
-        // Get values of buttonID and duration from payload text to object (assumig structure is 'ButtonID:Duration')
-        if (typeof(msg.payload.state) === 'string') {
-          let stateValue = msg.payload.state.split(/:|,|;/);
-          msg.payload.buttonID = stateValue[0];
-          msg.payload.actionDuration = parseInt(stateValue[1]) || 0;
-        }
+      }
+      // Get values of buttonID and duration from payload text to object (assumig structure is 'ButtonID:Duration')
+      if (typeof(msg.payload.state) === 'string' && msg.payload.buttonID === undefined && msg.payload.actionDuration === undefined) {
+        let stateValue = msg.payload.state.split(/:|,|;/);
+        msg.payload.buttonID = stateValue[0];
+        msg.payload.actionDuration = parseInt(stateValue[1]) || 0;
       }
       let payload = msg.payload;
 
@@ -262,7 +268,7 @@ module.exports = function (RED) {
           //    - WHAT = push button N value [00-31]
           //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
           //    - WHERE = push button virtual address (A/PL)
-          baseCommands.SHORT = '*15*WHAT*WHERE##;*15*WHAT#1*WHERE##'; // must sent 2 commands (START and direct STOP)
+          baseCommands.SHORT = '*15*WHAT*WHERE##;*15*WHAT#1*WHERE##'; // must send 2 commands (START and direct STOP)
           baseCommands.LONG_START = '*15*WHAT*WHERE##';
           baseCommands.LONG_ONGOING = '*15*WHAT#3*WHERE##';
           baseCommands.LONG_END = '*15*WHAT#2*WHERE##';
@@ -292,7 +298,7 @@ module.exports = function (RED) {
           }
           commands.push (baseCommands.LONG_END);
         }
-        // Replace all the 'WHAT' & 'WHERE' by the current button ID & Scneario ID
+        // Replace all the 'WHAT' & 'WHERE' by the current button ID & Scenario ID
         for (let i = 0; i < commands.length; i++) {
           commands[i] = commands[i].replace ('WHAT', payload.buttonID).replace ('WHERE', config.scenarioid);
         }

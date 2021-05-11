@@ -1,6 +1,24 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.1.0 (latest available) - 05/2021
+### v2.2.0 (latest available) - 06/2021
+- **General**
+- **MH Gateway**
+  - ***Improvement*** : it is now possible to configure that scenario BUS commands (i.e. WHO = 15 or 25) have to be logged to console without enabling all 'OTHERS'.
+- **MH Monitoring**
+  - ***Improvement*** : a new filter was added to be able to trigger flows separately for scenario BUS commands (i.e. WHO = 15 or 25)
+- **MH Scenario** : ***New node type***\
+  Added support for Scenario (CEN) and Advanced Scenario Management (CEN+).
+  Main included functionalities :
+  - node allows to **read** *(i.e. read from the MyHome BUS)* push button updates
+    - Short press (<0.5s)
+    - Long press (including start, extended and end press triggers)
+    - Each node can be configured to react on one or multiple ***button range [0-31]*** and/or on one or multiple ***events*** (Start press, short press, long press after xx ms,...)
+  - node allows to **write** *(i.e. send to the MyHome BUS)* push button updates
+    - Short press (<0.5s)
+    - Long press (by defining for how low it must remain pressed)
+  See node documentation for full detailed information.
+
+### v2.1.0 - 05/2021
 - **General**
   - ***Improvement (technical)*** : the `payload.command_sent` returned from all nodes is now always an array of strings, since multiple commands can have been sent when updating a single node (in v2.0.0, it was a string).
   - ***Improvement*** : a '***SmartFilter***' was added on all nodes (temperature, light, shutter). The purpose is to have node-RED triggering new flows (aka output) only on a **state CHANGE** after a MyHome BUS message was received.  This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
@@ -20,8 +38,8 @@
 - **MH Shutter**
   - ***Bug fix*** : the node will no longer try to send '*status request command*' when configured as a group in Read-Only mode, since groups have no status.
   - ***Improvement*** : when a shutter point is updated by a node-RED msg (i.e. sent to the MyHome Gateway), the engine now also appends a second command sent to the MyHome Gateway to get the **effective shutter state** afterwards. This was made to work-around a 'limitation' of MyHome OpenWebNet where no status update message is responded on such posted command. Thanks to this, there is no more difference between a '*requested state*' and the '*effective state*'. This is non applicable to groups (which have no state).
-- **MH Temperature Central Unit**
-  **New node type**. Added support for temperature control using a 1-99 zones central unit.
+- **MH Temperature Central Unit** : ***New node type***\
+  Added support for temperature control using a 1-99 zones central unit.
   Main included functionalities :
   - node will **read** most zone information
     - current ***mode*** set (auto / manual / off / antifreeze, ...)
@@ -35,8 +53,8 @@
     - switch to a ***Weekly program***
     - switch to a ***Scenario***
   See node documentation for full detailed information.
-- **MH Temperature Zone**
-  **New node type**. Added support for temperature control in defined zones.
+- **MH Temperature Zone** : ***New node type***\
+  Added support for temperature control in defined zones.
   Main included functionalities :
   - node will **read** most zone information
     - master probe ***current temperature***
