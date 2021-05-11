@@ -16,7 +16,7 @@
   - node allows to **write** *(i.e. send to the MyHome BUS)* push button updates
     - Short press (<0.5s)
     - Long press (by defining for how low it must remain pressed)
-  See node documentation for full detailed information.
+  - *(See node documentation for full detailed information.)*
 
 ### v2.1.0 - 05/2021
 - **General**
@@ -52,7 +52,7 @@
     - switch to ***manual mode*** and define set-point temperature
     - switch to a ***Weekly program***
     - switch to a ***Scenario***
-  See node documentation for full detailed information.
+  - *(See node documentation for full detailed information.)*
 - **MH Temperature Zone** : ***New node type***\
   Added support for temperature control in defined zones.
   Main included functionalities :
@@ -65,7 +65,7 @@
   - node can be used to **send commands**
     - switch to ***manual mode*** and define set-point temperature
     - switch ***modes*** (auto / antifreeze / protection mode / ...)
-  See node documentation for full detailed information.
+  - *(See node documentation for full detailed information.)*
 
 ### v2.0.1 - 04/2021
 Going out of beta phase. Only modification after v2.0.0-beta3 was the addition of the CHANGELOG.md file.
