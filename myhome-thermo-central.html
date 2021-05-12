@@ -13,6 +13,24 @@ central unit<script type="text/javascript">
       output2_type: { value: 'text_state', required: false}
     },
     inputs: 1,
+    inputLabels: function () {
+      let inputLabel = "simple mode ('payload' or 'payload.state'):";
+      inputLabel += "\n - 'ANTIFREEZE'                                              ";
+      inputLabel += "\n - 'OFF_HEATING'                                           ";
+      inputLabel += "\n - 'MANUAL_HEATING:xxxx'                           ";
+      inputLabel += "\n - 'PROGRAM_HEATING:x'                            ";
+      inputLabel += "\n - 'SCENARIO_HEATING:xx'                          ";
+      inputLabel += "\n - 'THERMAL_PROTECT'                              ";
+      inputLabel += "\n - 'OFF_CONDITIONING'                              ";
+      inputLabel += "\n - 'MANUAL_CONDITIONING:xxxx'              ";
+      inputLabel += "\n - 'PROGRAM_CONDITIONING:x'               ";
+      inputLabel += "\n - 'SCENARIO_CONDITIONING:xx'             ";
+      inputLabel += "\n - 'OFF'                                                              ";
+      inputLabel += "\n - 'MANUAL:xxxx'                                              ";
+      inputLabel += "\n - 'PROGRAM:x'                                               ";
+      inputLabel += "\n - 'SCENARIO:xx'                                             ";
+      return inputLabel;
+    },
     outputs: 2,
     outputLabels: function (index) {
       if (index === 0) {
@@ -62,9 +80,9 @@ central unit<script type="text/javascript">
       <label for="node-input-smartfilter" style="width:70%">
         <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
         &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
-        This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
-        &#13;
-        Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+&#13;
+Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
       </label>
     </div>
     <div class="form-row">

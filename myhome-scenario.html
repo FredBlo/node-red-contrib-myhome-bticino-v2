@@ -21,6 +21,12 @@
       outputs: {value:1}
     },
     inputs: 1,
+    inputLabels: function () {
+      let inputLabel = "simple mode ('payload' or 'payload.state') 'xx(:yyyy)':";
+      inputLabel += "\n - 'xx' buttonID (0-31)                                              ";
+      inputLabel += "\n - 'yyyy' -optional- duration in ms                         ";
+      return inputLabel;
+    },
     outputs: 1,
     outputLabels: function(index) {
       let rule = this.rules[index-1];
@@ -33,19 +39,19 @@
         }
         let onEvents = [];
         if (rule.onStartPress) {
-          onEvents.push ('Start press');
+          onEvents.push (' - Start press');
         }
         if (rule.onEndShortPress) {
-          onEvents.push ('Short press');
+          onEvents.push (' - Short press');
         }
         if (rule.onEndLongPress) {
-          onEvents.push ('Long press (>' + (rule.minLongPressDuration/1000).toFixed(1).toString() + 's)');
+          onEvents.push (' - Long press (>' + (rule.minLongPressDuration/1000).toFixed(1).toString() + 's)');
         }
         if (rule.onDuringLongPress) {
-          onEvents.push ('Long press (while pressed)');
+          onEvents.push (' - Long press (while pressed)');
         }
         if (onEvents.length) {
-          label += ' on ' + onEvents.join (', ');
+          label += ' on :' + '\n' + onEvents.join ('\n');
         }
       } else {
         label = 'Main payload';
@@ -127,12 +133,12 @@
           let row2 = $('<div/>').appendTo(container);
           let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + i, class:"mhrule-select"}).appendTo(row2);
           let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row2);
-          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + i + '">Short press (<0.5s)</label>');
+          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + i + '">Short press ended (<0.5s)</label>');
           // ROW 3
           let row3 = $('<div/>').appendTo(container);
           row3.append('<span class="mhrule-fromtolabel">To...</span>');
           let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + i + '" style="width:unset";>Long press when >&nbsp</label>');
+          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + i + '" style="width:unset";>Long press ended when >&nbsp</label>');
           let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + i, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
           row3.append('<label class="mhrule-checkbox-label" for="node-input-minLongPressDuration_' + i + '">&nbsp ms</label>');
           // ROW 4
@@ -307,8 +313,8 @@ rules: {value:[{
         <li><strong>Action type</strong> : Defines on which type of button press a flow must be started :
           <ul>
             <li><i>On start press</i> : when button is initially pressed. Note that the behaviour is a bit different based on scenario type. For CEN, this event is always triggered, even for a short press, while for CEN+, this event only occurs when a long press is started.</li>
-            <li><i>On short press</i> : when button was pressed for less than <strong>0.5s</strong>.</li>
-            <li><i>On long press (after xx ms)</i> : when button was pressed for at least <strong>0.5s</strong>. You can also define your own minimal duration before flow must be triggered.</li>
+            <li><i>On short press end</i> : when button was pressed for less than <strong>0.5s</strong>.</li>
+            <li><i>On long press end (after xx ms)</i> : when button was pressed for at least <strong>0.5s</strong>. You can also define your own minimal duration before flow must be triggered.</li>
             <li><i>On long press (while pressed)</i> : as long as button remains pressed, the BUS will emit such an event approximatively every 500ms</li>
           </ul>
         </li>

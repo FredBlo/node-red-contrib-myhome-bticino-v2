@@ -161,7 +161,7 @@ module.exports = function (RED) {
             multiOutput[i+1] = null;
             let curRule = config.rules[i];
             // Check whether pressed button is within a range this rule must monitor
-            if (curButtonLastState.buttonID < curRule.buttonFrom && curButtonLastState.buttonID > curRule.buttonTo) {
+            if (curButtonLastState.buttonID < parseInt(curRule.buttonFrom) || curButtonLastState.buttonID > parseInt(curRule.buttonTo)) {
               continue;
             }
             // Check whether action is a monitored one
