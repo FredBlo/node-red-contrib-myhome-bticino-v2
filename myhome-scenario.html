@@ -121,31 +121,32 @@
           if (!rule.hasOwnProperty('minLongPressDuration')) {
             rule.minLongPressDuration = 1000;
           }
+          let uniqueRowID = Math.floor(10000000*Math.random()).toString();
           // ROW 1
           let row1 = $('<div/>').appendTo(container);
           row1.append('<span class="mhrule-fromtolabel">From...</span>');
-          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + i,type:"checkbox", class:"mhrule-checkbox"}).appendTo(row1);
-          row1.append('<label class="mhrule-checkbox-label" for="node-input-onStartPress_' + i + '">Start press</label>');
+          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"mhrule-checkbox"}).appendTo(row1);
+          row1.append('<label class="mhrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">Start press</label>');
           // ROW1 : output info (rightest part)
           let finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row1);
-          finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span> ');
+          finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span>');
           // ROW 2
           let row2 = $('<div/>').appendTo(container);
-          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + i, class:"mhrule-select"}).appendTo(row2);
-          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row2);
-          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + i + '">Short press ended (<0.5s)</label>');
+          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"mhrule-select"}).appendTo(row2);
+          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row2);
+          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">Short press ended (<0.5s)</label>');
           // ROW 3
           let row3 = $('<div/>').appendTo(container);
           row3.append('<span class="mhrule-fromtolabel">To...</span>');
-          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + i + '" style="width:unset";>Long press ended when >&nbsp</label>');
-          let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + i, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-minLongPressDuration_' + i + '">&nbsp ms</label>');
+          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row3);
+          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + uniqueRowID + '" style="width:unset";>Long press ended when >&nbsp</label>');
+          let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + uniqueRowID, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
+          row3.append('<label class="mhrule-checkbox-label" for="node-input-minLongPressDuration_' + uniqueRowID + '">&nbsp ms</label>');
           // ROW 4
           let row4 = $('<div/>').appendTo(container);
-          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + i, class:"mhrule-select"}).appendTo(row4);
-          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + i, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row4);
-          row4.append('<label class="mhrule-checkbox-label" for="node-input-onDuringLongPress_' + i + '">Long press (while pressed)</label>');
+          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + uniqueRowID, class:"mhrule-select"}).appendTo(row4);
+          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row4);
+          row4.append('<label class="mhrule-checkbox-label" for="node-input-onDuringLongPress_' + uniqueRowID + '">Long press (while pressed)</label>');
 
           // Build all 0-31 choices to both fields inputs
           for (let i = 0; i <= 31; i++) {
@@ -221,13 +222,13 @@
       rules.each (function (i) {
         let rule = $(this);
         let savedRule = {};
-        savedRule.buttonFrom = parseInt(rule.find("#node-input-buttonFrom_" + i).val());
-        savedRule.buttonTo = parseInt(rule.find("#node-input-buttonTo_" + i).val());
-        savedRule.onStartPress = rule.find("#node-input-onStartPress_" + i).prop("checked");
-        savedRule.onEndShortPress = rule.find("#node-input-onEndShortPress_" + i).prop("checked");
-        savedRule.onEndLongPress = rule.find("#node-input-onEndLongPress_" + i).prop("checked");
-        savedRule.onDuringLongPress = rule.find("#node-input-onDuringLongPress_" + i).prop("checked");
-        savedRule.minLongPressDuration = parseInt(rule.find("#node-input-minLongPressDuration_" + i).val());
+        savedRule.buttonFrom = parseInt(rule.find("[id^=node-input-buttonFrom_]").val());
+        savedRule.buttonTo = parseInt(rule.find("[id^=node-input-buttonTo_]").val());
+        savedRule.onStartPress = rule.find("[id^=node-input-onStartPress_]").prop("checked");
+        savedRule.onEndShortPress = rule.find("[id^=node-input-onEndShortPress_]").prop("checked");
+        savedRule.onEndLongPress = rule.find("[id^=node-input-onEndLongPress_]").prop("checked");
+        savedRule.onDuringLongPress = rule.find("[id^=node-input-onDuringLongPress_]").prop("checked");
+        savedRule.minLongPressDuration = parseInt(rule.find("[id^=node-input-minLongPressDuration_]").val());
         node.rules.push (savedRule);
       });
     }
