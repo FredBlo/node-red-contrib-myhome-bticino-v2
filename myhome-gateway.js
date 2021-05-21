@@ -68,7 +68,7 @@ module.exports = function (RED) {
       if (isTryingToConnect) {
         return;
       }
-      // Keep track of attempted connexions count and status (o avoid multiple tries at a same time)
+      // Keep track of attempted connexions count and status (to avoid multiple attempts at the same time)
       isTryingToConnect = true;
       failedConnectionAttempts++;
       node.log ('gateway connection : instanciating client... (attempt #' + failedConnectionAttempts + ')');
