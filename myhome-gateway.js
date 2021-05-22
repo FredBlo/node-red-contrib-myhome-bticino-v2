@@ -7,6 +7,7 @@ module.exports = function (RED) {
   const ACK  = '*#*1##';
   const NACK = '*#*0##';
   const START_MONITOR = '*99*1##';
+  const KEEP_ALIVE = '*#13**15##'; // ask gateway model
   const RESTART_CONNECT_TIMEOUT = 500; // ms
   const RESTART_CONNECT_TIMEOUT_MAX = 30000; // ms
 
@@ -170,11 +171,14 @@ module.exports = function (RED) {
 
     instanciateClient (0);
     // Once client is started, init a repeater which will keep connection alive (ony if configured so in gateway)
-    // TechNote : sending a START_MONITOR command here cause some gateways (myHOMEServer1) to close connection, forcing a re-instatition, ACK is enough
+    // TechNote :
+    //  - sending a START_MONITOR command here cause some gateways (myHOMEServer1) to close connection, forcing a re-instatition, ACK is enough
+    //  - ... but sending a simple ACK returns a NACK on MH201
+    // = therefore, sending a ask gateway model request instead
     function checkConnection() {
       if (failedConnectionAttempts === 0) {
         node.debug ('gateway connection : keeping connection alive every ' + node.timeout/1000 + 's ...');
-        node.client.write (ACK);
+        node.client.write (KEEP_ALIVE);
       }
     }
     let autoCheckConnection;
