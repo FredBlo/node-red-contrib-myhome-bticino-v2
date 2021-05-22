@@ -4,6 +4,7 @@
 - **General**
 - **MH Gateway**
   - ***Improvement*** : it is now possible to configure that scenario BUS commands (i.e. WHO = 15 or 25) have to be logged to console without enabling all 'OTHERS'.
+  - ***Bug fix*** : keep alive improved to avoid creating a disconnection on MH201 gateways
 - **MH Monitoring**
   - ***Improvement*** : a new filter was added to be able to trigger flows separately for scenario BUS commands (i.e. WHO = 15 or 25)
 - **MH Scenario** : ***New node type***\
