@@ -7,7 +7,6 @@ module.exports = function (RED) {
   const ACK  = '*#*1##';
   const NACK = '*#*0##';
   const START_MONITOR = '*99*1##';
-  const KEEP_ALIVE = '*#13**15##'; // ask gateway model
   const RESTART_CONNECT_TIMEOUT = 500; // ms
   const RESTART_CONNECT_TIMEOUT_MAX = 30000; // ms
 
@@ -100,8 +99,9 @@ module.exports = function (RED) {
 
     function parsePacket (packet) {
       if (packet === NACK) {
-        // When we have a non acknowledged return, always generate an internal error
-        internalError (START_MONITOR, 'Command not acknowledged (NACK) when already connected');
+        // When we have a non acknowledged return while connected, we ignore the error
+        // The MH201 returns a NACK on the keep alive process (which sends an ACK), and since MONITORING never sends commands, NACK can be ignore
+        // internalError (START_MONITOR, 'Command not acknowledged (NACK) when already connected');
         return;
       }
 
@@ -172,13 +172,12 @@ module.exports = function (RED) {
     instanciateClient (0);
     // Once client is started, init a repeater which will keep connection alive (ony if configured so in gateway)
     // TechNote :
-    //  - sending a START_MONITOR command here cause some gateways (myHOMEServer1) to close connection, forcing a re-instatition, ACK is enough
-    //  - ... but sending a simple ACK returns a NACK on MH201
-    // = therefore, sending a ask gateway model request instead
+    //  - sending a START_MONITOR command here cause some gateways (myHOMEServer1) to close connection, forcing a re-instatition, ACK is enough...
+    //  - but when sending a simple ACK, some (MH201) returned a NACK, which is now no longer forcing a disconection in the gateway.
     function checkConnection() {
       if (failedConnectionAttempts === 0) {
         node.debug ('gateway connection : keeping connection alive every ' + node.timeout/1000 + 's ...');
-        node.client.write (KEEP_ALIVE);
+        node.client.write (ACK);
       }
     }
     let autoCheckConnection;
