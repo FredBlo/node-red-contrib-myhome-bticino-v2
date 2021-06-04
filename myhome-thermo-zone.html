@@ -14,6 +14,16 @@
       output2_type: { value: 'text_state', required: false}
     },
     inputs: 1,
+    inputLabels: function () {
+      let inputLabel = "simple mode ('payload' or 'payload.state'):";
+      inputLabel += "\n - 'xx.x' : manual mode to xx.x °C      ";
+      inputLabel += "\n - 'OFF'                                                  ";
+      inputLabel += "\n - 'AUTO'                                               ";
+      inputLabel += "\n - 'PROTECT'                                       ";
+      inputLabel += "\n - 'THERMAL_PROTECT'                  ";
+      inputLabel += "\n - 'ANTIFREEZE'                                  ";
+      return inputLabel;
+    },
     outputs: 2,
     outputLabels: function (index) {
       if (index === 0) {
@@ -67,9 +77,9 @@
       <label for="node-input-smartfilter" style="width:70%">
         <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
         &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
-        This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
-        &#13;
-        Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+&#13;
+Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
       </label>
     </div>
     <div class="form-row">
@@ -144,6 +154,8 @@
         <li><strong>OFF</strong> : zone will be switched off.</li>
         <li><strong>AUTO</strong> : zone will be switched to automatic mode.</li>
         <li><strong>PROTECT</strong> : zone will be switched to generic protection mode.</li>
+        <li><strong>THERMAL_PROTECT</strong> : zone will be switched to thermal protection mode (when in conditioning).</li>
+        <li><strong>ANTIFREEZE</strong> : zone will be switched to antifreeze mode (when in heating).</li>
       </ul>
     </ul>
   <p><code>msg.topic</code> is required on the received <code>msg</code> to trigger the node action: </p>
@@ -163,8 +175,8 @@
     <ul>
       <li> <code>payload.state</code> <em>[number]</em> value is 'ON' or 'OFF'</li>
       <li> <code>payload.setTemperature</code> <em>[number]</em> the current temperature defined as set-point</li>
-      <li> <code>payload.operationType_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the operation type)
-      <li> <code>payload.operationType</code> <em>[string]</em> the current zone operation type</li>
+      <li> <code>payload.operationType_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the operation type)</li>
+      <li> <code>payload.operationType</code> <em>[string]</em> the current zone operation type
         <table id="mh-tableinfo">
           <tr>  <th>ownValue</th> 	<th>operationType</th>	 	  </tr>
           <tr>  <td>0</td> 		 		  <td>Conditioning</td>       </tr>
@@ -188,8 +200,8 @@
           <tr>  <td>202</td> 		 		<td>Thermal Protection</td>      </tr>
         </table>
       </li>
-      <li> <code>payload.localOffset_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the offset)
-      <li> <code>payload.localOffset</code> <em>[string]</em> value is 'ON' or 'OFF'</li>
+      <li> <code>payload.localOffset_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the offset)</li>
+      <li> <code>payload.localOffset</code> <em>[string]</em> value is 'ON' or 'OFF'
         <table id="mh-tableinfo">
           <tr>  <th>ownValue</th> 	<th>localOffset</th>	 	  </tr>
           <tr>  <td>00</td> 		 		<td>0 (no offset)</td>    </tr>

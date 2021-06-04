@@ -8,17 +8,23 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 	- Dimming (percentage based)
 - **MH Shutter**
 	- OPEN / CLOSE /STOP
+- **MH Scenario**
+	- CEN and CEN+ scenario buttons management : Short and Long press (start / extended / release)
+- **MH Temperature Central Unit**
+	- MANUAL:xx.x°C / PROGRAM:x / SCENARIO:xx / OFF / ANTIFREEZE / THERMAL_PROTECT
+- **MH Temperature Zone**
+	- (MANUAL:)xx.x°C / AUTO / OFF / ANTIFREEZE / THERMAL_PROTECT
 - **MH Monitoring**
 	- Listen for any message on the bus and sends it as payload
 - **MH Inject**
 	- Sends any message provided in payload to bus. e.g.
-  		- **`*1*1*16##`** to turn on light **16**
-  		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
+		- **`*1*1*16##`** to turn on light **16**
+		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-2.1.0 added support for ***temperature control*** with 2 new nodes : `MH Thermo Central` and `MH Thermo Zone`.
-It also includes other improvements and bug fixes.
-The **complete version history** is available in `CHANGELOG.md` file included in npm package or in [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
+2.2.0 added support for ***scenario (CEN/CEN+)*** with new node : `MH Scenario`.
+It also includes other misc improvements.
+The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
 ## 3. Installation & Usage
 ### 3.1 Previous version user ? Important to read before you decide to upgrade
@@ -84,23 +90,28 @@ Test the Light injecting payload boolean message `true` (or `false`) and setting
  3. Turn on the light *(physically I mean :-) )* you want to find the MyHome light/shutter number
  4. Watch the debug window to see the message generated to discover the MyHome light/shutter number  
 
-> Remember that, for lights, the message will be as **`*1*1*xx##`** if on or **`*1*0*xx##`** if off, where **xx** is the number (A/PL) you are trying to discover
+> Remember that, for lights, the message will be as **`*1*1*xx##`** when on or **`*1*0*xx##`** when off, where **xx** is the number (A/PL) you are trying to discover
 
 ## 4. Bticino Gateway & OpenWebNet
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
-| Gateway             | Authentication (tested)           | Lights        | Shutters      | Temperature   |
-| ------------------- | --------------------------------- | ------------- | ------------- | ------------- |
-| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             |
-| ***MH202***         | OPEN pwd                          | OK            | OK            | OK [2][3]     |
-| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK [3]        |
-| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK [4]        |
+
+| Gateway             | Authentication (tested)           | Lights        | Shutters      | Scenario      | Temperature   |
+| ------------------- | --------------------------------- | ------------- | ------------- | ------------- | ------------- |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             | ?             |
+| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [2][3]     |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK            | OK [3]        |
+| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            | OK            |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [4]        |
 
 \*based on *Fabio Bui* feedback
+\
 [1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
+\
 [2] MH202 gateway returns the temperature set-point without taking the local offset into account
+\
 [3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
+\
 [4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
 
 ## 5. Contact me

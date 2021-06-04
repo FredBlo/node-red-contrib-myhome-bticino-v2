@@ -28,6 +28,10 @@ module.exports = function (RED) {
     if (config.own_temperature) {
       runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
     }
+    // SCENARIO MANAGEMENT
+    if (config.own_scenario) {
+      runningMonitor.addMonitoredEvent ('OWN_SCENARIO', listenerFunction);
+    }
     // ENERGY MANAGEMENT
     if (config.own_energy) {
       runningMonitor.addMonitoredEvent ('OWN_ENERGY', listenerFunction);
@@ -38,7 +42,7 @@ module.exports = function (RED) {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    node.on('close', function(done)	{
+    node.on ('close', function(done)	{
       runningMonitor.clearAllMonitoredEvents ();
       done();
     });

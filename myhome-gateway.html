@@ -11,6 +11,7 @@
       log_in_lights: { value: false, required: false},
       log_in_shutters: { value: false, required: false},
       log_in_temperature: { value: false, required: false},
+      log_in_scenario: { value: false, required: false},
       log_in_energy: { value: false, required: false},
       log_in_others: { value: false, required: false},
       log_out_cmd: { value: false, required: false}
@@ -70,6 +71,12 @@
           </label>
       </div>
       <div class="form-row">
+          <label for="node-config-input-log_in_scenario">&nbsp;<i class="fa fa-magic"></i> Scenario</label>
+          <label for="node-config-input-log_in_scenario" style="width:70%" title="OpenWebNet WHO=15 & 25">
+            <input type="checkbox" id="node-config-input-log_in_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All scenario (CEN/CEN+) events
+          </label>
+      </div>
+      <div class="form-row">
           <label for="node-config-input-log_in_energy">&nbsp;<i class="fa fa-bolt"></i> Energy</label>
           <label for="node-config-input-log_in_energy" style="width:70%" title="OpenWebNet WHO=18">
             <input type="checkbox" id="node-config-input-log_in_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All energy management events
@@ -101,24 +108,25 @@
   <p>The Gateway configuration Node</p>
   <ul>
     <li><strong>Name, IP Address, Port</strong> ... quite self explanatory :-)</li>
-    <li><strong>Password</strong> can be set :</li>
+    <li><strong>Password</strong> can be set :
       <ul>
         <li><em>empty</em> : password is not necessary when the Node-RED server is running on an IP address configured as 'local address' on the gateway</li>
         <li><em>numerical</em> : for basic authentication (OpenWebNet passwords)</li>
         <li><em>alphanumeric</em> : for advanced authentication (HMAC-1 (SHA-1) or HMAC-2 (SHA-2 / 256)</li>
       </ul>
+    </li>
     <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
-    <i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
+    <br><i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
   </ul>
   <br>
   Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :
   <table id="mh-tableinfo">
-      <tr>  <th>Gateway</th>                         <th>Authentication (tested)</th>               <th>Lights</th>   <th>Shutters</th>  <th>Temperature</th>	</tr>
-      <tr>  <td><strong>MH201 *</strong></td>          <td>IP, OPEN pwd</td>                          <td>OK</td>       <td>OK</td>        <td>?</td>            </tr>
-      <tr>  <td><strong>MH202</strong></td>          <td>OPEN pwd</td>                              <td>OK</td>       <td>OK</td>        <td>OK [2][3]</td>    </tr>
-      <tr>  <td><strong>F455</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-1) pwd [1]</td>    <td>OK</td>       <td>OK</td>        <td>OK [3]</td>       </tr>
-      <tr>  <td><strong>F459</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>        <td>OK</td>       <td>OK</td>        <td>OK</td>           </tr>
-      <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                      <td>OK</td>       <td>OK</td>        <td>OK [4]</td>       </tr>
+    <tr>  <th>Gateway</th>                         <th>Authentication (tested)</th>             <th>Lights</th> <th>Shutters</th> <th>Scenario</th> <th>Temperature</th>	</tr>
+    <tr>  <td><strong>MH201 *</strong></td>        <td>IP, OPEN pwd</td>                        <td>OK</td>     <td>OK</td>       <td>?</td>        <td>?</td>            </tr>
+    <tr>  <td><strong>MH202</strong></td>          <td>OPEN pwd</td>                            <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [2][3]</td>    </tr>
+    <tr>  <td><strong>F455</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-1) pwd [1]</td>  <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [3]</td>       </tr>
+    <tr>  <td><strong>F459</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>      <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK</td>           </tr>
+    <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                    <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [4]</td>       </tr>
   </table>
   <i>* based on *Fabio Bui* feedback</i>
   <br> <i>[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.</i>
