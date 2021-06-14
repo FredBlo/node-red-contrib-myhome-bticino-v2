@@ -9,8 +9,10 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
-    // Build the light point name. If node is configured as being a group, add '#' as prefix
-    node.lightgroupid = ((config.isgroup) ? '#' : '') + config.lightid;
+    // Build the light point name. If node is configured as being a group, add '#' as prefix.
+    // When NOT working on private riser, include the bus level (with suffix '#4#xx' where xx is the BUS id)
+    let buslevel = config.buslevel || 'private_riser';
+    node.lightgroupid = ((config.isgroup) ? '#' : '') + config.lightid + ((buslevel === 'private_riser') ? '' : '#4#' + buslevel);
 
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};

@@ -1,7 +1,12 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.2.0 (latest available) - 06/2021
-- **General**
+### v2.2.1 (latest available) - 06/2021
+- **MH Light / MH Shutter / MH Scenario**
+  - ***Improvement*** : added management of BUS selection to allow receiving / sending commands on the private riser (default) but now also to any Local bus (1 - 15) configured at node's level.
+- **MH Scenario**
+  - ***Bug fix*** : short press was badly sent when used in CEN mode
+
+### v2.2.0 - 06/2021
 - **MH Gateway**
   - ***Improvement*** : it is now possible to configure that scenario BUS commands (i.e. WHO = 15 or 25) have to be logged to console without enabling all 'OTHERS'.
   - ***Bug fix*** : keep alive improved to avoid creating a disconnection on MH201 gateways

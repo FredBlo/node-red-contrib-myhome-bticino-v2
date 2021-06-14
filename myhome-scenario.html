@@ -4,8 +4,9 @@
     color: '#a6bbcf',
     defaults: {
       name: { value: '', required: true },
-      scenarioid: { value: '', required: true, validate: RED.validators.number() },
+      buslevel: { value: 'private_riser', required: false},
       scenariotype: { value: 'CEN+', required: true },
+      scenarioid: { value: '', required: true, validate: RED.validators.number() },
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
       skipevents: { value: false, required: false },
@@ -61,6 +62,10 @@
     icon: 'font-awesome/fa-magic',
     paletteLabel: 'MH Scenario',
     label: function() {
+      // Force default values for newly added fields (backward compatibility with prior releases : when never edited before, update/add new fields)
+      // v2.2.1 Added BUS management
+      if (this.buslevel === undefined) {this.buslevel = 'private_riser'}
+      // Return the label itself
       return this.name || 'MH Scenario';
     },
     oneditprepare: function() {
@@ -243,11 +248,29 @@
   <div class="form-row">
     <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
     <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-      <select id="node-input-scenariotype" style="width:80px">
+      <select id="node-input-buslevel" style="width:110px">
+        <option value="private_riser">Private riser</option>
+        <option value="01">Local bus 1</option>
+        <option value="02">Local bus 2</option>
+        <option value="03">Local bus 3</option>
+        <option value="04">Local bus 4</option>
+        <option value="05">Local bus 5</option>
+        <option value="06">Local bus 6</option>
+        <option value="07">Local bus 7</option>
+        <option value="08">Local bus 8</option>
+        <option value="09">Local bus 9</option>
+        <option value="10">Local bus 10</option>
+        <option value="11">Local bus 11</option>
+        <option value="12">Local bus 12</option>
+        <option value="13">Local bus 13</option>
+        <option value="14">Local bus 14</option>
+        <option value="15">Local bus 15</option>
+      </select>
+      <select id="node-input-scenariotype" style="width:65px">
         <option value="CEN">CEN</option>
         <option value="CEN+">CEN+</option>
       </select>
-      <div style="position: absolute; left: 85px; right: 0px; top:0px;">
+      <div style="position: absolute; left: 183px; right: 0px; top:0px;">
         <input type="text" id="node-input-scenarioid" style="width:100%" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
       </div>
     </div>

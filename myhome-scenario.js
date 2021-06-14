@@ -11,6 +11,10 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
+    // When NOT working on private riser, include the bus level (with suffix '#4#xx' where xx is the BUS id)
+    let buslevel = config.buslevel || 'private_riser';
+    node.scenarioid = config.scenarioid + ((buslevel === 'private_riser') ? '' : '#4#' + buslevel);
+
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
@@ -56,7 +60,7 @@ module.exports = function (RED) {
         //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
     		//    - WHERE = push button virtual address (A/PL)
         if (config.scenariotype === 'CEN') {
-          packetMatch = curPacket.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + config.scenarioid + '##');
+          packetMatch = curPacket.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + node.scenarioid + '##');
           if (packetMatch !== null) {
             curButtonID = packetMatch[1];
             switch (packetMatch[2]) {
@@ -83,7 +87,7 @@ module.exports = function (RED) {
         //    - WHAT = push button N value [0-31]
         //    - WHERE = 2 [0-2047] Virtual Address
         if (config.scenariotype === 'CEN+') {
-          packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d+)\\*2' + config.scenarioid + '##');
+          packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d+)\\*2' + node.scenarioid + '##');
           if (packetMatch !== null) {
             curButtonID = packetMatch[2];
             switch (packetMatch[1]) {
@@ -300,7 +304,7 @@ module.exports = function (RED) {
         }
         // Replace all the 'WHAT' & 'WHERE' by the current button ID & Scenario ID
         for (let i = 0; i < commands.length; i++) {
-          commands[i] = commands[i].replace ('WHAT', payload.buttonID).replace ('WHERE', config.scenarioid);
+          commands[i] = commands[i].replace (/WHAT/g, payload.buttonID).replace (/WHERE/g, node.scenarioid);
         }
       }
       // when no command to send (and not working in read only mode where we only send current node info), abord

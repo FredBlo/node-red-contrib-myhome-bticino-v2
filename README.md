@@ -22,8 +22,8 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-2.2.0 added support for ***scenario (CEN/CEN+)*** with new node : `MH Scenario`.
-It also includes other misc improvements.
+**v2.2.1** added management (for Lights, Shutters and Scenario) of BUS selection to allow receiving / sending commands on the private riser (default) but now also to any Local bus (1 - 15) configured at node's level.
+
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
 ## 3. Installation & Usage
