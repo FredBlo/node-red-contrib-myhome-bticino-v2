@@ -98,21 +98,23 @@ Based on previous authors comments and my own experience when testing/extending 
 
 | Gateway             | Authentication (tested)           | Lights        | Shutters      | Scenario      | Temperature   |
 | ------------------- | --------------------------------- | ------------- | ------------- | ------------- | ------------- |
-| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             | ?             |
-| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [2][3]     |
-| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK            | OK [3]        |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK [1]        | OK            | ?             | ?             |
+| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [3][4]     |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [2]| OK            | OK            | OK            | OK [4]        |
 | ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            | OK            |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [4]        |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [5]        |
 
 \*based on *Fabio Bui* feedback
 \
-[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
+[1] MH201 gateway does not 'respond' to light status request (on update or in read-only mode), but the response itself is sent on the BUS and can be read/used through another flow if necessary. See more info on [GitHub issue 11](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues/11)
 \
-[2] MH202 gateway returns the temperature set-point without taking the local offset into account
+[2] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
 \
-[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
+[3] MH202 gateway returns the temperature set-point without taking the local offset into account
 \
-[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
+[4] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
+\
+[5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
 
 ## 5. Contact me
 If you have questions, remarks, issues,... please add your input using GitHub for this project (either [issues](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues) or [discussions](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/discussions))
