@@ -1,6 +1,10 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.2.1 (latest available) - 06/2021
+### v2.2.2 (latest available) - 01/2022
+- **MH Light**
+  - ***Improvement*** : light node now accepts a simple 'numerical' value (0 - 100) as payload value when used with dimmers (i.e. sending 80 will dim light to 80% as if a full request was sent with `payload.state=ON` and `payload.brightness=80`)
+
+### v2.2.1 - 06/2021
 - **MH Light / MH Shutter / MH Scenario**
   - ***Improvement*** : added management of BUS selection to allow receiving / sending commands on the private riser (default) but now also to any Local bus (1 - 15) configured at node's level.
 - **MH Scenario**
