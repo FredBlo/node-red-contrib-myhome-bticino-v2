@@ -152,6 +152,12 @@ module.exports = function (RED) {
         }
       } else if (typeof(msg.payload) === 'boolean') {
         msg.payload = {'state': (msg.payload) ? 'ON' : 'OFF'};
+      } else if (!isNaN(msg.payload)) {
+        if (msg.payload == 0) {
+          msg.payload = {'state': 'OFF','brightness': 0};
+        } else {
+          msg.payload = {'state': 'ON','brightness': parseInt(msg.payload)};
+        }
       } else if (typeof(msg.payload) === 'string') {
         msg.payload = {'state': msg.payload};
       }

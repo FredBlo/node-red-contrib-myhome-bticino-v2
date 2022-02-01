@@ -22,7 +22,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-**v2.2.1** added management (for Lights, Shutters and Scenario) of BUS selection to allow receiving / sending commands on the private riser (default) but now also to any Local bus (1 - 15) configured at node's level.
+**v2.2.2** light node now accepts a simple 'numerical' value (0 - 100) as payload value when used with dimmers (i.e. sending 80 will dim light to 80% as if a full request was sent with `payload.state=ON` and `payload.brightness=80`)
 
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
@@ -98,21 +98,23 @@ Based on previous authors comments and my own experience when testing/extending 
 
 | Gateway             | Authentication (tested)           | Lights        | Shutters      | Scenario      | Temperature   |
 | ------------------- | --------------------------------- | ------------- | ------------- | ------------- | ------------- |
-| ***MH201*** \*      | IP, OPEN pwd                      | OK            | OK            | ?             | ?             |
-| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [2][3]     |
-| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [1]| OK            | OK            | OK            | OK [3]        |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK [1]        | OK            | ?             | ?             |
+| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [3][4]     |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [2]| OK            | OK            | OK            | OK [4]        |
 | ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            | OK            |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [4]        |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [5]        |
 
 \*based on *Fabio Bui* feedback
 \
-[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
+[1] MH201 gateway does not 'respond' to light status request (on update or in read-only mode), but the response itself is sent on the BUS and can be read/used through another flow if necessary. See more info on [GitHub issue 11](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues/11)
 \
-[2] MH202 gateway returns the temperature set-point without taking the local offset into account
+[2] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.
 \
-[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
+[3] MH202 gateway returns the temperature set-point without taking the local offset into account
 \
-[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
+[4] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
+\
+[5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
 
 ## 5. Contact me
 If you have questions, remarks, issues,... please add your input using GitHub for this project (either [issues](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues) or [discussions](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/discussions))
