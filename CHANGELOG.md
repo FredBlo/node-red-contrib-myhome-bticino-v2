@@ -158,6 +158,39 @@ This version is a major refactoring of the previous [v0.2.2 from Fabio Bui (node
       - `payload.command_received` : when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: `*1*0*25##` means shutter 2.5 was stopped)
       - `payload.command_responses` : when the node was triggered from Node-RED in read-only mode, will contain the returned response from the MyHome BUS in OpenWebNet protocol
 
+| ***!!! important to read when 'migrating from From 0.2.2 to this v2 node !!!*** |
+| --------------------------------------------------------------------------------|
+
+If you currently use the [node-red-contrib-myhome-bticino](https://flows.nodered.org/node/node-red-contrib-myhome-bticino) and want to upgrade, read this first :  
+- **Switches** : These were removed because, technically, they are the same as **Lights** on the MyHome system.
+- **Covers** : This type has be renamed to **Shutters**, and also offer new functionalities.
+
+Therefore, for these 2 node types, do not forget to copy information before uninstalling the other version. After installing this one all these nodes will not be available and you will have to re-create them manually with similar configuration.
+
+To install, 2 possible ways :
+- Using the **Node-RED UI**
+	1. Backup all your flows (using export to a local file)
+	2. Remove all content (otherwise removal of previous version is disallowed)
+	3. In your palette, **uninstall** `node-red-contrib-myhome-bticino`
+	4. In your palette, **install** `node-red-contrib-myhome-bticino-v2`
+	5. Restart your Node-RED server
+	6. Import back for backed up flows
+	7. Replace erroneous 'switches' and 'covers' nodes by 'lights' and 'shutters' (or you may also use a text editor to 'Find and Replace' the old type 'myhome-cover' by the new 'myhome-shutter' in locally saved JSON before re-importing)
+	8. Deploy
+
+- Using the console (bash)
+	1. **Uninstall** previous version `node-red-contrib-myhome-bticino` (nodes dependencies are not checked in this case)
+
+        	npm uninstall node-red-contrib-myhome-bticino
+
+  2. **Install** `node-red-contrib-myhome-bticino-v2`
+
+        	npm install node-red-contrib-myhome-bticino-v2
+
+	3. Restart your Node-RED server
+	4. Replace erroneous 'switches' and 'covers' nodes by 'lights' and 'shutters'
+	5. Deploy
+
 ### v0.2.2
 Thanks to Fabio Bui for his inspiring [work](https://github.com/fabiobui/node-red-contrib-myhome-bticino) on Ralph Vigne's work which lead to:
 - Added support for secured gateways (using basic OPEN password, usually set to `12345`)
