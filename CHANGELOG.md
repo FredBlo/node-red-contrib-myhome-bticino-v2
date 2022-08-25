@@ -1,6 +1,18 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.2.2 (latest available) - 01/2022
+### v2.2.3 (latest available) - 09/2022
+- **General**
+  - ***Examples flows*** are now available to be imported directly using standard 'Import' menu from node-red for :
+    - MH Light (simple point)
+    - MH Light (group of lights)
+    - MH Shutter
+    - MH Scenario (CEN / CEN+)
+    - MH Temperature Central Unit
+    - MH Temperature Zone
+    - MH Inject
+    - MH Monitoring
+  - small ***typo corrections*** here and there :-)
+### v2.2.2 - 01/2022
 - **MH Light**
   - ***Improvement*** : light node now accepts a simple 'numerical' value (0 - 100) as payload value when used with dimmers (i.e. sending 80 will dim light to 80% as if a full request was sent with `payload.state=ON` and `payload.brightness=80`)
 
