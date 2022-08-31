@@ -22,17 +22,17 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-**v2.2.3**
+**v2.2.3(.1)**
 - **General**
   - ***Examples flows*** are now available to be imported directly using standard 'Import' menu from node-red for :
-    - MH Light (simple point)
+    - MH Light (simple point) (from v2.2.3.1, in v2.2.3 was erroneously a copy of 'MH Inject')
     - MH Light (group of lights)
     - MH Shutter
     - MH Scenario (CEN / CEN+)
     - MH Temperature Central Unit
     - MH Temperature Zone
     - MH Inject
-    - MH Monitoring (discover lights)
+    - MH Monitoring
   - small ***typo corrections*** here and there :-)
 
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
