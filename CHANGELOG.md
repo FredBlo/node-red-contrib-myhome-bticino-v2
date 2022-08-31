@@ -1,9 +1,9 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.2.3 (latest available) - 09/2022
+### v2.2.3(.1) (latest available) - 09/2022
 - **General**
   - ***Examples flows*** are now available to be imported directly using standard 'Import' menu from node-red for :
-    - MH Light (simple point)
+    - MH Light (simple point) (from v2.2.3.1, in v2.2.3 was erroneously a copy of 'MH Inject')
     - MH Light (group of lights)
     - MH Shutter
     - MH Scenario (CEN / CEN+)
