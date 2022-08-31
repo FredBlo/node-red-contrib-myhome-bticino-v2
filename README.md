@@ -22,7 +22,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-**v2.2.3(.1)**
+**v2.2.3(-2)**
 - **General**
   - ***Examples flows*** are now available to be imported directly using standard 'Import' menu from node-red for :
     - MH Light (simple point) (from v2.2.3.1, in v2.2.3 was erroneously a copy of 'MH Inject')
