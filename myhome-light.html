@@ -177,14 +177,14 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
     <ul>
       <li>A simple value
         <ul>
-          <li>a simple <em>string</em> being either 'ON' or 'OFF'</li>
+          <li>a simple <em>string</em> being either 'ON' or 'OFF'. When controlling dimmers, current brightness level can be increased / decreased by using 'UP' or 'DOWN'.</li>
           <li>a simple <em>boolean</em> being either 'true' or 'false'</li>
-          <li>a simple <em>numerical value</em> ranging from '0' to '100'. Only applicable for dimmed lights ('0' being off, another value will turn lamp on at specified brightness % provided)</li>
+          <li>a simple <em>numerical value</em> ranging from '0' to '100'. Only applicable for dimmed lights ('0' being off, another value will turn lamp on at specified brightness % provided, rounded to the nearest ten)</li>
         </ul>
       </li>
       <li>An Object
         <ul>
-          <li> <code>payload.state</code> <em>[string]</em> value must be 'ON' or 'OFF'</li>
+          <li> <code>payload.state</code> <em>[string]</em> value must be 'ON' or 'OFF'. Can also be 'UP' or 'DOWN' for dimmers</li>
           <li> <code>payload.On</code> <em>[boolean]</em> value must be 'True' or 'False'<br>
             (is a fallback when .state is undefined)</li>
           <li> <code>payload.brightness</code> <em>[integer]</em> (optional, for dimmers only) represents brightness percentage being applied to load, ranging from 20 to 100</li>

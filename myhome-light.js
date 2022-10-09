@@ -52,7 +52,8 @@ module.exports = function (RED) {
         // Checks 1 : Light point/group update [*1*<status>|<dimmerLevel10>*where##]
         //    - <status> [0-1] : 0 = OFF / 1 = ON
         //    - <dimmerLevel10> [2-10] : 2 = 20% / 3 = 30% / ... / 9 = 90% / 10 = 100%
-        packetMatch = curPacket.match ('^\\*1\\*(\\d+)\\*(' + node.lightgroupid + '|0)##');
+        // Note : the RegEx must only keep 2 characters when <status> begins with 1 to skip 30 or 31 since these are dimming UP / DOWN
+        packetMatch = curPacket.match ('^\\*1\\*(\\d|1\\d)\\*(' + node.lightgroupid + '|0)##');
         if (packetMatch !== null) {
           if ((packetMatch[1] === '0') || (packetMatch[1] === '1')) {
             payloadInfo.state = (packetMatch[1] === '1') ? 'ON' : 'OFF';
@@ -184,6 +185,12 @@ module.exports = function (RED) {
             // No brightness provided : is a simple 'ON' call
             cmd_what = '1';
           }
+        } else if (payload.state === 'UP') {
+          // Working in dimmer : dimming UP
+          cmd_what = '30';
+        } else if (payload.state === 'DOWN') {
+          // Working in dimmer : dimming DOWN
+          cmd_what = '31';
         }
         if (cmd_what) {
           commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
