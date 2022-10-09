@@ -1,1 +1,327 @@
-[{"id":"33f463aef72c752d","type":"tab","label":"Scenario CEN/CEN+ (example)","disabled":false,"info":"","env":[]},{"id":"627fb501b9e54f54","type":"group","z":"33f463aef72c752d","name":"Scenario CEN/CEN+","style":{"label":true,"fill":"#ffffbf","stroke-opacity":"0.6","fill-opacity":"0.6","color":"#3f3f3f"},"nodes":["4a4a27b41b70c3f5","b5fed5b2a2657309","9080bcd88d342f1b","f9c815a3dffe944c"],"x":14,"y":15,"w":1318,"h":592},{"id":"9080bcd88d342f1b","type":"group","z":"33f463aef72c752d","g":"627fb501b9e54f54","name":"Monitor CEN/CEN+ updates","style":{"label":true,"fill":"#d1d1d1","fill-opacity":"0.6","color":"#6A7E64","stroke-opacity":"0.6"},"nodes":["f292c9a51951f77e","e2af2108a8f4a6a2","8e6acdcb9bdeed82","11c8562e5a007a94","4329f82e186a47cc"],"x":714,"y":259,"w":592,"h":322},{"id":"f9c815a3dffe944c","type":"group","z":"33f463aef72c752d","g":"627fb501b9e54f54","name":"Simulate button press to CEN / CEN+","style":{"label":true,"fill":"#d1d1d1","fill-opacity":"0.6","color":"#7E909D","stroke-opacity":"0.6"},"nodes":["d3953b7760ba2cb2","c8ffc384b4d95bc1","6e117300610cd83b","7f0c86194d3da0e3","e1009468ab1cdaf2","dd8ad93458a16a83"],"x":54,"y":259,"w":412,"h":322},{"id":"4a4a27b41b70c3f5","type":"comment","z":"33f463aef72c752d","g":"627fb501b9e54f54","name":"!! Before you begin, do not forget to configure your gateway (open 'CEN+' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'CEN+' node, you have to set its type (CEN/CEN+) and number (A/PL for CEN, identifier for CEN+). \\n You can use this node to : \\n - send commands as if 'buttons' were pressed (short press, long press,...) \\n - monitor button presses (by defining extra outputs with specific filters or monitoring them all) \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<scenario_node_topic>>' to allow state change","info":"","x":550,"y":140,"wires":[]},{"id":"d3953b7760ba2cb2","type":"comment","z":"33f463aef72c752d","g":"f9c815a3dffe944c","name":"Simulate button press - simple mode","info":"","x":300,"y":300,"wires":[]},{"id":"f292c9a51951f77e","type":"debug","z":"33f463aef72c752d","g":"9080bcd88d342f1b","name":"Full message output (on any update)","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":890,"y":300,"wires":[]},{"id":"e2af2108a8f4a6a2","type":"comment","z":"33f463aef72c752d","g":"9080bcd88d342f1b","name":"You can configure, within node, as many outputs as needed. \\n Each one will be triggered based on range / when / how long it was pressed \\n Some examples were configured as :","info":"","x":1010,"y":400,"wires":[]},{"id":"7f0c86194d3da0e3","type":"comment","z":"33f463aef72c752d","g":"f9c815a3dffe944c","name":"Simulate button press - advanced mode (msg)","info":"","x":260,"y":460,"wires":[]},{"id":"b5fed5b2a2657309","type":"myhome-scenario","z":"33f463aef72c752d","g":"627fb501b9e54f54","name":"CEN+ 100","buslevel":"private_riser","scenariotype":"CEN+","scenarioid":"100","topic":"CEN+","gateway":"a4e23617.d0c288","skipevents":false,"rules":[{"buttonFrom":1,"buttonTo":1,"onStartPress":false,"onEndShortPress":false,"onEndLongPress":true,"onDuringLongPress":false,"minLongPressDuration":1000},{"buttonFrom":2,"buttonTo":4,"onStartPress":true,"onEndShortPress":false,"onEndLongPress":false,"onDuringLongPress":false,"minLongPressDuration":1000},{"buttonFrom":4,"buttonTo":4,"onStartPress":false,"onEndShortPress":false,"onEndLongPress":false,"onDuringLongPress":true,"minLongPressDuration":1000}],"outputs":4,"x":590,"y":400,"wires":[["f292c9a51951f77e"],["8e6acdcb9bdeed82"],["11c8562e5a007a94"],["4329f82e186a47cc"]]},{"id":"6e117300610cd83b","type":"inject","z":"33f463aef72c752d","g":"f9c815a3dffe944c","name":"Long press button #1 (2s)","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/CEN+","payload":"1:2000","payloadType":"str","x":330,"y":380,"wires":[["b5fed5b2a2657309"]],"icon":"font-awesome/fa-hourglass-half"},{"id":"dd8ad93458a16a83","type":"inject","z":"33f463aef72c752d","g":"f9c815a3dffe944c","name":"Long press button #4 (1,5s)","props":[{"p":"payload.buttonID","v":"4","vt":"str"},{"p":"payload.actionDuration","v":"1500","vt":"num"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/CEN+","x":320,"y":540,"wires":[["b5fed5b2a2657309"]],"icon":"font-awesome/fa-hourglass-half"},{"id":"c8ffc384b4d95bc1","type":"inject","z":"33f463aef72c752d","g":"f9c815a3dffe944c","name":"Short press button #1","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/CEN+","payload":"1","payloadType":"str","x":340,"y":340,"wires":[["b5fed5b2a2657309"]],"icon":"font-awesome/fa-hand-o-right"},{"id":"8e6acdcb9bdeed82","type":"debug","z":"33f463aef72c752d","g":"9080bcd88d342f1b","name":"Triggered when button #1 is was pressed >1s and released","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":960,"y":460,"wires":[]},{"id":"11c8562e5a007a94","type":"debug","z":"33f463aef72c752d","g":"9080bcd88d342f1b","name":"Triggered when button 1 to 4 was pressed (start press)","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":950,"y":500,"wires":[]},{"id":"4329f82e186a47cc","type":"debug","z":"33f463aef72c752d","g":"9080bcd88d342f1b","name":"Triggered every +/- 0.5 ms as long as buttons #4 remains pressed","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":980,"y":540,"wires":[]},{"id":"e1009468ab1cdaf2","type":"inject","z":"33f463aef72c752d","g":"f9c815a3dffe944c","name":"Short press button #4","props":[{"p":"payload.buttonID","v":"4","vt":"str"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/CEN+","x":340,"y":500,"wires":[["b5fed5b2a2657309"]],"icon":"font-awesome/fa-hand-o-right"},{"id":"a4e23617.d0c288","type":"myhome-gateway","name":"F-455","host":"192.168.0.210","port":"20000","pass":"12345","timeout":"600","log_in_lights":false,"log_in_shutters":false,"log_in_temperature":false,"log_in_scenario":false,"log_in_energy":false,"log_in_others":false,"log_out_cmd":false}]
+[{
+        "id": "33f463aef72c752d",
+        "type": "tab",
+        "label": "Scenario CEN/CEN+ (example)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    }, {
+        "id": "627fb501b9e54f54",
+        "type": "group",
+        "z": "33f463aef72c752d",
+        "name": "Scenario CEN/CEN+",
+        "style": {
+            "label": true,
+            "fill": "#ffffbf",
+            "stroke-opacity": "0.6",
+            "fill-opacity": "0.6",
+            "color": "#3f3f3f"
+        },
+        "nodes": ["4a4a27b41b70c3f5", "b5fed5b2a2657309", "9080bcd88d342f1b", "f9c815a3dffe944c"],
+        "x": 14,
+        "y": 15,
+        "w": 1318,
+        "h": 592
+    }, {
+        "id": "9080bcd88d342f1b",
+        "type": "group",
+        "z": "33f463aef72c752d",
+        "g": "627fb501b9e54f54",
+        "name": "Monitor CEN/CEN+ updates",
+        "style": {
+            "label": true,
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "color": "#6A7E64",
+            "stroke-opacity": "0.6"
+        },
+        "nodes": ["f292c9a51951f77e", "e2af2108a8f4a6a2", "8e6acdcb9bdeed82", "11c8562e5a007a94", "4329f82e186a47cc"],
+        "x": 714,
+        "y": 259,
+        "w": 592,
+        "h": 322
+    }, {
+        "id": "f9c815a3dffe944c",
+        "type": "group",
+        "z": "33f463aef72c752d",
+        "g": "627fb501b9e54f54",
+        "name": "Simulate button press to CEN / CEN+",
+        "style": {
+            "label": true,
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "color": "#7E909D",
+            "stroke-opacity": "0.6"
+        },
+        "nodes": ["d3953b7760ba2cb2", "c8ffc384b4d95bc1", "6e117300610cd83b", "7f0c86194d3da0e3", "e1009468ab1cdaf2", "dd8ad93458a16a83"],
+        "x": 54,
+        "y": 259,
+        "w": 412,
+        "h": 322
+    }, {
+        "id": "4a4a27b41b70c3f5",
+        "type": "comment",
+        "z": "33f463aef72c752d",
+        "g": "627fb501b9e54f54",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'CEN+' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'CEN+' node, you have to set its type (CEN/CEN+) and number (A/PL for CEN, identifier for CEN+). \\n You can use this node to : \\n - send commands as if 'buttons' were pressed (short press, long press,...) \\n - monitor button presses (by defining extra outputs with specific filters or monitoring them all) \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<scenario_node_topic>>' to allow state change",
+        "info": "",
+        "x": 550,
+        "y": 140,
+        "wires": []
+    }, {
+        "id": "d3953b7760ba2cb2",
+        "type": "comment",
+        "z": "33f463aef72c752d",
+        "g": "f9c815a3dffe944c",
+        "name": "Simulate button press - simple mode",
+        "info": "",
+        "x": 300,
+        "y": 300,
+        "wires": []
+    }, {
+        "id": "f292c9a51951f77e",
+        "type": "debug",
+        "z": "33f463aef72c752d",
+        "g": "9080bcd88d342f1b",
+        "name": "Full message output (on any update)",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 300,
+        "wires": []
+    }, {
+        "id": "e2af2108a8f4a6a2",
+        "type": "comment",
+        "z": "33f463aef72c752d",
+        "g": "9080bcd88d342f1b",
+        "name": "You can configure, within node, as many outputs as needed. \\n Each one will be triggered based on range / when / how long it was pressed \\n Some examples were configured as :",
+        "info": "",
+        "x": 1010,
+        "y": 400,
+        "wires": []
+    }, {
+        "id": "7f0c86194d3da0e3",
+        "type": "comment",
+        "z": "33f463aef72c752d",
+        "g": "f9c815a3dffe944c",
+        "name": "Simulate button press - advanced mode (msg)",
+        "info": "",
+        "x": 260,
+        "y": 460,
+        "wires": []
+    }, {
+        "id": "b5fed5b2a2657309",
+        "type": "myhome-scenario",
+        "z": "33f463aef72c752d",
+        "g": "627fb501b9e54f54",
+        "name": "CEN+ 100",
+        "buslevel": "private_riser",
+        "scenariotype": "CEN+",
+        "scenarioid": "100",
+        "topic": "CEN+",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": false,
+        "rules": [{
+                "buttonFrom": 1,
+                "buttonTo": 1,
+                "onStartPress": false,
+                "onEndShortPress": false,
+                "onEndLongPress": true,
+                "onDuringLongPress": false,
+                "minLongPressDuration": 1000
+            }, {
+                "buttonFrom": 2,
+                "buttonTo": 4,
+                "onStartPress": true,
+                "onEndShortPress": false,
+                "onEndLongPress": false,
+                "onDuringLongPress": false,
+                "minLongPressDuration": 1000
+            }, {
+                "buttonFrom": 4,
+                "buttonTo": 4,
+                "onStartPress": false,
+                "onEndShortPress": false,
+                "onEndLongPress": false,
+                "onDuringLongPress": true,
+                "minLongPressDuration": 1000
+            }
+        ],
+        "outputs": 4,
+        "x": 590,
+        "y": 400,
+        "wires": [["f292c9a51951f77e"], ["8e6acdcb9bdeed82"], ["11c8562e5a007a94"], ["4329f82e186a47cc"]]
+    }, {
+        "id": "6e117300610cd83b",
+        "type": "inject",
+        "z": "33f463aef72c752d",
+        "g": "f9c815a3dffe944c",
+        "name": "Long press button #1 (2s)",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/CEN+",
+        "payload": "1:2000",
+        "payloadType": "str",
+        "x": 330,
+        "y": 380,
+        "wires": [["b5fed5b2a2657309"]],
+        "icon": "font-awesome/fa-hourglass-half"
+    }, {
+        "id": "dd8ad93458a16a83",
+        "type": "inject",
+        "z": "33f463aef72c752d",
+        "g": "f9c815a3dffe944c",
+        "name": "Long press button #4 (1,5s)",
+        "props": [{
+                "p": "payload.buttonID",
+                "v": "4",
+                "vt": "str"
+            }, {
+                "p": "payload.actionDuration",
+                "v": "1500",
+                "vt": "num"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/CEN+",
+        "x": 320,
+        "y": 540,
+        "wires": [["b5fed5b2a2657309"]],
+        "icon": "font-awesome/fa-hourglass-half"
+    }, {
+        "id": "c8ffc384b4d95bc1",
+        "type": "inject",
+        "z": "33f463aef72c752d",
+        "g": "f9c815a3dffe944c",
+        "name": "Short press button #1",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/CEN+",
+        "payload": "1",
+        "payloadType": "str",
+        "x": 340,
+        "y": 340,
+        "wires": [["b5fed5b2a2657309"]],
+        "icon": "font-awesome/fa-hand-o-right"
+    }, {
+        "id": "8e6acdcb9bdeed82",
+        "type": "debug",
+        "z": "33f463aef72c752d",
+        "g": "9080bcd88d342f1b",
+        "name": "Triggered when button #1 is was pressed >1s and released",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 960,
+        "y": 460,
+        "wires": []
+    }, {
+        "id": "11c8562e5a007a94",
+        "type": "debug",
+        "z": "33f463aef72c752d",
+        "g": "9080bcd88d342f1b",
+        "name": "Triggered when button 1 to 4 was pressed (start press)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 500,
+        "wires": []
+    }, {
+        "id": "4329f82e186a47cc",
+        "type": "debug",
+        "z": "33f463aef72c752d",
+        "g": "9080bcd88d342f1b",
+        "name": "Triggered every +/- 0.5 ms as long as buttons #4 remains pressed",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 980,
+        "y": 540,
+        "wires": []
+    }, {
+        "id": "e1009468ab1cdaf2",
+        "type": "inject",
+        "z": "33f463aef72c752d",
+        "g": "f9c815a3dffe944c",
+        "name": "Short press button #4",
+        "props": [{
+                "p": "payload.buttonID",
+                "v": "4",
+                "vt": "str"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/CEN+",
+        "x": 340,
+        "y": 500,
+        "wires": [["b5fed5b2a2657309"]],
+        "icon": "font-awesome/fa-hand-o-right"
+    }, {
+        "id": "a4e23617.d0c288",
+        "type": "myhome-gateway",
+        "name": "F-455",
+        "host": "192.168.0.210",
+        "port": "20000",
+        "pass": "12345",
+        "timeout": "600",
+        "log_in_lights": false,
+        "log_in_shutters": false,
+        "log_in_temperature": false,
+        "log_in_scenario": false,
+        "log_in_energy": false,
+        "log_in_others": false,
+        "log_out_cmd": false
+    }
+]

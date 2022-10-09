@@ -1,1 +1,318 @@
-[{"id":"fd5424770bd6a7ab","type":"tab","label":"Thermo Zone (example)","disabled":false,"info":"","env":[]},{"id":"696d6ed6f29f4f7a","type":"group","z":"fd5424770bd6a7ab","name":"Thermo Zone - 1-99 zones manager","style":{"label":true,"fill":"#ffffbf","stroke-opacity":"0.6","fill-opacity":"0.6","color":"#3f3f3f"},"nodes":["78c4bd5383afd680","7d47c92713b8bd48","6ed32217bdcdb17b","c88946583784278f"],"x":14,"y":11,"w":1218,"h":756},{"id":"6ed32217bdcdb17b","type":"group","z":"fd5424770bd6a7ab","g":"696d6ed6f29f4f7a","name":"Monitor changes made on a Zone","style":{"stroke-opacity":"0.6","fill":"#d1d1d1","fill-opacity":"0.6","label":true,"color":"#6A7E64"},"nodes":["6d25fb0cb65e8906","3bbe134c28710a37","8568c0dc001190ed"],"x":754,"y":299,"w":452,"h":422},{"id":"c88946583784278f","type":"group","z":"fd5424770bd6a7ab","g":"696d6ed6f29f4f7a","name":"Send change requests for a Zone","style":{"stroke-opacity":"0.6","fill":"#d1d1d1","fill-opacity":"0.6","label":true,"color":"#7E909D"},"nodes":["bd01b6733fc90bf3","ab8fa89fd0c69b55","5d0c72c62f2017a2","bf975eee5fe33633","55c526e70425afb1","a0b0816e2af6b10d","360f84b6322a40f0","0693be8ecdd04d7d","e07cf8d0d5f5f4a8"],"x":54,"y":299,"w":352,"h":442},{"id":"78c4bd5383afd680","type":"comment","z":"fd5424770bd6a7ab","g":"696d6ed6f29f4f7a","name":"!! Before you begin, do not forget to configure your gateway (open 'Zone #1' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'Zone' node, you have to set its number (1 - 99). \\n You can use this node to command and monitor a zone about : \\n - manually defining a temperature \\n - switching to auto mode \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n - switching off \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<thermo_node_topic>>' to allow state change","info":"","x":560,"y":160,"wires":[]},{"id":"bd01b6733fc90bf3","type":"comment","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Enable Manual mode : set temperature","info":"","x":230,"y":340,"wires":[]},{"id":"8568c0dc001190ed","type":"debug","z":"fd5424770bd6a7ab","g":"6ed32217bdcdb17b","name":"Full message output","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":880,"y":340,"wires":[]},{"id":"3bbe134c28710a37","type":"debug","z":"fd5424770bd6a7ab","g":"6ed32217bdcdb17b","name":"Simplified output : Current temperature","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":940,"y":680,"wires":[]},{"id":"ab8fa89fd0c69b55","type":"inject","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Set zone to 'Antifreeze'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/livingroom","payload":"ANTIFREEZE","payloadType":"str","x":280,"y":560,"wires":[["7d47c92713b8bd48"]],"icon":"font-awesome/fa-snowflake-o"},{"id":"5d0c72c62f2017a2","type":"inject","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Turn zone off","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/livingroom","payload":"OFF","payloadType":"str","x":310,"y":600,"wires":[["7d47c92713b8bd48"]],"icon":"font-awesome/fa-power-off"},{"id":"bf975eee5fe33633","type":"inject","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Set in manual mode 20°C","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/livingroom","payload":"20","payloadType":"str","x":270,"y":380,"wires":[["7d47c92713b8bd48"]],"icon":"font-awesome/fa-hand-pointer-o"},{"id":"55c526e70425afb1","type":"inject","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Refresh current zone sate","props":[{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"state/livingroom","x":270,"y":700,"wires":[["7d47c92713b8bd48"]],"icon":"font-awesome/fa-question-circle-o"},{"id":"6d25fb0cb65e8906","type":"comment","z":"fd5424770bd6a7ab","g":"6ed32217bdcdb17b","name":"Simplified output can be configured in node based on \\n what you need in your flow later on. This avoids having \\n to insert additional 'function' or 'switch' nodes. \\n See node config for more info","info":"","x":980,"y":600,"wires":[]},{"id":"a0b0816e2af6b10d","type":"inject","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Set zone to 'Protection'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/livingroom","payload":"PROTECT","payloadType":"str","x":280,"y":520,"wires":[["7d47c92713b8bd48"]],"icon":"font-awesome/fa-shield"},{"id":"360f84b6322a40f0","type":"comment","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Switch zone running mode","info":"","x":270,"y":440,"wires":[]},{"id":"0693be8ecdd04d7d","type":"comment","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Ask for curent home Thermo state","info":"","x":240,"y":660,"wires":[]},{"id":"7d47c92713b8bd48","type":"myhome-thermo-zone","z":"fd5424770bd6a7ab","g":"696d6ed6f29f4f7a","name":"Living Room (Zone #1)","zoneid":"1","topic":"livingroom","gateway":"a4e23617.d0c288","smartfilter":true,"skipevents":false,"isstatusrequest":false,"output2_name":"","output2_type":"text_state","x":590,"y":500,"wires":[["8568c0dc001190ed"],["3bbe134c28710a37"]]},{"id":"e07cf8d0d5f5f4a8","type":"inject","z":"fd5424770bd6a7ab","g":"c88946583784278f","name":"Set zone to 'Auto'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/livingroom","payload":"Auto","payloadType":"str","x":300,"y":480,"wires":[["7d47c92713b8bd48"]],"icon":"node-red/serial.svg"},{"id":"a4e23617.d0c288","type":"myhome-gateway","name":"F-455","host":"192.168.0.210","port":"20000","pass":"12345","timeout":"600","log_in_lights":false,"log_in_shutters":false,"log_in_temperature":false,"log_in_scenario":false,"log_in_energy":false,"log_in_others":false,"log_out_cmd":false}]
+[{
+        "id": "fd5424770bd6a7ab",
+        "type": "tab",
+        "label": "Thermo Zone (example)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    }, {
+        "id": "696d6ed6f29f4f7a",
+        "type": "group",
+        "z": "fd5424770bd6a7ab",
+        "name": "Thermo Zone - 1-99 zones manager",
+        "style": {
+            "label": true,
+            "fill": "#ffffbf",
+            "stroke-opacity": "0.6",
+            "fill-opacity": "0.6",
+            "color": "#3f3f3f"
+        },
+        "nodes": ["78c4bd5383afd680", "7d47c92713b8bd48", "6ed32217bdcdb17b", "c88946583784278f"],
+        "x": 14,
+        "y": 11,
+        "w": 1218,
+        "h": 756
+    }, {
+        "id": "6ed32217bdcdb17b",
+        "type": "group",
+        "z": "fd5424770bd6a7ab",
+        "g": "696d6ed6f29f4f7a",
+        "name": "Monitor changes made on a Zone",
+        "style": {
+            "stroke-opacity": "0.6",
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "label": true,
+            "color": "#6A7E64"
+        },
+        "nodes": ["6d25fb0cb65e8906", "3bbe134c28710a37", "8568c0dc001190ed"],
+        "x": 754,
+        "y": 299,
+        "w": 452,
+        "h": 422
+    }, {
+        "id": "c88946583784278f",
+        "type": "group",
+        "z": "fd5424770bd6a7ab",
+        "g": "696d6ed6f29f4f7a",
+        "name": "Send change requests for a Zone",
+        "style": {
+            "stroke-opacity": "0.6",
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "label": true,
+            "color": "#7E909D"
+        },
+        "nodes": ["bd01b6733fc90bf3", "ab8fa89fd0c69b55", "5d0c72c62f2017a2", "bf975eee5fe33633", "55c526e70425afb1", "a0b0816e2af6b10d", "360f84b6322a40f0", "0693be8ecdd04d7d", "e07cf8d0d5f5f4a8"],
+        "x": 54,
+        "y": 299,
+        "w": 352,
+        "h": 442
+    }, {
+        "id": "78c4bd5383afd680",
+        "type": "comment",
+        "z": "fd5424770bd6a7ab",
+        "g": "696d6ed6f29f4f7a",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'Zone #1' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'Zone' node, you have to set its number (1 - 99). \\n You can use this node to command and monitor a zone about : \\n - manually defining a temperature \\n - switching to auto mode \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n - switching off \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<thermo_node_topic>>' to allow state change",
+        "info": "",
+        "x": 560,
+        "y": 160,
+        "wires": []
+    }, {
+        "id": "bd01b6733fc90bf3",
+        "type": "comment",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Enable Manual mode : set temperature",
+        "info": "",
+        "x": 230,
+        "y": 340,
+        "wires": []
+    }, {
+        "id": "8568c0dc001190ed",
+        "type": "debug",
+        "z": "fd5424770bd6a7ab",
+        "g": "6ed32217bdcdb17b",
+        "name": "Full message output",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 340,
+        "wires": []
+    }, {
+        "id": "3bbe134c28710a37",
+        "type": "debug",
+        "z": "fd5424770bd6a7ab",
+        "g": "6ed32217bdcdb17b",
+        "name": "Simplified output : Current temperature",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 940,
+        "y": 680,
+        "wires": []
+    }, {
+        "id": "ab8fa89fd0c69b55",
+        "type": "inject",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Set zone to 'Antifreeze'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/livingroom",
+        "payload": "ANTIFREEZE",
+        "payloadType": "str",
+        "x": 280,
+        "y": 560,
+        "wires": [["7d47c92713b8bd48"]],
+        "icon": "font-awesome/fa-snowflake-o"
+    }, {
+        "id": "5d0c72c62f2017a2",
+        "type": "inject",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Turn zone off",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/livingroom",
+        "payload": "OFF",
+        "payloadType": "str",
+        "x": 310,
+        "y": 600,
+        "wires": [["7d47c92713b8bd48"]],
+        "icon": "font-awesome/fa-power-off"
+    }, {
+        "id": "bf975eee5fe33633",
+        "type": "inject",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Set in manual mode 20°C",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/livingroom",
+        "payload": "20",
+        "payloadType": "str",
+        "x": 270,
+        "y": 380,
+        "wires": [["7d47c92713b8bd48"]],
+        "icon": "font-awesome/fa-hand-pointer-o"
+    }, {
+        "id": "55c526e70425afb1",
+        "type": "inject",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Refresh current zone sate",
+        "props": [{
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/livingroom",
+        "x": 270,
+        "y": 700,
+        "wires": [["7d47c92713b8bd48"]],
+        "icon": "font-awesome/fa-question-circle-o"
+    }, {
+        "id": "6d25fb0cb65e8906",
+        "type": "comment",
+        "z": "fd5424770bd6a7ab",
+        "g": "6ed32217bdcdb17b",
+        "name": "Simplified output can be configured in node based on \\n what you need in your flow later on. This avoids having \\n to insert additional 'function' or 'switch' nodes. \\n See node config for more info",
+        "info": "",
+        "x": 980,
+        "y": 600,
+        "wires": []
+    }, {
+        "id": "a0b0816e2af6b10d",
+        "type": "inject",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Set zone to 'Protection'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/livingroom",
+        "payload": "PROTECT",
+        "payloadType": "str",
+        "x": 280,
+        "y": 520,
+        "wires": [["7d47c92713b8bd48"]],
+        "icon": "font-awesome/fa-shield"
+    }, {
+        "id": "360f84b6322a40f0",
+        "type": "comment",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Switch zone running mode",
+        "info": "",
+        "x": 270,
+        "y": 440,
+        "wires": []
+    }, {
+        "id": "0693be8ecdd04d7d",
+        "type": "comment",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Ask for curent home Thermo state",
+        "info": "",
+        "x": 240,
+        "y": 660,
+        "wires": []
+    }, {
+        "id": "7d47c92713b8bd48",
+        "type": "myhome-thermo-zone",
+        "z": "fd5424770bd6a7ab",
+        "g": "696d6ed6f29f4f7a",
+        "name": "Living Room (Zone #1)",
+        "zoneid": "1",
+        "topic": "livingroom",
+        "gateway": "a4e23617.d0c288",
+        "smartfilter": true,
+        "skipevents": false,
+        "isstatusrequest": false,
+        "output2_name": "",
+        "output2_type": "text_state",
+        "x": 590,
+        "y": 500,
+        "wires": [["8568c0dc001190ed"], ["3bbe134c28710a37"]]
+    }, {
+        "id": "e07cf8d0d5f5f4a8",
+        "type": "inject",
+        "z": "fd5424770bd6a7ab",
+        "g": "c88946583784278f",
+        "name": "Set zone to 'Auto'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/livingroom",
+        "payload": "Auto",
+        "payloadType": "str",
+        "x": 300,
+        "y": 480,
+        "wires": [["7d47c92713b8bd48"]],
+        "icon": "node-red/serial.svg"
+    }, {
+        "id": "a4e23617.d0c288",
+        "type": "myhome-gateway",
+        "name": "F-455",
+        "host": "192.168.0.210",
+        "port": "20000",
+        "pass": "12345",
+        "timeout": "600",
+        "log_in_lights": false,
+        "log_in_shutters": false,
+        "log_in_temperature": false,
+        "log_in_scenario": false,
+        "log_in_energy": false,
+        "log_in_others": false,
+        "log_out_cmd": false
+    }
+]

@@ -1,1 +1,433 @@
-[{"id":"0e5cb8beb26f7093","type":"tab","label":"Thermo Central (example)","disabled":false,"info":"","env":[]},{"id":"ea5f320f18c12458","type":"group","z":"0e5cb8beb26f7093","name":"Thermo Central - 1-99 zones manager","style":{"label":true,"fill":"#ffffbf","stroke-opacity":"0.6","fill-opacity":"0.6","color":"#3f3f3f"},"nodes":["fa54b4517bbef1cc","1f6403e29a55ff25","5bc83f65554a2823","c697cd7070e46705"],"x":14,"y":23,"w":1158,"h":1004},{"id":"5bc83f65554a2823","type":"group","z":"0e5cb8beb26f7093","g":"ea5f320f18c12458","name":"Send change requests to Central Unit","style":{"stroke-opacity":"0.6","fill":"#d1d1d1","fill-opacity":"0.6","label":true,"color":"#7E909D"},"nodes":["7eb076059c1c2e2f","8744c7239c36448f","9a01b649e6676b4c","ead93621f93537ef","06665a552d1d624d","85d97d78b9d453e4","61021c2cae7ea40e","9e147872d730d349","db67f74bf273be0c","c9c1d43ff0683d79","4d0b7e8e89d67764","ac71dce0290ea911","633355e1054e7f40","66a7ecb8b2d073fa","1353aa69fb5bde16"],"x":54,"y":279,"w":372,"h":722},{"id":"c697cd7070e46705","type":"group","z":"0e5cb8beb26f7093","g":"ea5f320f18c12458","name":"Monitor changes made on Central Unit","style":{"stroke-opacity":"0.6","fill":"#d1d1d1","fill-opacity":"0.6","label":true,"color":"#6A7E64"},"nodes":["55eb8382f11ef1fe","b710cadda78b38bd","ef4c7d71f37ba554"],"x":694,"y":279,"w":452,"h":342},{"id":"fa54b4517bbef1cc","type":"comment","z":"0e5cb8beb26f7093","g":"ea5f320f18c12458","name":"!! Before you begin, do not forget to configure your gateway (open 'Home' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n You can use this node to command and monitor the installation about : \\n - which Program/Scenario is enabled \\n - manually defining a temperature \\n - completely turning heating / cooling off \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<thermo_node_topic>>' to allow state change","info":"","x":550,"y":160,"wires":[]},{"id":"7eb076059c1c2e2f","type":"comment","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable Manual mode : set temperature","info":"","x":250,"y":600,"wires":[]},{"id":"8744c7239c36448f","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable Program 'Heating #2'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"PROGRAM_HEATING:2","payloadType":"str","x":280,"y":360,"wires":[["1f6403e29a55ff25"]],"icon":"node-red/serial.svg"},{"id":"1f6403e29a55ff25","type":"myhome-thermo-central","z":"0e5cb8beb26f7093","g":"ea5f320f18c12458","name":"Home (F455)","topic":"home","gateway":"a4e23617.d0c288","smartfilter":true,"skipevents":false,"isstatusrequest":false,"output2_name":"","output2_type":"operationMode","x":570,"y":480,"wires":[["ef4c7d71f37ba554"],["55eb8382f11ef1fe"]]},{"id":"9a01b649e6676b4c","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Set central to Antifreeze","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"ANTIFREEZE","payloadType":"str","x":290,"y":820,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-snowflake-o"},{"id":"ead93621f93537ef","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Turn central off","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"OFF","payloadType":"str","x":320,"y":860,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-power-off"},{"id":"06665a552d1d624d","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable 'Scenario #12'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"SCENARIO:12","payloadType":"str","x":300,"y":540,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-retweet"},{"id":"85d97d78b9d453e4","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable Program 'Generic #1'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"PROGRAM:1","payloadType":"str","x":280,"y":400,"wires":[["1f6403e29a55ff25"]],"icon":"node-red/serial.svg"},{"id":"61021c2cae7ea40e","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Set in manual mode 20°C (simple)","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"20","payloadType":"str","x":260,"y":640,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-hand-pointer-o"},{"id":"9e147872d730d349","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Refresh current home sate","props":[{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"state/home","x":290,"y":960,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-question-circle-o"},{"id":"ef4c7d71f37ba554","type":"debug","z":"0e5cb8beb26f7093","g":"c697cd7070e46705","name":"Full message output","active":false,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":820,"y":320,"wires":[]},{"id":"55eb8382f11ef1fe","type":"debug","z":"0e5cb8beb26f7093","g":"c697cd7070e46705","name":"Simplified output : Operation mode","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":860,"y":580,"wires":[]},{"id":"b710cadda78b38bd","type":"comment","z":"0e5cb8beb26f7093","g":"c697cd7070e46705","name":"Simplified output can be configured in node based on \\n what you need in your flow later on. This avoids having \\n to insert additional 'function' or 'switch' nodes. \\n See node config for more info","info":"","x":920,"y":500,"wires":[]},{"id":"db67f74bf273be0c","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Set in manual mode 20.5°C (advanced)","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"MANUAL:20.5","payloadType":"str","x":250,"y":680,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-hand-pointer-o"},{"id":"c9c1d43ff0683d79","type":"comment","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable program modes","info":"","x":300,"y":320,"wires":[]},{"id":"4d0b7e8e89d67764","type":"comment","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable scenario modes","info":"","x":300,"y":460,"wires":[]},{"id":"ac71dce0290ea911","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Set Central to Thermal Protection","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"THERMAL_PROTECT","payloadType":"str","x":260,"y":780,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-sun-o"},{"id":"633355e1054e7f40","type":"comment","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Switch global central mode","info":"","x":290,"y":740,"wires":[]},{"id":"66a7ecb8b2d073fa","type":"inject","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Enable 'Scenario #1'","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"cmd/home","payload":"SCENARIO:1","payloadType":"str","x":310,"y":500,"wires":[["1f6403e29a55ff25"]],"icon":"font-awesome/fa-retweet"},{"id":"1353aa69fb5bde16","type":"comment","z":"0e5cb8beb26f7093","g":"5bc83f65554a2823","name":"Ask for curent home Thermo state","info":"","x":260,"y":920,"wires":[]},{"id":"a4e23617.d0c288","type":"myhome-gateway","name":"F-455","host":"192.168.0.210","port":"20000","pass":"12345","timeout":"600","log_in_lights":false,"log_in_shutters":false,"log_in_temperature":false,"log_in_scenario":false,"log_in_energy":false,"log_in_others":false,"log_out_cmd":false}]
+[{
+        "id": "0e5cb8beb26f7093",
+        "type": "tab",
+        "label": "Thermo Central (example)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    }, {
+        "id": "ea5f320f18c12458",
+        "type": "group",
+        "z": "0e5cb8beb26f7093",
+        "name": "Thermo Central - 1-99 zones manager",
+        "style": {
+            "label": true,
+            "fill": "#ffffbf",
+            "stroke-opacity": "0.6",
+            "fill-opacity": "0.6",
+            "color": "#3f3f3f"
+        },
+        "nodes": ["fa54b4517bbef1cc", "1f6403e29a55ff25", "5bc83f65554a2823", "c697cd7070e46705"],
+        "x": 14,
+        "y": 23,
+        "w": 1158,
+        "h": 1004
+    }, {
+        "id": "5bc83f65554a2823",
+        "type": "group",
+        "z": "0e5cb8beb26f7093",
+        "g": "ea5f320f18c12458",
+        "name": "Send change requests to Central Unit",
+        "style": {
+            "stroke-opacity": "0.6",
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "label": true,
+            "color": "#7E909D"
+        },
+        "nodes": ["7eb076059c1c2e2f", "8744c7239c36448f", "9a01b649e6676b4c", "ead93621f93537ef", "06665a552d1d624d", "85d97d78b9d453e4", "61021c2cae7ea40e", "9e147872d730d349", "db67f74bf273be0c", "c9c1d43ff0683d79", "4d0b7e8e89d67764", "ac71dce0290ea911", "633355e1054e7f40", "66a7ecb8b2d073fa", "1353aa69fb5bde16"],
+        "x": 54,
+        "y": 279,
+        "w": 372,
+        "h": 722
+    }, {
+        "id": "c697cd7070e46705",
+        "type": "group",
+        "z": "0e5cb8beb26f7093",
+        "g": "ea5f320f18c12458",
+        "name": "Monitor changes made on Central Unit",
+        "style": {
+            "stroke-opacity": "0.6",
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "label": true,
+            "color": "#6A7E64"
+        },
+        "nodes": ["55eb8382f11ef1fe", "b710cadda78b38bd", "ef4c7d71f37ba554"],
+        "x": 694,
+        "y": 279,
+        "w": 452,
+        "h": 342
+    }, {
+        "id": "fa54b4517bbef1cc",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "ea5f320f18c12458",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'Home' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n You can use this node to command and monitor the installation about : \\n - which Program/Scenario is enabled \\n - manually defining a temperature \\n - completely turning heating / cooling off \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<thermo_node_topic>>' to allow state change",
+        "info": "",
+        "x": 550,
+        "y": 160,
+        "wires": []
+    }, {
+        "id": "7eb076059c1c2e2f",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable Manual mode : set temperature",
+        "info": "",
+        "x": 250,
+        "y": 600,
+        "wires": []
+    }, {
+        "id": "8744c7239c36448f",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable Program 'Heating #2'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "PROGRAM_HEATING:2",
+        "payloadType": "str",
+        "x": 280,
+        "y": 360,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "node-red/serial.svg"
+    }, {
+        "id": "1f6403e29a55ff25",
+        "type": "myhome-thermo-central",
+        "z": "0e5cb8beb26f7093",
+        "g": "ea5f320f18c12458",
+        "name": "Home (F455)",
+        "topic": "home",
+        "gateway": "a4e23617.d0c288",
+        "smartfilter": true,
+        "skipevents": false,
+        "isstatusrequest": false,
+        "output2_name": "",
+        "output2_type": "operationMode",
+        "x": 570,
+        "y": 480,
+        "wires": [["ef4c7d71f37ba554"], ["55eb8382f11ef1fe"]]
+    }, {
+        "id": "9a01b649e6676b4c",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Set central to Antifreeze",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "ANTIFREEZE",
+        "payloadType": "str",
+        "x": 290,
+        "y": 820,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-snowflake-o"
+    }, {
+        "id": "ead93621f93537ef",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Turn central off",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "OFF",
+        "payloadType": "str",
+        "x": 320,
+        "y": 860,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-power-off"
+    }, {
+        "id": "06665a552d1d624d",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable 'Scenario #12'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "SCENARIO:12",
+        "payloadType": "str",
+        "x": 300,
+        "y": 540,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-retweet"
+    }, {
+        "id": "85d97d78b9d453e4",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable Program 'Generic #1'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "PROGRAM:1",
+        "payloadType": "str",
+        "x": 280,
+        "y": 400,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "node-red/serial.svg"
+    }, {
+        "id": "61021c2cae7ea40e",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Set in manual mode 20°C (simple)",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "20",
+        "payloadType": "str",
+        "x": 260,
+        "y": 640,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-hand-pointer-o"
+    }, {
+        "id": "9e147872d730d349",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Refresh current home sate",
+        "props": [{
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/home",
+        "x": 290,
+        "y": 960,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-question-circle-o"
+    }, {
+        "id": "ef4c7d71f37ba554",
+        "type": "debug",
+        "z": "0e5cb8beb26f7093",
+        "g": "c697cd7070e46705",
+        "name": "Full message output",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 820,
+        "y": 320,
+        "wires": []
+    }, {
+        "id": "55eb8382f11ef1fe",
+        "type": "debug",
+        "z": "0e5cb8beb26f7093",
+        "g": "c697cd7070e46705",
+        "name": "Simplified output : Operation mode",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 580,
+        "wires": []
+    }, {
+        "id": "b710cadda78b38bd",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "c697cd7070e46705",
+        "name": "Simplified output can be configured in node based on \\n what you need in your flow later on. This avoids having \\n to insert additional 'function' or 'switch' nodes. \\n See node config for more info",
+        "info": "",
+        "x": 920,
+        "y": 500,
+        "wires": []
+    }, {
+        "id": "db67f74bf273be0c",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Set in manual mode 20.5°C (advanced)",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "MANUAL:20.5",
+        "payloadType": "str",
+        "x": 250,
+        "y": 680,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-hand-pointer-o"
+    }, {
+        "id": "c9c1d43ff0683d79",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable program modes",
+        "info": "",
+        "x": 300,
+        "y": 320,
+        "wires": []
+    }, {
+        "id": "4d0b7e8e89d67764",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable scenario modes",
+        "info": "",
+        "x": 300,
+        "y": 460,
+        "wires": []
+    }, {
+        "id": "ac71dce0290ea911",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Set Central to Thermal Protection",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "THERMAL_PROTECT",
+        "payloadType": "str",
+        "x": 260,
+        "y": 780,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-sun-o"
+    }, {
+        "id": "633355e1054e7f40",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Switch global central mode",
+        "info": "",
+        "x": 290,
+        "y": 740,
+        "wires": []
+    }, {
+        "id": "66a7ecb8b2d073fa",
+        "type": "inject",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Enable 'Scenario #1'",
+        "props": [{
+                "p": "payload"
+            }, {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/home",
+        "payload": "SCENARIO:1",
+        "payloadType": "str",
+        "x": 310,
+        "y": 500,
+        "wires": [["1f6403e29a55ff25"]],
+        "icon": "font-awesome/fa-retweet"
+    }, {
+        "id": "1353aa69fb5bde16",
+        "type": "comment",
+        "z": "0e5cb8beb26f7093",
+        "g": "5bc83f65554a2823",
+        "name": "Ask for curent home Thermo state",
+        "info": "",
+        "x": 260,
+        "y": 920,
+        "wires": []
+    }, {
+        "id": "a4e23617.d0c288",
+        "type": "myhome-gateway",
+        "name": "F-455",
+        "host": "192.168.0.210",
+        "port": "20000",
+        "pass": "12345",
+        "timeout": "600",
+        "log_in_lights": false,
+        "log_in_shutters": false,
+        "log_in_temperature": false,
+        "log_in_scenario": false,
+        "log_in_energy": false,
+        "log_in_others": false,
+        "log_out_cmd": false
+    }
+]
