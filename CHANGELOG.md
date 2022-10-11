@@ -1,6 +1,13 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.2.4 (latest available) - 10/2022
+### v2.3 (latest available - under construction) - 01/2023
+- **MH Energy** : ***New node type***\
+  Added support for Ebergy Management.
+  Main included functionalities :
+  - node allows to **???**
+  - *(See node documentation for full detailed information.)*
+
+### v2.2.4 - 10/2022
 - **MH Light**
   - ***Improvement*** : light node can now handle brightness increase / decrease when controlling dimmed lights. This can be done by sending a payload which contains 'UP' or 'DOWN'.
 ### v2.2.3(-2) - 09/2022
