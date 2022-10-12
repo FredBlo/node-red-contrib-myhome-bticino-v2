@@ -12,7 +12,7 @@ module.exports = function (RED) {
     // Build the light point name. If node is configured as being a group, add '#' as prefix.
     // When NOT working on private riser, include the bus level (with suffix '#4#xx' where xx is the BUS id)
     let buslevel = config.buslevel || 'private_riser';
-    node.lightgroupid = ((config.isgroup) ? '#' : '') + config.lightid + ((buslevel === 'private_riser') ? '' : '#4#' + buslevel);
+    node.lightgroupid = config.lightid + ((buslevel === 'private_riser') ? '' : '#4#' + buslevel);
 
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
@@ -31,7 +31,7 @@ module.exports = function (RED) {
       let msg = {};
       node.processReceivedBUSCommand (msg, packet);
     };
-    runningMonitor.addMonitoredEvent ('OWN_LIGHTS', listenerFunction);
+    runningMonitor.addMonitoredEvent ('OWN_ENERGY', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
@@ -84,14 +84,14 @@ module.exports = function (RED) {
       // Update Node displayed status
       if (payloadInfo.state === 'OFF') {
         // turned OFF is the same for all lights (dimmed or not)
-        node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Off'});
+        node.status ({fill: 'grey', shape: 'dot', text: 'Off'});
       } else if (payloadInfo.state === 'ON') {
         if (payloadInfo.brightness) {
           // Dimmed light, include brightness in state
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On (' + payloadInfo.brightness +'%)'});
+          node.status ({fill: 'yellow', shape: 'dot', text: 'On (' + payloadInfo.brightness +'%)'});
         } else {
           // No brightness provided : is a simple 'ON' state
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On'});
+          node.status ({fill: 'yellow', shape: 'dot', text: 'On'});
         }
       }
 
@@ -172,37 +172,16 @@ module.exports = function (RED) {
           // turning OFF is the same for all lights (dimmed or not)
           cmd_what = '0';
         } else if (payload.state === 'ON') {
-          if(payload.brightness) {
-            // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
-            let requested_brightness = Math.round(parseInt(payload.brightness)/10);
-            if (requested_brightness < 2) {
-              requested_brightness = 2;
-            } else if (requested_brightness > 10) {
-              requested_brightness = 10;
-            }
-            cmd_what = requested_brightness.toString();
-          } else {
-            // No brightness provided : is a simple 'ON' call
             cmd_what = '1';
-          }
-        } else if (payload.state === 'UP') {
-          // Working in dimmer : dimming UP
-          cmd_what = '30';
-        } else if (payload.state === 'DOWN') {
-          // Working in dimmer : dimming DOWN
-          cmd_what = '31';
         }
         if (cmd_what) {
           commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
         }
       }
-      if ((isReadOnly || commands.length) && !config.isgroup) {
+      if (isReadOnly || commands.length) {
         // In Read-Only mode : build a status enquiry request (no status update sent)
         // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
-        // Note : This does not work for groups
-        if (!config.isgroup) {
-          commands.push ('*#1*' + node.lightgroupid + '##');
-        }
+        commands.push ('*#1*' + node.lightgroupid + '##');
       }
       if (commands.length === 0) {
         return;

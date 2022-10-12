@@ -6,7 +6,7 @@
       name: { value: '', required: true },
       buslevel: { value: 'private_riser', required: false},
       lightid: { value: '', required: true, validate: RED.validators.number() },
-      isgroup: { value: false, required: false},
+//      isgroup: { value: false, required: false},
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
       smartfilter: { value: true, required: false},
@@ -86,12 +86,6 @@
           <input type="text" id="node-input-lightid" style="width:100%" placeholder="32 (for light 3.2 or group 32)" />
         </div>
       </div>
-  </div>
-  <div class="form-row">
-      <label><i class="fa"></i></label>
-      <label for="node-input-isgroup" style="width:70%">
-        <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;" />This is a group reference
-      </label>
   </div>
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>

@@ -156,9 +156,7 @@ module.exports = function (RED) {
         // In Read-Only mode : build a status enquiry request (no status update sent)
         // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
         // Note : This does not work for groups
-        if (!config.isgroup) {
-          commands.push ('*#2*' + node.shuttergroupid + '##');
-        }
+        commands.push ('*#2*' + node.shuttergroupid + '##');
       }
       if (commands.length === 0) {
         return;
