@@ -5,15 +5,16 @@
     defaults: {
       name: { value: '', required: true },
       buslevel: { value: 'private_riser', required: false},
-      lightid: { value: '', required: true, validate: RED.validators.number() },
-//      isgroup: { value: false, required: false},
+      meterid: { value: '', required: true, validate: RED.validators.number() },
+      metertype: { value: 'meter', required: true},
+      meterscope: { value: 'instant', required: true},
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
       smartfilter: { value: true, required: false},
       skipevents: { value: false, required: false},
       isstatusrequest: { value: false, required: false},
       output2_name: { value: 'On', required: false},
-      output2_type: { value: 'boolean', required: false}
+      output2_type: { value: 'W', required: false}
     },
     inputs: 1,
     inputLabels: "simple mode: 'ON / OFF'",
@@ -23,12 +24,14 @@
         return 'payload';
       } else if (index === 1) {
         let outputTypeDescr;
-        if (this.output2_type === 'boolean') {
-          outputTypeDescr = 'true/false';
-        } else if (this.output2_type === 'text_state') {
-          outputTypeDescr = 'ON/OFF';
+        if (this.output2_type === 'average') {
+          outputTypeDescr = 'Average';
+        } else if (this.output2_type === 'min') {
+          outputTypeDescr = 'Minimum';
+        } else if (this.output2_type === 'max') {
+          outputTypeDescr = 'Maximum';
         } else {
-          outputTypeDescr = 'string';
+          outputTypeDescr = 'Total';
         }
         return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
       }
@@ -36,12 +39,6 @@
     icon: 'font-awesome/fa-bolt',
     paletteLabel: 'MH Energy',
     label: function() {
-      // Force default values for newly added fields (backward compatibility with prior releases : when never edited before, update/add new fields)
-      // v2.2.1 Added BUS management
-      if (this.buslevel === undefined) {this.buslevel = 'private_riser'}
-      // v2.0.0 Added configurable secondary output
-      if (this.output2_name === undefined) {this.output2_name = 'On'}
-      if (this.output2_type === undefined) {this.output2_type = 'boolean'}
       // Return the label itself
       return this.name || 'MH Energy';
     },
@@ -59,43 +56,64 @@
 <script type="text/x-red" data-template-name="myhome-energy">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Light name" />
-  </div>
-  <div class="form-row">
-      <label for="node-input-lightid"><i class="fa fa-lightbulb-o"></i> Light</label>
-      <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-        <select id="node-input-buslevel" style="width:110px">
-          <option value="private_riser">Private riser</option>
-          <option value="01">Local bus 1</option>
-          <option value="02">Local bus 2</option>
-          <option value="03">Local bus 3</option>
-          <option value="04">Local bus 4</option>
-          <option value="05">Local bus 5</option>
-          <option value="06">Local bus 6</option>
-          <option value="07">Local bus 7</option>
-          <option value="08">Local bus 8</option>
-          <option value="09">Local bus 9</option>
-          <option value="10">Local bus 10</option>
-          <option value="11">Local bus 11</option>
-          <option value="12">Local bus 12</option>
-          <option value="13">Local bus 13</option>
-          <option value="14">Local bus 14</option>
-          <option value="15">Local bus 15</option>
-        </select>
-        <div style="position: absolute; left: 114px; right: 0px; top:0px;">
-          <input type="text" id="node-input-lightid" style="width:100%" placeholder="32 (for light 3.2 or group 32)" />
-        </div>
-      </div>
+    <input type="text" id="node-input-name" placeholder="Energy meter name" />
   </div>
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+      <input type="text" id="node-input-topic" placeholder="e.g. solar_panels" />
       &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
       <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
       <input type="text" id="node-input-gateway" />
   </div>
+  <div class="form-row">
+    <label for="node-input-meterid"><i class="fa fa-bolt"></i>&nbsp;&nbsp;Meter</label>
+    <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+      <select id="node-input-buslevel" style="width:110px">
+        <option value="private_riser">Private riser</option>
+        <option value="01">Local bus 1</option>
+        <option value="02">Local bus 2</option>
+        <option value="03">Local bus 3</option>
+        <option value="04">Local bus 4</option>
+        <option value="05">Local bus 5</option>
+        <option value="06">Local bus 6</option>
+        <option value="07">Local bus 7</option>
+        <option value="08">Local bus 8</option>
+        <option value="09">Local bus 9</option>
+        <option value="10">Local bus 10</option>
+        <option value="11">Local bus 11</option>
+        <option value="12">Local bus 12</option>
+        <option value="13">Local bus 13</option>
+        <option value="14">Local bus 14</option>
+        <option value="15">Local bus 15</option>
+      </select>
+      <select id="node-input-metertype" style="width:130px">
+        <option value="meter">Power meter</option>
+        <option value="actuator">Actuator meter</option>
+      </select>
+      <div style="position: absolute; left: 248px; right: 0px; top:0px;">
+        <input type="text" id="node-input-meterid" style="width:100%" placeholder="ID [1-255]" />
+      </div>
+    </div>
+    &nbsp;<i class="fa fa-info-circle" title="Power meters devices are Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554, while Power management actuators are Bticino F522, F523 / Legrand 03558, 03559."></i>
+  </div>
+  <div class="form-row">
+      <label for="node-input-meterscope"><i class="fa fa-tachometer"></i> Scope</label>
+      <select id="node-input-meterscope" style="width:70%">
+        <option value="instant">Current power</option>
+        <option value="day">Daily consumption</option>
+        <option value="month">Monthly consumption</option>
+        <option value="day_current">Current day consumption</option>
+        <option value="month_current">Current month consumption</option>
+        <option value="sincebegin">Full consumption since begin</option>
+      </select>
+  </div>
+
+  <!--Checked up to here-->
+  <!--Checked up to here-->
+  <!--Checked up to here-->
+
   <div class="form-row">
     <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
     <label for="node-input-smartfilter" style="width:70%">
@@ -111,13 +129,6 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
       <label for="node-input-skipevents" style="width:70%">
         <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
         &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-      </label>
-  </div>
-  <div class="form-row">
-      <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
-      <label for="node-input-isstatusrequest" style="width:70%">
-        <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current load status
-        &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change."></i>
       </label>
   </div>
   <div class="form-tips form-row" style="background:#EFEFEF">

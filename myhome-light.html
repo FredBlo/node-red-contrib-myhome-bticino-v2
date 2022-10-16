@@ -68,6 +68,15 @@
     <input type="text" id="node-input-name" placeholder="Light name" />
   </div>
   <div class="form-row">
+      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
+      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
+      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+  </div>
+  <div class="form-row">
+      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
+      <input type="text" id="node-input-gateway" />
+  </div>
+  <div class="form-row">
       <label for="node-input-lightid"><i class="fa fa-lightbulb-o"></i> Light</label>
       <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
         <select id="node-input-buslevel" style="width:110px">
@@ -98,15 +107,6 @@
       <label for="node-input-isgroup" style="width:70%">
         <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;" />This is a group reference
       </label>
-  </div>
-  <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
-  </div>
-  <div class="form-row">
-      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-      <input type="text" id="node-input-gateway" />
   </div>
   <div class="form-row">
     <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
@@ -154,8 +154,6 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
     </div>
   </div>
 </script>
-
-
 
 <script type="text/x-red" data-help-name="myhome-light">
 <p>Adds a MyHome Light Node to your flow.</p>

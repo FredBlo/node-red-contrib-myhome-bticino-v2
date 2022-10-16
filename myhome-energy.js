@@ -131,7 +131,7 @@ module.exports = function (RED) {
         try {msg = JSON.parse(msg);} catch(error){}
       }
       // Only process input received from flow when the topic matches with configuration of nodes
-      let isReadOnly = config.isstatusrequest || false;
+      let isReadOnly = false;
       if (msg.topic === 'state/' + config.topic) {
         // Running in 'state/' mode, force read-only regardless of node config mode
         isReadOnly = true;
