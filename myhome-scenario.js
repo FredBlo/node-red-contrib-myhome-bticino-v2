@@ -87,7 +87,7 @@ module.exports = function (RED) {
         //    - WHAT = push button N value [0-31]
         //    - WHERE = 2 [0-2047] Virtual Address
         if (config.scenariotype === 'CEN+') {
-          packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d+)\\*2' + node.scenarioid + '##');
+          packetMatch = curPacket.match ('^\\*25\\*(\\d{2}})#(\\d+)\\*2' + node.scenarioid + '##');
           if (packetMatch !== null) {
             curButtonID = packetMatch[2];
             switch (packetMatch[1]) {

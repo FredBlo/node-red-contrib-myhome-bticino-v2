@@ -60,7 +60,7 @@ module.exports = function (RED) {
         //  - current temperature goal set (included adjust by local offset) : *#4*where*14*T*3##
         //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
         //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-        packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*(0|14)\\*\\d(\\d\\d\\d)(\\*3|)##');
+        packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*(0|14)\\*\\d(\\d{3})(\\*3|)##');
         if (packetMatch !== null) {
           if (packetMatch[1] === '0') {
             // Current temperature from master probe

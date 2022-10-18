@@ -46,25 +46,61 @@ module.exports = function (RED) {
 
       // Check whether received command is linked to current configured light point
       let processedPackets = 0;
+// ?? to keep      payloadInfo.powerTotal_Wh = 0;
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
-        let packetMatch;
+        let packetMatch = null;
 
-        // Checks 1 : Current power consumption (Instant, in Watts) [*#18*<Where>*113*<Val>##] with <Val> =WATT)
-        packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*113\\*(\\d+)##');
-        if (packetMatch !== null) {
-          payloadInfo.power = parseInt(packetMatch[1]);
+        switch (config.meterscope) {
+          case 'instant':
+            // Check 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113*<Val>##] with <Val> = WATT)
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*113\\*(\\d+)##');
+            if (packetMatch !== null) {
+              payloadInfo.powerInstant = parseInt(packetMatch[1]);
+            }
+            break;
+          case 'day_current':
+            // Check 2 [WHAT=54] : Current daily consumption (today, in Wh) [*#18*where*54*<Val>##] with <Val> = WATT)
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*54\\*(\\d+)##');
+            if (packetMatch !== null) {
+              payloadInfo.powerDay_Wh = parseInt(packetMatch[1]);
+              payloadInfo.powerDay_Date = new Date();
+            }
+            break;
+          case 'day':
+            // Check 3 [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>*<Tag>*<Val>##]
+            //            with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*511#(\\d{1,2})#(\\d{1,2})\\*(\\d{1,2})\\*(\\d+)##');
+            if (packetMatch !== null) {
+              payloadInfo.powerDay_Wh = parseInt(packetMatch[4]);
+              payloadInfo.powerDay_Date = new Date(new Date().getFullYear() , packetMatch[1] , packetMatch[2] , packetMatch[3]);
+            }
+            break;
+          case 'month_current':
+            // Check 4 [WHAT=53] : Current monthly consumption (up to today, in Wh) [*#18*where*53*<Val>##] with <Val> = WATT)
+            //            with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*53\\*(\\d+)##');
+            if (packetMatch !== null) {
+              payloadInfo.powerMonth_Wh = parseInt(packetMatch[1]);
+              payloadInfo.powerMonth_Date = new Date();
+            }
+            break;
+          case 'month':
+            // Checks 5 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>*<Val>##]	with <Val> = WATT)
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*52#(\\d{2})#(\\d{1,2})\\*(\\d+)##');
+            if (packetMatch !== null) {
+              payloadInfo.powerMonth_Wh = parseInt(packetMatch[3]);
+              payloadInfo.powerMonth_Date = new Date('20'+packetMatch[1] , packetMatch[2]);
+            }
+            break;
+          case 'sincebegin':
+            // Checks 6 [WHAT=51] : Full consumption since begin (up to today, in Wh) [*#18*where*51*<Val>##]	with <Val> = WATT)
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*51\\*(\\d+)##');
+            if (packetMatch !== null) {
+              payloadInfo.powerSinceBegin_Wh = parseInt(packetMatch[1]);
+            }
+            break;
         }
 
-        //
-        // // Checks 2 : Light point/group dimmer info update [*#1*<where>*1*<dimmerLevel100>*<dimmerSpeed>##]
-        // //    - <dimmerLevel100> [100-200] : 100 = off / 200 = Max
-        // if (packetMatch === null) {
-        //   packetMatch = curPacket.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
-        //   if (packetMatch !== null) {
-        //     payloadInfo.state = 'ON';
-        //     payloadInfo.brightness = (parseInt(packetMatch[1]) - 100);
-        //   }
-        // }
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
           processedPackets++;
@@ -76,10 +112,10 @@ module.exports = function (RED) {
       }
 
       // Update Node displayed status
-      if (typeof (payloadInfo.power) === 'number') {
+      if (typeof (payloadInfo.powerInstant) === 'number') {
         // Instant power consumption was meterd, display info
         let timeInfo = new Date().toLocaleTimeString();
-        node.status ({fill: 'grey', shape: 'ring', text: timeInfo + ': ' + payloadInfo.power.toLocaleString() + 'W'});
+        node.status ({fill: 'grey', shape: 'ring', text: timeInfo + ': ' + payloadInfo.powerInstant.toLocaleString() + 'W'});
       } else if (payloadInfo.xxxxxxx === 'xxxxx') {
         // if (payloadInfo.brightness) {
         //   // Dimmed light, include brightness in state
@@ -101,10 +137,13 @@ module.exports = function (RED) {
             payload.command_received = packet;
           }
           // MSG1 : Add all current node stored values to payload
-          payload.state = payloadInfo.state;
-          if (payloadInfo.brightness !== undefined) {
-            payload.brightness = payloadInfo.brightness;
-          }
+
+          // TODO : current raw transfer of all data is made for debug / analysis
+          Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName , i) {
+            payload[objectName] = payloadInfo[objectName];
+          });
+          // END // TODO:
+
           // MSG1 : Add misc info
           msg.topic = 'state/' + config.topic;
 
