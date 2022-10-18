@@ -4,7 +4,6 @@
     color: '#a6bbcf',
     defaults: {
       name: { value: '', required: true },
-      buslevel: { value: 'private_riser', required: false},
       meterid: { value: '', required: true, validate: RED.validators.number() },
       metertype: { value: 'meter', required: true},
       meterscope: { value: 'instant', required: true},
@@ -13,8 +12,8 @@
       smartfilter: { value: true, required: false},
       skipevents: { value: false, required: false},
       isstatusrequest: { value: false, required: false},
-      output2_name: { value: 'On', required: false},
-      output2_type: { value: 'W', required: false}
+      output2_name: { value: '', required: false},
+      output2_type: { value: 'total', required: false}
     },
     inputs: 1,
     inputLabels: "simple mode: 'ON / OFF'",
@@ -60,7 +59,7 @@
   </div>
   <div class="form-row">
       <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. solar_panels" />
+      <input type="text" id="node-input-topic" placeholder="e.g. solar-panels" />
       &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
@@ -71,29 +70,11 @@
   <div class="form-row">
     <label for="node-input-meterid"><i class="fa fa-bolt"></i>&nbsp;&nbsp;Meter</label>
     <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-      <select id="node-input-buslevel" style="width:110px">
-        <option value="private_riser">Private riser</option>
-        <option value="01">Local bus 1</option>
-        <option value="02">Local bus 2</option>
-        <option value="03">Local bus 3</option>
-        <option value="04">Local bus 4</option>
-        <option value="05">Local bus 5</option>
-        <option value="06">Local bus 6</option>
-        <option value="07">Local bus 7</option>
-        <option value="08">Local bus 8</option>
-        <option value="09">Local bus 9</option>
-        <option value="10">Local bus 10</option>
-        <option value="11">Local bus 11</option>
-        <option value="12">Local bus 12</option>
-        <option value="13">Local bus 13</option>
-        <option value="14">Local bus 14</option>
-        <option value="15">Local bus 15</option>
+      <select id="node-input-metertype" style="width:220px">
+        <option value="meter">Power management meter</option>
+        <option value="actuator">Power management actuator</option>
       </select>
-      <select id="node-input-metertype" style="width:130px">
-        <option value="meter">Power meter</option>
-        <option value="actuator">Actuator meter</option>
-      </select>
-      <div style="position: absolute; left: 248px; right: 0px; top:0px;">
+      <div style="position: absolute; left: 228px; right: 0px; top:0px;">
         <input type="text" id="node-input-meterid" style="width:100%" placeholder="ID [1-255]" />
       </div>
     </div>
@@ -103,18 +84,13 @@
       <label for="node-input-meterscope"><i class="fa fa-tachometer"></i> Scope</label>
       <select id="node-input-meterscope" style="width:70%">
         <option value="instant">Current power</option>
-        <option value="day">Daily consumption</option>
-        <option value="month">Monthly consumption</option>
-        <option value="day_current">Current day consumption</option>
-        <option value="month_current">Current month consumption</option>
+        <option value="day_current">Daily consumption (today)</option>
+        <option value="day">Daily consumption (msg.payload)</option>
+        <option value="month_current">Monthly consumption (current month)</option>
+        <option value="month">Monthly consumption (msg.payload)</option>
         <option value="sincebegin">Full consumption since begin</option>
       </select>
   </div>
-
-  <!--Checked up to here-->
-  <!--Checked up to here-->
-  <!--Checked up to here-->
-
   <div class="form-row">
     <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
     <label for="node-input-smartfilter" style="width:70%">
@@ -139,7 +115,7 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
     <br>
     <div class="form-row">
       <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
-      <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
+      <input type="text" id="node-input-output2_name" placeholder="e.g. Power / state / ... / (empty)" style="width:55%" />
       <label for="node-input-output2_name" style="width:15px">
         &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
       </label>
@@ -147,9 +123,10 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
     <div class="form-row">
       <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
       <select id="node-input-output2_type" style="width:55%">
-        <option value="boolean">.state (boolean: true / false)</option>
-        <option value="text_state">.state (string: ON / OFF)</option>
-        <option value="brightness">.brightness (number: 20-100)</option>
+        <option value="total">.total (number in Watts)</option>
+        <option value="average">.average (number in Watts)</option>
+        <option value="min">.min (number in Watts)</option>
+        <option value="max">.max (number in Watts)</option>
       </select>
     </div>
   </div>

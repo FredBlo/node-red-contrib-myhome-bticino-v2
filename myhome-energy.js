@@ -9,10 +9,9 @@ module.exports = function (RED) {
     let gateway = RED.nodes.getNode (config.gateway);
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
-    // Build the light point name. If node is configured as being a group, add '#' as prefix.
-    // When NOT working on private riser, include the bus level (with suffix '#4#xx' where xx is the BUS id)
-    let buslevel = config.buslevel || 'private_riser';
-    node.lightgroupid = config.lightid + ((buslevel === 'private_riser') ? '' : '#4#' + buslevel);
+    // Build the meter used 'WHERE'. If node is configured as being an actuator, is '7N#0' , and '5N' for power meters,
+    // where N is the ID number [1-255].
+    node.meterid = ((config.metertype === 'actuator') ? ('7' + config.meterid + '#0') : ('5'+ config.meterid));
 
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
@@ -49,28 +48,23 @@ module.exports = function (RED) {
       let processedPackets = 0;
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
         let packetMatch;
-        // Checks 1 : Light point/group update [*1*<status>|<dimmerLevel10>*where##]
-        //    - <status> [0-1] : 0 = OFF / 1 = ON
-        //    - <dimmerLevel10> [2-10] : 2 = 20% / 3 = 30% / ... / 9 = 90% / 10 = 100%
-        // Note : the RegEx must only keep 2 characters when <status> begins with 1 to skip 30 or 31 since these are dimming UP / DOWN
-        packetMatch = curPacket.match ('^\\*1\\*(\\d|1\\d)\\*(' + node.lightgroupid + '|0)##');
+
+        // Checks 1 : Current power consumption (Instant, in Watts) [*#18*<Where>*113*<Val>##] with <Val> =WATT)
+        packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*113\\*(\\d+)##');
         if (packetMatch !== null) {
-          if ((packetMatch[1] === '0') || (packetMatch[1] === '1')) {
-            payloadInfo.state = (packetMatch[1] === '1') ? 'ON' : 'OFF';
-          } else {
-            payloadInfo.state = 'ON';
-            payloadInfo.brightness = (parseInt(packetMatch[1]) * 10);
-          }
+          payloadInfo.power = parseInt(packetMatch[1]);
         }
-        // Checks 2 : Light point/group dimmer info update [*#1*<where>*1*<dimmerLevel100>*<dimmerSpeed>##]
-        //    - <dimmerLevel100> [100-200] : 100 = off / 200 = Max
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
-          if (packetMatch !== null) {
-            payloadInfo.state = 'ON';
-            payloadInfo.brightness = (parseInt(packetMatch[1]) - 100);
-          }
-        }
+
+        //
+        // // Checks 2 : Light point/group dimmer info update [*#1*<where>*1*<dimmerLevel100>*<dimmerSpeed>##]
+        // //    - <dimmerLevel100> [100-200] : 100 = off / 200 = Max
+        // if (packetMatch === null) {
+        //   packetMatch = curPacket.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
+        //   if (packetMatch !== null) {
+        //     payloadInfo.state = 'ON';
+        //     payloadInfo.brightness = (parseInt(packetMatch[1]) - 100);
+        //   }
+        // }
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
           processedPackets++;
@@ -82,17 +76,18 @@ module.exports = function (RED) {
       }
 
       // Update Node displayed status
-      if (payloadInfo.state === 'OFF') {
-        // turned OFF is the same for all lights (dimmed or not)
-        node.status ({fill: 'grey', shape: 'dot', text: 'Off'});
-      } else if (payloadInfo.state === 'ON') {
-        if (payloadInfo.brightness) {
-          // Dimmed light, include brightness in state
-          node.status ({fill: 'yellow', shape: 'dot', text: 'On (' + payloadInfo.brightness +'%)'});
-        } else {
-          // No brightness provided : is a simple 'ON' state
-          node.status ({fill: 'yellow', shape: 'dot', text: 'On'});
-        }
+      if (typeof (payloadInfo.power) === 'number') {
+        // Instant power consumption was meterd, display info
+        let timeInfo = new Date().toLocaleTimeString();
+        node.status ({fill: 'grey', shape: 'ring', text: timeInfo + ': ' + payloadInfo.power.toLocaleString() + 'W'});
+      } else if (payloadInfo.xxxxxxx === 'xxxxx') {
+        // if (payloadInfo.brightness) {
+        //   // Dimmed light, include brightness in state
+        //   node.status ({fill: 'yellow', shape: 'dot', text: 'On (' + payloadInfo.brightness +'%)'});
+        // } else {
+        //   // No brightness provided : is a simple 'ON' state
+        //   node.status ({fill: 'yellow', shape: 'dot', text: 'On'});
+        // }
       }
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
