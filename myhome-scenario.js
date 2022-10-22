@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, loopfunc: true, node: true */
+/*jshint esversion: 7, strict: implied, loopfunc: true, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');

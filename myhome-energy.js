@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, node: true */
+/*jshint esversion: 7, strict: implied, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
@@ -12,10 +12,10 @@ module.exports = function (RED) {
     // Build the meter used 'WHERE'. If node is configured as being an actuator, is '7N#0' , and '5N' for power meters,
     // where N is the ID number [1-255].
     node.meterid = ((config.metertype === 'actuator') ? ('7' + config.meterid + '#0') : ('5'+ config.meterid));
+    node.cachedInfo = {};
 
     // All current zone received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
-    payloadInfo.state = '?';
     node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,22 @@ module.exports = function (RED) {
     };
     runningMonitor.addMonitoredEvent ('OWN_ENERGY', listenerFunction);
 
+    function dateFormat (dateToFormat , textFormat) {
+      // textFormat : the output wanted as text (such as YYYMMDD, YY-MM-DD, MMDD-hh:nn:ss)
+      //              (only YY, YYYY, MM, DD, hh, nn, ss are supported for now, multiple )
+      let dateInit = new Date(dateToFormat);
+      let formattedDate = textFormat
+        .replace('YYYY' , dateInit.getFullYear())
+        .replace('YY' , dateInit.getFullYear().toString().slice(-2))
+        .replace('MM' , ('0' + (dateInit.getMonth()+1)).slice(-2))
+        .replace('DD' , ('0' + dateInit.getDate()).slice(-2))
+        .replace('hh' , ('0' + dateInit.getHours()).slice(-2))
+        .replace('nn' , ('0' + dateInit.getMinutes()).slice(-2))
+        .replace('ss' , ('0' + dateInit.getSeconds()).slice(-2));
+
+      return formattedDate;
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,25 +61,35 @@ module.exports = function (RED) {
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured light point
+      payloadInfo.metered_Info = [];
       let processedPackets = 0;
+      let curDateTime = new Date();
 // ?? to keep      payloadInfo.powerTotal_Wh = 0;
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
         let packetMatch = null;
+        let packetInfo = {};
 
         switch (config.meterscope) {
           case 'instant':
             // Check 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113*<Val>##] with <Val> = WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*113\\*(\\d+)##');
             if (packetMatch !== null) {
-              payloadInfo.powerInstant = parseInt(packetMatch[1]);
+              packetInfo.metered_Scope = 'instant';
+	            packetInfo.metered_From = curDateTime.toLocaleString();
+              packetInfo.metered_To = curDateTime.toLocaleString();
+              packetInfo.metered_Power = parseInt(packetMatch[1]);
+              // Manage the cached content : none for 'instant' mode
             }
             break;
-          case 'day_current':
+          case 'day_uptonow':
             // Check 2 [WHAT=54] : Current daily consumption (today, in Wh) [*#18*where*54*<Val>##] with <Val> = WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*54\\*(\\d+)##');
             if (packetMatch !== null) {
-              payloadInfo.powerDay_Wh = parseInt(packetMatch[1]);
-              payloadInfo.powerDay_Date = new Date();
+              packetInfo.metered_Scope = 'day_uptonow';
+              packetInfo.metered_From = new Date(curDateTime.getFullYear() , curDateTime.getMonth() , curDateTime.getDate() , 0 , 0 , 0).toLocaleString();
+              packetInfo.metered_To = curDateTime.toLocaleString();
+              packetInfo.metered_Power = parseInt(packetMatch[1]);
+              // Manage the cached content : none for 'uptonow' mode
             }
             break;
           case 'day':
@@ -71,32 +97,65 @@ module.exports = function (RED) {
             //            with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*511#(\\d{1,2})#(\\d{1,2})\\*(\\d{1,2})\\*(\\d+)##');
             if (packetMatch !== null) {
-              payloadInfo.powerDay_Wh = parseInt(packetMatch[4]);
-              payloadInfo.powerDay_Date = new Date(new Date().getFullYear() , packetMatch[1] , packetMatch[2] , packetMatch[3]);
+              // If the month received in the command returned is after current month, it means we are reading data from previous year
+              let yearCorrection = (packetMatch[1] > curDateTime.getMonth()+1) ? -1 : 0 ;
+              if (packetMatch[3] === '25') {
+                // Specified <Tag> is 25, it means this is the day total
+                packetInfo.metered_Scope = 'day';
+                packetInfo.metered_From = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , 0 , 0 , 0).toLocaleString();
+                packetInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , 23 , 59 , 59).toLocaleString();
+                packetInfo.metered_Power = parseInt(packetMatch[4]);
+                // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD'
+                packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD');
+              } else {
+                // Specified <Tag> is 1-24, it means this is the hour total
+                packetInfo.metered_Scope = 'hour';
+                packetInfo.metered_From = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , packetMatch[3]-1 , 0 , 0).toLocaleString();
+                packetInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , packetMatch[3]-1 , 59 , 59).toLocaleString();
+                packetInfo.metered_Power = parseInt(packetMatch[4]);
+                // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD_hh'
+                packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD_hh');
+              }
             }
             break;
-          case 'month_current':
+          case 'month_uptonow':
             // Check 4 [WHAT=53] : Current monthly consumption (up to today, in Wh) [*#18*where*53*<Val>##] with <Val> = WATT)
             //            with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*53\\*(\\d+)##');
             if (packetMatch !== null) {
-              payloadInfo.powerMonth_Wh = parseInt(packetMatch[1]);
-              payloadInfo.powerMonth_Date = new Date();
+              packetInfo.metered_Scope = 'month_uptonow';
+              packetInfo.metered_From = new Date(curDateTime.getFullYear() , curDateTime.getMonth(), 1 , 0 , 0 , 0).toLocaleString();
+              packetInfo.metered_To = curDateTime.toLocaleString();
+              packetInfo.metered_Power = parseInt(packetMatch[1]);
+              // Manage the cached content : none for 'uptonow' mode
             }
             break;
           case 'month':
             // Checks 5 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>*<Val>##]	with <Val> = WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*52#(\\d{2})#(\\d{1,2})\\*(\\d+)##');
             if (packetMatch !== null) {
-              payloadInfo.powerMonth_Wh = parseInt(packetMatch[3]);
-              payloadInfo.powerMonth_Date = new Date('20'+packetMatch[1] , packetMatch[2]);
+              packetInfo.metered_Scope = 'month';
+              packetInfo.metered_From = new Date('20'+packetMatch[1] , +packetMatch[2]-1 , 1 , 0 , 0 , 0).toLocaleString();
+              packetInfo.metered_To = new Date('20'+packetMatch[1] , +packetMatch[2] , 0 , 23 , 59 , 59).toLocaleString();
+              if (parseInt(packetMatch[3]) === (2**32-1)) {
+                // When meter returns '4294967295' (=full 32bits with first =0, 2^32-1), it means no data exists
+                packetInfo.metered_Power = 0;
+              } else {
+                packetInfo.metered_Power = parseInt(packetMatch[3]);
+              }
+              // Manage the cached content : Build ID, for monthly mode is 'month_YYYY-MM'
+              packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM');
             }
             break;
           case 'sincebegin':
             // Checks 6 [WHAT=51] : Full consumption since begin (up to today, in Wh) [*#18*where*51*<Val>##]	with <Val> = WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*51\\*(\\d+)##');
             if (packetMatch !== null) {
-              payloadInfo.powerSinceBegin_Wh = parseInt(packetMatch[1]);
+              packetInfo.metered_Scope = 'sincebegin';
+              packetInfo.metered_From = new Date(2000 , 0 , 1 , 0 , 0 , 0).toLocaleString();
+              packetInfo.metered_To = curDateTime.toLocaleString();
+              packetInfo.metered_Power = parseInt(packetMatch[1]);
+              // Manage the cached content : none for 'uptonow' mode
             }
             break;
         }
@@ -104,6 +163,17 @@ module.exports = function (RED) {
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
           processedPackets++;
+          // Add info common to any call
+          packetInfo.metered_Command = curPacket;
+          // Add generated packet object to the global packet info store
+          payloadInfo.metered_Info.push (packetInfo);
+          // Cache management : if the generated content has to be kept in memory, add it to cached content now
+          // Note : we only keep in cache content which is fully in the past, since meters whihc range is (partially) in the future are still not 100% OK
+          if (packetInfo.metered_CacheID) {
+            if (new Date(packetInfo.metered_To) < curDateTime) {
+              node.cachedInfo[packetInfo.metered_CacheID] = packetInfo;
+            }
+          }
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
@@ -170,7 +240,7 @@ module.exports = function (RED) {
         // Running in 'state/' mode, force read-only regardless of node config mode
         isReadOnly = true;
       } else if (msg.topic !== 'cmd/' + config.topic) {
-        return;
+// return;
       }
 
       // Get payload and apply conversions (asked state can be set in 'msg.payload',
@@ -181,42 +251,55 @@ module.exports = function (RED) {
       } else if (typeof(msg.payload) === 'string') {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
-      if (typeof(msg.payload) === 'object') {
-        if (msg.payload.state === undefined && msg.payload.On !== undefined) {
-          msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
-        }
-      } else if (typeof(msg.payload) === 'boolean') {
-        msg.payload = {'state': (msg.payload) ? 'ON' : 'OFF'};
-      } else if (!isNaN(msg.payload)) {
-        if (msg.payload == 0) {
-          msg.payload = {'state': 'OFF','brightness': 0};
-        } else {
-          msg.payload = {'state': 'ON','brightness': parseInt(msg.payload)};
-        }
-      } else if (typeof(msg.payload) === 'string') {
-        msg.payload = {'state': msg.payload};
-      }
-      let payload = msg.payload;
+  // if (typeof(msg.payload) === 'object') {
+  //   if (msg.payload.state === undefined && msg.payload.On !== undefined) {
+  //     msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
+  //   }
+  // } else if (typeof(msg.payload) === 'boolean') {
+  //   msg.payload = {'state': (msg.payload) ? 'ON' : 'OFF'};
+  // } else if (!isNaN(msg.payload)) {
+  //   if (msg.payload == 0) {
+  //     msg.payload = {'state': 'OFF','brightness': 0};
+  //   } else {
+  //     msg.payload = {'state': 'ON','brightness': parseInt(msg.payload)};
+  //   }
+  // } else if (typeof(msg.payload) === 'string') {
+  //   msg.payload = {'state': msg.payload};
+  // }
+  if (typeof(msg.payload) === 'string') {
+    msg.payload = {'init': msg.payload};
+  }
+  let payload = msg.payload;
 
       let commands = [];
-      if (!isReadOnly) {
-        // Working in update mode: build the status change request
-        let cmd_what = '';
-        if (payload.state === 'OFF') {
-          // turning OFF is the same for all lights (dimmed or not)
-          cmd_what = '0';
-        } else if (payload.state === 'ON') {
-            cmd_what = '1';
-        }
-        if (cmd_what) {
-          commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
-        }
+
+
+/// TEMP : When dev on going, if command received is a valid SCS BUS for current meter, send it is as
+      if (payload.init.match('^\\*#18\\*' + node.meterid + '\\*[#\\*\\d]+##$')) {
+        commands.push (payload.init);
       }
-      if (isReadOnly || commands.length) {
-        // In Read-Only mode : build a status enquiry request (no status update sent)
-        // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
-        commands.push ('*#1*' + node.lightgroupid + '##');
-      }
+      payload.cachedInfo = node.cachedInfo; // include full content of cache to allow easy debug
+/// END TEMP DEV PHASE
+
+
+  // if (!isReadOnly) {
+  //   // Working in update mode: build the status change request
+  //   let cmd_what = '';
+  //   if (payload.state === 'OFF') {
+  //     // turning OFF is the same for all lights (dimmed or not)
+  //     cmd_what = '0';
+  //   } else if (payload.state === 'ON') {
+  //       cmd_what = '1';
+  //   }
+  //   if (payload) {
+  //     commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
+  //   }
+  // }
+  // if (isReadOnly || commands.length) {
+  //   // In Read-Only mode : build a status enquiry request (no status update sent)
+  //   // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
+  //   commands.push ('*#1*' + node.lightgroupid + '##');
+  // }
       if (commands.length === 0) {
         return;
       }

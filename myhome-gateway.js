@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, node: true */
+/*jshint esversion: 7, strict: implied, node: true */
 
 module.exports = function (RED) {
   let net = require ('net');
