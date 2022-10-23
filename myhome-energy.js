@@ -13,7 +13,7 @@ module.exports = function (RED) {
     // where N is the ID number [1-255].
     node.meterid = ((config.metertype === 'actuator') ? ('7' + config.meterid + '#0') : ('5'+ config.meterid));
     // Caching mechanism init : only for types which return complete data from the past
-    node.enableCache = (config.enablecache && (config.meterscope === 'day' || config.meterscope === 'month'));
+    node.enableCache = (config.enablecache && (config.meterscope === 'hour' || config.meterscope === 'day' || config.meterscope === 'month'));
     node.cachedInfo = {};
 
     // All current zone received values stored in memory from the moment node is loaded
@@ -35,7 +35,9 @@ module.exports = function (RED) {
     runningMonitor.addMonitoredEvent ('OWN_ENERGY', listenerFunction);
 
     function dateFormat (dateToFormat , textFormat) {
-      // textFormat : the output wanted as text (such as YYYMMDD, YY-MM-DD, MMDD-hh:nn:ss)
+      // Function to convert a provided date to a fixed 'readable' date+time format
+      //  - dateToFormat : any content which can be converted to a valid date-time
+      //  - textFormat : the output wanted as text (such as YYYMMDD, YY-MM-DD, MMDD-hh:nn:ss)
       //              (only YY, YYYY, MM, DD, hh, nn, ss are supported for now, multiple )
       let dateInit = new Date(dateToFormat);
       let formattedDate = textFormat
@@ -48,6 +50,24 @@ module.exports = function (RED) {
         .replace('ss' , ('0' + dateInit.getSeconds()).slice(-2));
 
       return formattedDate;
+    }
+
+    function numberHumanReadadble (numberToFormat , suffix) {
+      // Function to convert a provided date number to a 'human readable' (980 remains 980, 1980 becomes 1,98k, 1980654 becomes 1,98M)
+      //  - numberToFormat : the number to process
+      //  - suffix : optional suffix to append at the end of string returned
+
+      // When provided number is very large, first bring it back to 'Mega' or 'kilo' corresponding value
+      if (numberToFormat > 10**6) {
+        numberToFormat = numberToFormat / 10**6;
+        suffix = 'M' + suffix;
+      } else if (numberToFormat > 10**3) {
+        numberToFormat = numberToFormat / 10**3;
+        suffix = 'k' + suffix;
+      }
+
+      // Return string values only keepng 2 decimals + built (and provided) suffix(es)
+      return (Math.round(numberToFormat*100)/100).toLocaleString() + suffix;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,7 +103,7 @@ module.exports = function (RED) {
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'instant' mode
               // Build node status message
-              nodeStatusText = dateFormat(packetInfo.metered_From , 'hh:nn:ss') + ': ' + packetInfo.metered_Power.toLocaleString() + 'W';
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'hh:nn:ss') + ': ' + numberHumanReadadble(packetInfo.metered_Power , 'W');
             }
             break;
           case 'day_uptonow':
@@ -96,44 +116,49 @@ module.exports = function (RED) {
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
               // Build node status message
-              nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY') + ': ' + numberHumanReadadble(packetInfo.metered_Power , 'Wh');
             }
             break;
           case 'day':
-            // Check 3 [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>*<Tag>*<Val>##]
-            //            with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
-            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*511#(\\d{1,2})#(\\d{1,2})\\*(\\d{1,2})\\*(\\d+)##');
+            // Check 3a [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>*<Tag>*<Val>##]
+            //           with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
+            //           ==> '25' is thus the only analyzed for daily
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*511#(\\d{1,2})#(\\d{1,2})\\*25\\*(\\d+)##');
             if (packetMatch !== null) {
               // If the month received in the command returned is after current month, it means we are reading data from previous year
               let yearCorrection = (packetMatch[1] > curDateTime.getMonth()+1) ? -1 : 0 ;
-              if (packetMatch[3] === '25') {
-                // Specified <Tag> is 25, it means this is the day total
-                packetInfo.metered_Scope = 'day';
-                packetInfo.metered_From = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , 0 , 0 , 0).toLocaleString();
-                packetInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , 23 , 59 , 59).toLocaleString();
-                packetInfo.metered_Power = parseInt(packetMatch[4]);
-                // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD'
-                packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD');
-                // Build node status message
-                nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
-              } else {
-                // Specified <Tag> is 1-24, it means this is the hour total
-                packetInfo.metered_Scope = 'hour';
-                packetInfo.metered_From = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , packetMatch[3]-1 , 0 , 0).toLocaleString();
-                packetInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , packetMatch[3]-1 , 59 , 59).toLocaleString();
-                packetInfo.metered_Power = parseInt(packetMatch[4]);
-                // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD_hh'
-                packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD_hh');
-                // Build node status message
-                nodeStatusText = curDateTime.toLocaleDateString() + ': ' + packetInfo.metered_Power + 'Wh';
-                // Build node status message
-                nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY hh') + 'h: ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
-              }
+              // Specified <Tag> is 25, it means this is the day total
+              packetInfo.metered_Scope = 'day';
+              packetInfo.metered_From = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , 0 , 0 , 0).toLocaleString();
+              packetInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , 23 , 59 , 59).toLocaleString();
+              packetInfo.metered_Power = parseInt(packetMatch[3]);
+              // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD'
+              packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD');
+              // Build node status message
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY') + ': ' + numberHumanReadadble(packetInfo.metered_Power , 'Wh');
+            }
+            break;
+          case 'hour':
+            // Check 3b [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>*<Tag>*<Val>##]
+            //           with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
+            //           ==> '25' is thus skipped for hourly analysis
+            packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*511#(\\d{1,2})#(\\d{1,2})\\*(?!25)(\\d{1,2})\\*(\\d+)##');
+            if (packetMatch !== null) {
+              // If the month received in the command returned is after current month, it means we are reading data from previous year
+              let yearCorrection = (packetMatch[1] > curDateTime.getMonth()+1) ? -1 : 0 ;
+              // Specified <Tag> is 1-24, it means this is the hour total
+              packetInfo.metered_Scope = 'hour';
+              packetInfo.metered_From = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , packetMatch[3]-1 , 0 , 0).toLocaleString();
+              packetInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +packetMatch[1]-1 , packetMatch[2] , packetMatch[3]-1 , 59 , 59).toLocaleString();
+              packetInfo.metered_Power = parseInt(packetMatch[4]);
+              // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD_hh'
+              packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD_hh');
+              // Build node status message
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY hh') + 'h: ' + numberHumanReadadble(packetInfo.metered_Power , 'Wh');
             }
             break;
           case 'month_uptonow':
             // Check 4 [WHAT=53] : Current monthly consumption (up to today, in Wh) [*#18*where*53*<Val>##] with <Val> = WATT)
-            //            with <Tag> is the hour [1-24], '25' being day total <Val> =WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*53\\*(\\d+)##');
             if (packetMatch !== null) {
               packetInfo.metered_Scope = 'month_uptonow';
@@ -142,11 +167,11 @@ module.exports = function (RED) {
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
               // Build node status message
-              nodeStatusText = dateFormat(packetInfo.metered_From , 'MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'MM-YYYY') + ': ' + numberHumanReadadble(packetInfo.metered_Power , 'Wh');
             }
             break;
           case 'month':
-            // Checks 5 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>*<Val>##]	with <Val> = WATT)
+            // Checks 5 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>*<Val>##] with <Val> = WATT)
             packetMatch = curPacket.match ('^\\*#18\\*' + node.meterid + '\\*52#(\\d{2})#(\\d{1,2})\\*(\\d+)##');
             if (packetMatch !== null) {
               packetInfo.metered_Scope = 'month';
@@ -161,7 +186,7 @@ module.exports = function (RED) {
               // Manage the cached content : Build ID, for monthly mode is 'month_YYYY-MM'
               packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM');
               // Build node status message
-              nodeStatusText = dateFormat(packetInfo.metered_From , 'MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'MM-YYYY') + ': ' + numberHumanReadadble(packetInfo.metered_Power , 'Wh');
             }
             break;
           case 'sincebegin':
@@ -174,7 +199,7 @@ module.exports = function (RED) {
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
               // Build node status message
-              nodeStatusText = 'From begin: ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
+              nodeStatusText = 'From begin: ' + numberHumanReadadble(packetInfo.metered_Power , 'Wh');
             }
             break;
         }
@@ -241,10 +266,9 @@ module.exports = function (RED) {
         try {msg = JSON.parse(msg);} catch(error){}
       }
       // Only process input received from flow when the topic matches with configuration of nodes
-      let isReadOnly = false;
       if (msg.topic === 'state/' + config.topic) {
         // Running in 'state/' mode, force read-only regardless of node config mode
-        isReadOnly = true;
+
       } else if (msg.topic !== 'cmd/' + config.topic) {
 // return;
       }
@@ -252,11 +276,23 @@ module.exports = function (RED) {
       // Get payload and apply conversions (asked state can be set in 'msg.payload',
       // 'msg.payload.state' or 'msg.payload.On', value being either true/false or ON/OFF
       // Final result is always kept in 'msg.payload.state' = 'ON' or 'OFF'
-      if (msg.payload === undefined) {
-        msg.payload = {};
-      } else if (typeof(msg.payload) === 'string') {
+      if (typeof(msg.payload) === 'string') {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
+      if (typeof(msg.payload) !== 'object') {
+        msg.payload = {'init': msg.payload}; // DEBUG TO BE REMOVED
+      }
+      // Validate From & To dates provided. If invalid, simplify to current date-time
+      msg.payload.metered_From = new Date(msg.payload.metered_From);
+      if (!(msg.payload.metered_From instanceof Date && !isNaN(msg.payload.metered_From.valueOf()))) {
+        msg.payload.metered_From = new Date();
+      }
+      msg.payload.metered_To = new Date(msg.payload.metered_To);
+      if (!(msg.payload.metered_To instanceof Date && !isNaN(msg.payload.metered_To.valueOf()))) {
+        msg.payload.metered_To = new Date();
+      }
+      let curDateTime = new Date();
+
   // if (typeof(msg.payload) === 'object') {
   //   if (msg.payload.state === undefined && msg.payload.On !== undefined) {
   //     msg.payload.state = (msg.payload.On) ? 'ON' : 'OFF';
@@ -272,20 +308,70 @@ module.exports = function (RED) {
   // } else if (typeof(msg.payload) === 'string') {
   //   msg.payload = {'state': msg.payload};
   // }
-  if (typeof(msg.payload) === 'string') {
-    msg.payload = {'init': msg.payload};
-  }
-  let payload = msg.payload;
-
+      let payload = msg.payload;
+      let requiredCachedIDs = [];
       let commands = [];
 
-
-/// TEMP : When dev on going, if command received is a valid SCS BUS for current meter, send it is as
-      if (payload.init.match('^\\*#18\\*' + node.meterid + '\\*[#\\*\\d]+##$')) {
-        commands.push (payload.init);
+      switch (config.meterscope) {
+        case 'instant':
+          // Check 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113##]
+          // Simple case : no cache, no date-time range to manage
+          commands.push ('*#18*' + node.meterid + '*113##');
+          break;
+        case 'day_uptonow':
+          // Check 2 [WHAT=54] : Current daily consumption (today, in Wh) [*#18*where*54##])
+          // Simple case : no cache, no date-time range to manage
+          commands.push ('*#18*' + node.meterid + '*54##');
+          break;
+        case 'day':
+          // Check 3a [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##]
+          // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
+            ///////////////////////////
+            // TODO ///////////////////
+            ///////////////////////////
+          break;
+        case 'hour':
+          // Check 3b [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##])
+          // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
+            ///////////////////////////
+            // TODO ///////////////////
+            ///////////////////////////
+          break;
+        case 'month_uptonow':
+          // Check 4 [WHAT=53] : Current monthly consumption (up to today, in Wh) [*#18*where*53##]
+          // Simple case : no cache, no date-time range to manage
+          commands.push ('*#18*' + node.meterid + '*53##');
+          break;
+        case 'month':
+          // Checks 5 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>##])
+          let processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , 1);
+          let processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth()+1 , 0);
+          do {
+              // process : build required 'cached IDs' keys required to provide info
+              requiredCachedIDs.push (config.meterscope + '_' + dateFormat (processed_From , 'YYYY-MM'));
+              // Increment to next month
+              processed_From.setMonth (processed_From.getMonth()+1);
+          } while (processed_From < processed_To);
+            ///////////////////////////
+            // TODO ///////////////////
+            ///////////////////////////
+          break;
+        case 'sincebegin':
+          // Checks 6 [WHAT=51] : Full consumption since begin (up to today, in Wh) [*#18*where*51##]
+          // Simple case : no cache, no date-time range to manage
+          commands.push ('*#18*' + node.meterid + '*51##');
+          break;
       }
-      payload.cachedInfo = node.cachedInfo; // include full content of cache to allow easy debug
-/// END TEMP DEV PHASE
+
+      /// TEMP : When dev on going, if command received is a valid SCS BUS for current meter, send it is as
+      if (commands.length === 0) {
+        if (payload.init.match('^\\*#18\\*' + node.meterid + '\\*[#\\*\\d]+##$')) {
+          commands.push (payload.init);
+          }
+      }
+      payload.tmp_cachedInfo = node.cachedInfo; // include full content of cache to allow easy debug
+      payload.tmp_cachedIDs = requiredCachedIDs;
+      /// END TEMP DEV PHASE
 
 
   // if (!isReadOnly) {
