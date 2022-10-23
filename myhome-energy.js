@@ -12,6 +12,8 @@ module.exports = function (RED) {
     // Build the meter used 'WHERE'. If node is configured as being an actuator, is '7N#0' , and '5N' for power meters,
     // where N is the ID number [1-255].
     node.meterid = ((config.metertype === 'actuator') ? ('7' + config.meterid + '#0') : ('5'+ config.meterid));
+    // Caching mechanism init : only for types which return complete data from the past
+    node.enableCache = (config.enablecache && (config.meterscope === 'day' || config.meterscope === 'month'));
     node.cachedInfo = {};
 
     // All current zone received values stored in memory from the moment node is loaded
@@ -64,7 +66,8 @@ module.exports = function (RED) {
       payloadInfo.metered_Info = [];
       let processedPackets = 0;
       let curDateTime = new Date();
-// ?? to keep      payloadInfo.powerTotal_Wh = 0;
+      let nodeStatusText = '';
+
       for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
         let packetMatch = null;
         let packetInfo = {};
@@ -79,6 +82,8 @@ module.exports = function (RED) {
               packetInfo.metered_To = curDateTime.toLocaleString();
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'instant' mode
+              // Build node status message
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'hh:nn:ss') + ': ' + packetInfo.metered_Power.toLocaleString() + 'W';
             }
             break;
           case 'day_uptonow':
@@ -90,6 +95,8 @@ module.exports = function (RED) {
               packetInfo.metered_To = curDateTime.toLocaleString();
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
+              // Build node status message
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
             }
             break;
           case 'day':
@@ -107,6 +114,8 @@ module.exports = function (RED) {
                 packetInfo.metered_Power = parseInt(packetMatch[4]);
                 // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD'
                 packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD');
+                // Build node status message
+                nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
               } else {
                 // Specified <Tag> is 1-24, it means this is the hour total
                 packetInfo.metered_Scope = 'hour';
@@ -115,6 +124,10 @@ module.exports = function (RED) {
                 packetInfo.metered_Power = parseInt(packetMatch[4]);
                 // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD_hh'
                 packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM-DD_hh');
+                // Build node status message
+                nodeStatusText = curDateTime.toLocaleDateString() + ': ' + packetInfo.metered_Power + 'Wh';
+                // Build node status message
+                nodeStatusText = dateFormat(packetInfo.metered_From , 'DD-MM-YYYY hh') + 'h: ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
               }
             }
             break;
@@ -128,6 +141,8 @@ module.exports = function (RED) {
               packetInfo.metered_To = curDateTime.toLocaleString();
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
+              // Build node status message
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
             }
             break;
           case 'month':
@@ -145,6 +160,8 @@ module.exports = function (RED) {
               }
               // Manage the cached content : Build ID, for monthly mode is 'month_YYYY-MM'
               packetInfo.metered_CacheID = packetInfo.metered_Scope + "_" + dateFormat (packetInfo.metered_From , 'YYYY-MM');
+              // Build node status message
+              nodeStatusText = dateFormat(packetInfo.metered_From , 'MM-YYYY') + ': ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
             }
             break;
           case 'sincebegin':
@@ -156,6 +173,8 @@ module.exports = function (RED) {
               packetInfo.metered_To = curDateTime.toLocaleString();
               packetInfo.metered_Power = parseInt(packetMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
+              // Build node status message
+              nodeStatusText = 'From begin: ' + packetInfo.metered_Power.toLocaleString() + 'Wh';
             }
             break;
         }
@@ -163,15 +182,17 @@ module.exports = function (RED) {
         // If we reached here with a non null match, it means command was useful for node
         if (packetMatch !== null) {
           processedPackets++;
+          // Update Node displayed status
+          node.status ({fill: 'grey', shape: 'ring', text: nodeStatusText});
           // Add info common to any call
           packetInfo.metered_Command = curPacket;
           // Add generated packet object to the global packet info store
           payloadInfo.metered_Info.push (packetInfo);
           // Cache management : if the generated content has to be kept in memory, add it to cached content now
-          // Note : we only keep in cache content which is fully in the past, since meters whihc range is (partially) in the future are still not 100% OK
-          if (packetInfo.metered_CacheID) {
-            if (new Date(packetInfo.metered_To) < curDateTime) {
-              node.cachedInfo[packetInfo.metered_CacheID] = packetInfo;
+          // Note : we only keep in cache content which is fully in the past, since meters which range is (partially) in the future are still not 100% OK
+          if (node.enableCache) {
+            if (packetInfo.metered_CacheID && (new Date(packetInfo.metered_To) < curDateTime)) {
+                node.cachedInfo[packetInfo.metered_CacheID] = packetInfo;
             }
           }
         }
@@ -179,21 +200,6 @@ module.exports = function (RED) {
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
       if (processedPackets === 0 && !forceRefreshAndMsg) {
         return;
-      }
-
-      // Update Node displayed status
-      if (typeof (payloadInfo.powerInstant) === 'number') {
-        // Instant power consumption was meterd, display info
-        let timeInfo = new Date().toLocaleTimeString();
-        node.status ({fill: 'grey', shape: 'ring', text: timeInfo + ': ' + payloadInfo.powerInstant.toLocaleString() + 'W'});
-      } else if (payloadInfo.xxxxxxx === 'xxxxx') {
-        // if (payloadInfo.brightness) {
-        //   // Dimmed light, include brightness in state
-        //   node.status ({fill: 'yellow', shape: 'dot', text: 'On (' + payloadInfo.brightness +'%)'});
-        // } else {
-        //   // No brightness provided : is a simple 'ON' state
-        //   node.status ({fill: 'yellow', shape: 'dot', text: 'On'});
-        // }
       }
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info

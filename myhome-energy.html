@@ -11,7 +11,7 @@
       gateway: { type: 'myhome-gateway', required: true },
       smartfilter: { value: true, required: false},
       skipevents: { value: false, required: false},
-      isstatusrequest: { value: false, required: false},
+      enablecache: { value: true, required: false},
       output2_name: { value: '', required: false},
       output2_type: { value: 'total', required: false}
     },
@@ -85,9 +85,9 @@
       <select id="node-input-meterscope" style="width:70%">
         <option value="instant">Current power</option>
         <option value="day_uptonow">Daily consumption (today)</option>
-        <option value="day">Daily consumption (msg.payload)</option>
+        <option value="day">Daily consumption (time range)</option>
         <option value="month_uptonow">Monthly consumption (current month)</option>
-        <option value="month">Monthly consumption (msg.payload)</option>
+        <option value="month">Monthly consumption (time range)</option>
         <option value="sincebegin">Full consumption since begin</option>
       </select>
   </div>
@@ -106,6 +106,15 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
       <label for="node-input-skipevents" style="width:70%">
         <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
         &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
+      </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-enablecache"><i class="fa fa-retweet"></i> Use cache</label>
+      <label for="node-input-enablecache" style="width:70%">
+        <input type="checkbox" id="node-input-enablecache" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Cache previously fetched results
+        &nbsp;<i class="fa fa-info-circle" title="By default, the node will keep all previously fetched results in memory. When the same scope is asked, cached content is used instead of firing (many) requests on the MyHome BUS. Cache is non persistent and reset on node re-deploy and node-RED restart.
+&#13;
+Note that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call."></i>
       </label>
   </div>
   <div class="form-tips form-row" style="background:#EFEFEF">
