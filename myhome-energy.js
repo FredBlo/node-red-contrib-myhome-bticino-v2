@@ -83,7 +83,6 @@ module.exports = function (RED) {
       // to return content (for which maybe no command was required because all are already in cache)
       let forceFromCacheAndMsg = (finalRequiredCachedIDs.length > 0);
 
-      // Check whether received command is linked to current configured light point
       payloadInfo.metered_Info = [];
       let processedPackets = 0;
       let curDateTime = new Date();
@@ -202,7 +201,6 @@ module.exports = function (RED) {
         if (packetMatch !== null) {
           processedPackets++;
           // Add info common to any call
-          packetInfo.metered_Scope = config.meterscope;
           packetInfo.metered_Command = curPacket;
           // Cache management : if the generated content has to be kept in memory, add it to cached content now
           // Note : we only keep in cache content which is fully in the past, since meters which range is (partially) in the future are still not 100% OK
@@ -222,21 +220,35 @@ module.exports = function (RED) {
           node.status ({fill: nodeStatusInfo[0], shape: nodeStatusInfo[1], text: nodeStatusInfo[2]});
         }
       }
-      // All commands have been processed, add others from cache for those which were not retrieved and are left in ID list
-      finalRequiredCachedIDs.forEach(function(requiredCachedID) {
-        if (node.cachedInfo[requiredCachedID]) {
-          // Required ID exists, add it to final list now
-          payloadInfo.metered_Info.push (node.cachedInfo[requiredCachedID]);
-        } else {
-          // Nothing found in cache for this ID, add an empty item
-          payloadInfo.metered_Info.push ({'metered_CacheID' : requiredCachedID});
-        }
-      });
 
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced' from cache
       if (processedPackets === 0 && !forceFromCacheAndMsg) {
         return;
       }
+
+      // All commands have been processed, add others from cache for those which were not retrieved and are left in ID list
+      finalRequiredCachedIDs.forEach(function(requiredCachedID) {
+        if (node.cachedInfo[requiredCachedID]) {
+          // Required ID exists, add it to final list now
+          payloadInfo.metered_Info.push (node.cachedInfo[requiredCachedID]);
+        }
+      });
+
+      // Build summarized values & clean content
+      payloadInfo.metered_Power = 0;
+      payloadInfo.metered_Scope = config.meterscope;
+      payloadInfo.metered_Info.forEach(function(metered_Info) {
+        // Compute total power
+        payloadInfo.metered_Power = payloadInfo.metered_Power + metered_Info.metered_Power;
+        // Compute oldest Date for From
+        if (payloadInfo.metered_From == null || new Date(payloadInfo.metered_From) > new Date(metered_Info.metered_From)) {
+        	payloadInfo.metered_From = new Date(metered_Info.metered_From).toLocaleString();
+        }
+        // Compute newest Date for To
+        if (payloadInfo.metered_To == null || new Date(payloadInfo.metered_To) < new Date(metered_Info.metered_To)) {
+        	payloadInfo.metered_To = new Date(metered_Info.metered_To).toLocaleString();
+        }
+      });
 
       // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
       // (but always send it when SmartFilter is disabled or when running in 'state/' mode, i.e. read-only mode)
@@ -286,22 +298,26 @@ module.exports = function (RED) {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
       if (typeof(msg.payload) !== 'object') {
-        msg.payload = {'init': msg.payload}; // DEBUG TO BE REMOVED
-      }
-      // Validate From & To dates provided. If invalid, simplify to current date-time
-      msg.payload.metered_From = new Date(msg.payload.metered_From);
-      if (!(msg.payload.metered_From instanceof Date && !isNaN(msg.payload.metered_From.valueOf()))) {
-        msg.payload.metered_From = new Date();
-      }
-      msg.payload.metered_To = new Date(msg.payload.metered_To);
-      if (!(msg.payload.metered_To instanceof Date && !isNaN(msg.payload.metered_To.valueOf()))) {
-        msg.payload.metered_To = msg.payload.metere_From;
+        msg.payload = {'init': msg.payload}; // DEBUG TO BE REMOVED, SHOULD BE {}
       }
       let payload = msg.payload;
+      // Validate From & To dates provided. If invalid, simplify to current date-time
+      payload.metered_From = new Date(payload.metered_From);
+      if (!(payload.metered_From instanceof Date && !isNaN(payload.metered_From.valueOf()))) {
+        payload.metered_From = new Date();
+      }
+      payload.metered_To = new Date(payload.metered_To);
+      if (!(payload.metered_To instanceof Date && !isNaN(payload.metered_To.valueOf()))) {
+        payload.metered_To = payload.metered_From;
+      }
+
+            node.warn(JSON.stringify(payload)); // DEBUG
 
       // Start processing node-RED inpout itself
       let curDateTime = new Date();
-      let requiredCachedIDs = [];
+      let processed_From;
+      let processed_To;
+      let requiredCachedIDs = ['']; // init array with a first empty string to force refresh when sent to 'processReceivedBUSCommand' with commands
       let commands = [];
       switch (config.meterscope) {
         case 'instant':
@@ -317,16 +333,45 @@ module.exports = function (RED) {
         case 'day':
           // Check 3a [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##]
           // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
-            ///////////////////////////
-            // TODO ///////////////////
-            ///////////////////////////
+
+          // If the month received in the command returned is after current month, it means we are reading data from previous year
+//          let yearCorrection = (payload.metered_From.getMonth() > curDateTime.getMonth()+1) ? -1 : 0 ;
+          processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , payload.metered_From.getDate());
+          processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth() , payload.metered_To.getDate());
+          do {
+              // process : build required 'cached IDs' keys required to provide info
+              let requiredCachedID = config.meterscope + '_' + dateTxtMerge (processed_From , 'YYYY-MM-DD');
+
+              /// TO DO : find a way to only emit command for supported date range : only 12 months coverage : cur month = last one, all others = 11 in the past only
+
+              if (!node.cachedInfo[requiredCachedID]) {
+                // There is no cache content for this date reference, add the BUS command which will retrieve info
+                commands.push (dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##'));
+              }
+              requiredCachedIDs.push (requiredCachedID);
+              // Increment to next day
+              processed_From.setDate (processed_From.getDate()+1);
+          } while (processed_From <= processed_To);
           break;
         case 'hour':
           // Check 3b [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##])
           // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
-            ///////////////////////////
-            // TODO ///////////////////
-            ///////////////////////////
+          processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , payload.metered_From.getDate() , payload.metered_From.getHours());
+          processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth() , payload.metered_To.getDate() , payload.metered_To.getHours());
+          do {
+              // process : build required 'cached IDs' keys required to provide info
+              let requiredCachedID = config.meterscope + '_' + dateTxtMerge (processed_From , 'YYYY-MM-DD_hh');
+              if (!node.cachedInfo[requiredCachedID]) {
+                // There is no cache content for this date reference, add the BUS command which will retrieve info, but since 1 command covers multiple (24) hours, we need to ensure it was not already added
+                let addCommand = dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##');
+                if (commands.indexOf(addCommand) < 0) {
+                  commands.push (addCommand);
+                }
+              }
+              requiredCachedIDs.push (requiredCachedID);
+              // Increment to next hour
+              processed_From.setHours (processed_From.getHours()+1);
+          } while (processed_From <= processed_To);
           break;
         case 'month_uptonow':
           // Check 4 [WHAT=53] : Current monthly consumption (up to today, in Wh) [*#18*where*53##]
@@ -335,8 +380,9 @@ module.exports = function (RED) {
           break;
         case 'month':
           // Checks 5 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>##])
-          let processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , 1);
-          let processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth()+1 , 0);
+          // Provided date are rounded to 1st day of month (for From) and last day of month (for To)
+          processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , 1);
+          processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth()+1 , 0);
           do {
               // process : build required 'cached IDs' keys required to provide info
               let requiredCachedID = config.meterscope + '_' + dateTxtMerge (processed_From , 'YYYY-MM');
@@ -347,7 +393,7 @@ module.exports = function (RED) {
               requiredCachedIDs.push (requiredCachedID);
               // Increment to next month
               processed_From.setMonth (processed_From.getMonth()+1);
-          } while (processed_From < processed_To);
+          } while (processed_From <= processed_To);
           break;
         case 'sincebegin':
           // Checks 6 [WHAT=51] : Full consumption since begin (up to today, in Wh) [*#18*where*51##]
@@ -366,7 +412,7 @@ module.exports = function (RED) {
       payload.tmp_cachedIDs = requiredCachedIDs;
       /// END TEMP DEV PHASE
 
-      if (commands.length === 0 && requiredCachedIDs.length === 0) {
+      if (commands.length === 0 && requiredCachedIDs.length === 1) {
         return;
       }
 
@@ -380,8 +426,7 @@ module.exports = function (RED) {
             // Also add failed requests, but only if some failed
             payload.command_failed = cmd_failed;
           }
-          // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
-          msg.topic = 'state/' + config.topic;
+          // Once commands were sent, call internal function to force node info refresh
           node.processReceivedBUSCommand (msg, cmd_responses, requiredCachedIDs);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
