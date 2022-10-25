@@ -236,6 +236,8 @@ module.exports = function (RED) {
 
       // Build summarized values & clean content
       payloadInfo.metered_Power = 0;
+      payloadInfo.metered_From = null;
+      payloadInfo.metered_To = null;
       payloadInfo.metered_Scope = config.meterscope;
       payloadInfo.metered_Info.forEach(function(metered_Info) {
         // Compute total power
@@ -298,7 +300,7 @@ module.exports = function (RED) {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
       if (typeof(msg.payload) !== 'object') {
-        msg.payload = {'init': msg.payload}; // DEBUG TO BE REMOVED, SHOULD BE {}
+        msg.payload = {};
       }
       let payload = msg.payload;
       // Validate From & To dates provided. If invalid, simplify to current date-time
@@ -310,8 +312,6 @@ module.exports = function (RED) {
       if (!(payload.metered_To instanceof Date && !isNaN(payload.metered_To.valueOf()))) {
         payload.metered_To = payload.metered_From;
       }
-
-            node.warn(JSON.stringify(payload)); // DEBUG
 
       // Start processing node-RED inpout itself
       let curDateTime = new Date();
@@ -333,20 +333,19 @@ module.exports = function (RED) {
         case 'day':
           // Check 3a [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##]
           // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
-
-          // If the month received in the command returned is after current month, it means we are reading data from previous year
-//          let yearCorrection = (payload.metered_From.getMonth() > curDateTime.getMonth()+1) ? -1 : 0 ;
+          // The gateway is only able to provide daily/hourly details for a range of 12 months : 11 before + current one. Define max date range
+          let dailyMeter_FromMin = new Date(curDateTime.getFullYear() , curDateTime.getMonth()-11 , 1);
+          let dailyMeter_ToMax = new Date(curDateTime.getFullYear() , curDateTime.getMonth()+1 , 0 , 23 , 59 , 59);
           processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , payload.metered_From.getDate());
           processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth() , payload.metered_To.getDate());
           do {
               // process : build required 'cached IDs' keys required to provide info
               let requiredCachedID = config.meterscope + '_' + dateTxtMerge (processed_From , 'YYYY-MM-DD');
-
-              /// TO DO : find a way to only emit command for supported date range : only 12 months coverage : cur month = last one, all others = 11 in the past only
-
               if (!node.cachedInfo[requiredCachedID]) {
-                // There is no cache content for this date reference, add the BUS command which will retrieve info
-                commands.push (dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##'));
+                // There is no cache content for this date reference, add the BUS command which will retrieve info (if possible in range gateway can provide)
+                if (processed_From >= dailyMeter_FromMin && processed_From <= dailyMeter_ToMax) {
+                  commands.push (dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##'));
+                }
               }
               requiredCachedIDs.push (requiredCachedID);
               // Increment to next day
@@ -356,16 +355,21 @@ module.exports = function (RED) {
         case 'hour':
           // Check 3b [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##])
           // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
+          // The gateway is only able to provide daily/hourly details for a range of 12 months : 11 before + current one. Define max date range
+          let hourlyMeter_FromMin = new Date(curDateTime.getFullYear() , curDateTime.getMonth()-11 , 1);
+          let hourlyMeter_ToMax = new Date(curDateTime.getFullYear() , curDateTime.getMonth()+1 , 0 , 23 , 59 , 59);
           processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , payload.metered_From.getDate() , payload.metered_From.getHours());
           processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth() , payload.metered_To.getDate() , payload.metered_To.getHours());
           do {
               // process : build required 'cached IDs' keys required to provide info
               let requiredCachedID = config.meterscope + '_' + dateTxtMerge (processed_From , 'YYYY-MM-DD_hh');
               if (!node.cachedInfo[requiredCachedID]) {
-                // There is no cache content for this date reference, add the BUS command which will retrieve info, but since 1 command covers multiple (24) hours, we need to ensure it was not already added
-                let addCommand = dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##');
-                if (commands.indexOf(addCommand) < 0) {
-                  commands.push (addCommand);
+                // There is no cache content for this date reference, add the BUS command which will retrieve info (if possible in range gateway can provide)
+                if (processed_From >= hourlyMeter_FromMin && processed_From <= hourlyMeter_ToMax) {
+                  let addCommand = dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##');
+                  if (commands.indexOf(addCommand) < 0) {
+                    commands.push (addCommand);
+                  }
                 }
               }
               requiredCachedIDs.push (requiredCachedID);
@@ -403,11 +407,11 @@ module.exports = function (RED) {
       }
 
       /// TEMP : When dev on going, if command received is a valid SCS BUS for current meter, send it is as
-      if (commands.length === 0 && payload.init) {
-        if (payload.init.match('^\\*#18\\*' + node.meterid + '\\*[#\\*\\d]+##$')) {
-          commands.push (payload.init);
-          }
-      }
+      // if (commands.length === 0 && payload.init) {
+      //   if (payload.init.match('^\\*#18\\*' + node.meterid + '\\*[#\\*\\d]+##$')) {
+      //     commands.push (payload.init);
+      //     }
+      // }
       payload.tmp_cachedInfo = node.cachedInfo; // include full content of cache to allow easy debug
       payload.tmp_cachedIDs = requiredCachedIDs;
       /// END TEMP DEV PHASE
