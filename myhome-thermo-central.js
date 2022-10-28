@@ -25,14 +25,14 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (packet) {
+    const listenerFunction = function (frame) {
       let msg = {};
-      node.processReceivedBUSCommand (msg, packet);
+      node.processReceivedBUSFrames (msg, frame);
     };
     runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function which returns all operation modes params / key info (used in both 'processReceivedBUSCommand' and 'processInput' functions)
+    // Function which returns all operation modes params / key info (used in both 'processReceivedBUSFrames' and 'processInput' functions)
     function operationModesParams () {
       let operationMode_List = [];
       operationMode_List.push ({state:'ANTIFREEZE',                 own:'102',    mode:'Antifreeze',                 icon:['yellow','ring']});
@@ -53,30 +53,30 @@ module.exports = function (RED) {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    this.processReceivedBUSCommand = function (msg, packet) {
+    this.processReceivedBUSFrames = function (msg, frame) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
       // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
-      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      // In this case, even if no frame is found to update something, node is refreshed and msg are sent
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured Zone
-      let processedPackets = 0;
-      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
-        let packetMatch;
+      let processedFrames = 0;
+      for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
+        let frameMatch;
         // Checks 1 : current central unit status info frames (OpenWebNet doc) : reading '*4*what*#0##' with what in 2 digits mode
         // what: 20 = Remote control disabled / 21 = Remote control enabled / 22 = At least one probe OFF /
         //       23 = At least one probe in protection / 24 = At least one probe in manual / 30 = Failure discovered / 31 = Central Unit battery KO
         // TechNote : we only manage the remote control status
-        packetMatch = curPacket.match ('^\\*4\\*(20|21)\\*#0##');
-        if (packetMatch !== null) {
-          if (packetMatch[1] === '20') {
+        frameMatch = curFrame.match ('^\\*4\\*(20|21)\\*#0##');
+        if (frameMatch !== null) {
+          if (frameMatch[1] === '20') {
             payloadInfo.remoteControl = false;
-          } else if (packetMatch[1] === '21') {
+          } else if (frameMatch[1] === '21') {
             payloadInfo.remoteControl = true;
           }
         }
@@ -89,15 +89,15 @@ module.exports = function (RED) {
         //       [13001-13255] = Holiday days in Heating mode / [23001-23255] = Holiday days in Conditioning mode
         //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
         //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d{3,5})((#(\\d+))|)\\*#0##');
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*4\\*(\\d{3,5})((#(\\d+))|)\\*#0##');
           // RegEx results using groups -> array :
           // [1] = what : first 3 to max 5 digits (before a possible #)
           // [2] = -not used-
           // [3] = -not used-, only there if there was a #
           // [4] = what : all digits after the #, if there was a #
-          if (packetMatch !== null) {
-            payloadInfo.operationMode_ownValue = packetMatch[1];
+          if (frameMatch !== null) {
+            payloadInfo.operationMode_ownValue = frameMatch[1];
             let operationMode_List = operationModesParams ();
 
             // First remove all associated 'sub info'
@@ -119,7 +119,7 @@ module.exports = function (RED) {
                     addFieldInfo = ownMatch[1];
                   } else {
                     // The value is not to be found in OWN WHAT command itself. In this case, it means it is TEMPERATURE info from after the WHAT#
-                    addFieldInfo = parseInt((packetMatch[4] || '').slice(-3))/10;
+                    addFieldInfo = parseInt((frameMatch[4] || '').slice(-3))/10;
                   }
                   payloadInfo['operationMode_' + operationMode_List[i].addField] = addFieldInfo;
                 }
@@ -136,12 +136,12 @@ module.exports = function (RED) {
           }
         }
         // If we reached here with a non null match, it means command was useful for node
-        if (packetMatch !== null) {
-          processedPackets++;
+        if (frameMatch !== null) {
+          processedFrames++;
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
-      if (processedPackets === 0 && !forceRefreshAndMsg) {
+      if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
@@ -163,8 +163,8 @@ module.exports = function (RED) {
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
-          if (!Array.isArray(packet)) {
-            payload.command_received = packet;
+          if (!Array.isArray(frame)) {
+            payload.command_received = frame;
           }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
@@ -296,7 +296,7 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          node.processReceivedBUSCommand (msg, cmd_responses);
+          node.processReceivedBUSFrames (msg, cmd_responses);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

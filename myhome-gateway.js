@@ -33,16 +33,16 @@ module.exports = function (RED) {
         let allframes = data.toString();
         let bufferedFrames = allframes;
         while (bufferedFrames.length > 0) {
-          let packetMatch = bufferedFrames.match (/(\*.+?##)(.*)/) || [];
-          let packet = packetMatch[1] || '';
-          bufferedFrames = packetMatch[2] || '';
-          if (packet) {
-            node.debug ("Parsing socket data (current: '" + packet + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
-            // As long as initial connection is not OK, all packets are transmitted to a central function managing this
-            if (mhutils.processInitialConnection (START_MONITOR, packet, node.client, node, node, persistentObj, internalError)) {
-              // We are connected OK, pass the packet to the commands & responses management part
+          let frameMatch = bufferedFrames.match (/(\*.+?##)(.*)/) || [];
+          let frame = frameMatch[1] || '';
+          bufferedFrames = frameMatch[2] || '';
+          if (frame) {
+            node.debug ("Parsing socket data (current: '" + frame + "' / buffered:'" + bufferedFrames + "' / full raw data : '" + allframes + "')");
+            // As long as initial connection is not OK, all frames are transmitted to a central function managing this
+            if (mhutils.processInitialConnection (START_MONITOR, frame, node.client, node, node, persistentObj, internalError)) {
+              // We are connected OK, pass the frame to the commands & responses management part
               failedConnectionAttempts = 0;
-              parsePacket (packet);
+              parseFrame (frame);
             }
           }
         }
@@ -91,14 +91,14 @@ module.exports = function (RED) {
       function instanciateClient_Connect() {
         node.log ('gateway connection : trying to connect to host...(' + node.host + ':' + node.port + ')');
         node.client.connect (node.port, node.host, function() {
-          // request monitoring session (first connect returns a 'ACK' which is managed parsing packets)
+          // request monitoring session (first connect returns a 'ACK' which is managed parsing frames)
           node.log ('gateway connection : connected to host (' + node.host + ':' + node.port + '), initiating TCP monitoring...');
         });
       }
     }
 
-    function parsePacket (packet) {
-      if (packet === NACK) {
+    function parseFrame (frame) {
+      if (frame === NACK) {
         // When we have a non acknowledged return while connected, we ignore the error
         // The MH201 returns a NACK on the keep alive process (which sends an ACK), and since MONITORING never sends commands, NACK can be ignore
         // internalError (START_MONITOR, 'Command not acknowledged (NACK) when already connected');
@@ -106,7 +106,7 @@ module.exports = function (RED) {
       }
 
       // Get the OpenWebNet WHO family linked to this command (structure is '*WHO*WHAT*WHERE##', and can be '*#WHO*WHAT*WHERE' for some kind of calls)
-      let ownFamily = packet.match (/^\*#{0,1}(\d+)\*.+?##/);
+      let ownFamily = frame.match (/^\*#{0,1}(\d+)\*.+?##/);
       if (ownFamily !== null) {
         let loggingEnabled = false;
         let emitterTrigger = "";
@@ -143,10 +143,10 @@ module.exports = function (RED) {
           }
         }
         if (loggingEnabled) {
-          node.log ("Received OpenWebNet command (" + emitterTrigger + ") : '" + packet + "'");
+          node.log ("Received OpenWebNet command (" + emitterTrigger + ") : '" + frame + "'");
         }
         if (emitterTrigger !== '') {
-          node.emit (emitterTrigger, packet);
+          node.emit (emitterTrigger, frame);
         }
       }
     }

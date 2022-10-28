@@ -323,7 +323,7 @@ function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueText
       msg2_value = -1;
     }
   } else {
-    // Any other value set as 'output2_type' means we have to find this property in current payloadInfo to return its contentToHash
+    // Any other value set as 'output2_type' means we have to find this property in current payloadInfo to return its content
     // Samples : 'brightness' to get 'payloadInfo.brightness', or also 'actuatorStates.actuator_1.state' to get 'payloadInfo.actuatorStates.actuator_1.state'
     msg2_value = payloadInfo;
     for (let propertyName of msg2_type.split('.')) {
@@ -345,6 +345,51 @@ function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueText
   return msg2;
 }
 exports.buildSecondaryOutput = buildSecondaryOutput;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXTERNAL Function : Merge provided text with a date using specified formats (MM, DD, YYYY,...)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function dateTxtMerge (dateToFormat , textFormat) {
+  // Function to convert a provided date to a fixed 'readable' date+time format
+  //  - dateToFormat : any content which can be converted to a valid date-time
+  //  - textFormat : the output 'template' as text were replacement by date-time parts
+  //      (only YY, YYYY, MM, M, DD, D, hh, nn, ss are supported for now)
+  let dateInit = new Date(dateToFormat);
+  let formattedDate = textFormat
+    .replace('YYYY' , dateInit.getFullYear())
+    .replace('YY' , dateInit.getFullYear().toString().slice(-2))
+    .replace('MM' , ('0' + (dateInit.getMonth()+1)).slice(-2))
+    .replace('M' , (dateInit.getMonth()+1))
+    .replace('DD' , ('0' + dateInit.getDate()).slice(-2))
+    .replace('D' , dateInit.getDate())
+    .replace('hh' , ('0' + dateInit.getHours()).slice(-2))
+    .replace('nn' , ('0' + dateInit.getMinutes()).slice(-2))
+    .replace('ss' , ('0' + dateInit.getSeconds()).slice(-2));
+
+  return formattedDate;
+}
+exports.dateTxtMerge = dateTxtMerge;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXTERNAL Function : Convert a number to a human readable / summarized form (1.000 -> k or 1.000.000 -> M)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function numberToAbbr (numberToFormat , suffix) {
+  // Function to convert a provided date number to a 'human readable' (980 remains 980, 1980 becomes 1,98k, 1980654 becomes 1,98M)
+  //  - numberToFormat : the number to process
+  //  - suffix : optional suffix to append at the end of string returned
+
+  // When provided number is very large, first bring it back to 'Mega' or 'kilo' corresponding value
+  if (numberToFormat > 10**6) {
+    numberToFormat = numberToFormat / 10**6;
+    suffix = 'M' + suffix;
+  } else if (numberToFormat > 10**3) {
+    numberToFormat = numberToFormat / 10**3;
+    suffix = 'k' + suffix;
+  }
+  // Return string values only keeping 2 decimals + built (and provided) suffix(es)
+  return (Math.round(numberToFormat*100)/100).toLocaleString() + suffix;
+}
+exports.numberToAbbr = numberToAbbr;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MHUtils INTERNAL function : used to build HAC hashed value to connect to gateway secured in SHA1 or SHA256 mode

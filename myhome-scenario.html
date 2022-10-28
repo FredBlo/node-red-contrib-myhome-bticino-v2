@@ -323,14 +323,14 @@ rules: {value:[{
   <p>Adds a MyHome Scenario Node to your flow.</p>
   <ul>
     <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
+    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
     <li><strong>Scenario</strong> defines the ID of the scenario, based on its type :
       <ul>
         <li><strong>CEN</strong> : A/PL number ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
         <li><strong>CEN+</strong> : scenario number (0-2047)</li>
       </ul>
     </li>
-    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
-    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
     <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Rules</strong> : you can define different rules based on your needs. Each rule will output to a separate additional output.
       <ul>

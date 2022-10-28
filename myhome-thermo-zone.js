@@ -33,49 +33,49 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (packet) {
+    const listenerFunction = function (frame) {
       let msg = {};
-      node.processReceivedBUSCommand (msg, packet);
+      node.processReceivedBUSFrames (msg, frame);
     };
     runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    this.processReceivedBUSCommand = function (msg, packet) {
+    this.processReceivedBUSFrames = function (msg, frame) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
       // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
-      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      // In this case, even if no frame is found to update something, node is refreshed and msg are sent
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured Zone
-      let processedPackets = 0;
-      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
-        let packetMatch;
+      let processedFrames = 0;
+      for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
+        let frameMatch;
         // Checks 1 : current temperature and set objective frames (OpenWebNet doc) :
         //  - current temperature (master probe) : *#4*where*0*T## (or *#4*where*0*T*3## if local offset included)
         //  - current temperature goal set (included adjust by local offset) : *#4*where*14*T*3##
         //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
         //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-        packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*(0|14)\\*\\d(\\d{3})(\\*3|)##');
-        if (packetMatch !== null) {
-          if (packetMatch[1] === '0') {
+        frameMatch = curFrame.match ('^\\*\\#4\\*' + config.zoneid + '\\*(0|14)\\*\\d(\\d{3})(\\*3|)##');
+        if (frameMatch !== null) {
+          if (frameMatch[1] === '0') {
             // Current temperature from master probe
-            payloadInfo.state = parseInt (packetMatch[2]) / 10;
-          } else if (packetMatch[1] === '14') {
+            payloadInfo.state = parseInt (frameMatch[2]) / 10;
+          } else if (frameMatch[1] === '14') {
             // Current temperature objective set
-            payloadInfo.setTemperature = parseInt (packetMatch[2]) / 10;
+            payloadInfo.setTemperature = parseInt (frameMatch[2]) / 10;
           }
         }
         // Checks 2 : Zone operation type frames (OpenWebNet doc) : *4*what*where##
         // where being : 0 = Conditioning / 1 = Heating / 102 = Antifreeze / 202 = Thermal Protection / 303 = Generic OFF
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d+)\\*' + config.zoneid + '##');
-          if (packetMatch !== null) {
-            payloadInfo.operationType_ownValue = packetMatch[1];
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*4\\*(\\d+)\\*' + config.zoneid + '##');
+          if (frameMatch !== null) {
+            payloadInfo.operationType_ownValue = frameMatch[1];
             let operationType_List = [];
             operationType_List.push (['0' , 'Conditioning']);
             operationType_List.push (['1' , 'Heating']);
@@ -94,12 +94,12 @@ module.exports = function (RED) {
         // Checks 3 : Actuator status for current zone frames (OpenWebNet doc) : *#4*where*20*Val##
         // where : Actuators N of zone Z [Z#N] -> [0-99#1-9] / All the actuators of zone Z [Z#0] / All the actuators [0#0]
         // val : 0 = OFF / 1 = ON / 2 = Opened / 3 = Closed / 4 = Stop / 5 = OFF Fan Coil / 6 = ON Vel 1 / 7 = ON Vel 2 / 8 = ON Vel 3 / 9 = ON Fan Coil
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
-          if (packetMatch !== null) {
-            let curActuatorid = packetMatch[1];
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*\\#4\\*' + config.zoneid + '\\#(\\d)\\*20\\*(\\d)##');
+          if (frameMatch !== null) {
+            let curActuatorid = frameMatch[1];
             let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
-            curActuatorState.state_ownValue = packetMatch[2];
+            curActuatorState.state_ownValue = frameMatch[2];
             let actuatorStates_List = [];
             actuatorStates_List.push (['0' , false , 'OFF']);
             actuatorStates_List.push (['1' , true , 'ON']);
@@ -124,10 +124,10 @@ module.exports = function (RED) {
         }
         // Checks 4 : Local offset acquire frames (OpenWebNet doc) : *#4*where*13*OL## with OL = Local Offset (knob status):
         // 00 = 0 / 01 = +1° / 02 = +2° / 03 = +3° / 11 = -1° / 12 = -2° / 13 = -3° / 04 = Local OFF / 05 = Local protection
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d{2})##');
-          if (packetMatch !== null) {
-            payloadInfo.localOffset_ownValue = packetMatch[1];
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d{2})##');
+          if (frameMatch !== null) {
+            payloadInfo.localOffset_ownValue = frameMatch[1];
             let localOffset_List = [];
             localOffset_List.push (['00' , 0]);  // +0°C
             localOffset_List.push (['01' , 1]);  // +1°C
@@ -150,10 +150,10 @@ module.exports = function (RED) {
         // Checks 5 : Zone operation mode request of central unit (OpenWebNet doc) : *4*what*#where##
         // what : 110 = Manual Heating / 210 = Manual Conditioning / 111 = Automatic Heating / 211 = Automatic Conditioning / 103 = Off Heating / 203 = Off Conditioning / 102 = Antifreeze / 202 = Thermal Protection
         // where : [#1 - #99] Request zone by Central Unit.
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d{3})\\*\\#' + config.zoneid + '##');
-          if (packetMatch !== null) {
-            payloadInfo.operationMode_ownValue = packetMatch[1];
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*4\\*(\\d{3})\\*\\#' + config.zoneid + '##');
+          if (frameMatch !== null) {
+            payloadInfo.operationMode_ownValue = frameMatch[1];
             let operationMode_List = [];
             operationMode_List.push ({own:'102', mode:'Antifreeze',             icon:['yellow','ring'], needTempInfo:false});
             operationMode_List.push ({own:'103', mode:'Off Heating',            icon:['grey','dot'],    needTempInfo:false});
@@ -176,12 +176,12 @@ module.exports = function (RED) {
           }
         }
         // If we reached here with a non null match, it means command was useful for node
-        if (packetMatch !== null) {
-          processedPackets++;
+        if (frameMatch !== null) {
+          processedFrames++;
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
-      if (processedPackets === 0 && !forceRefreshAndMsg) {
+      if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
@@ -202,8 +202,8 @@ module.exports = function (RED) {
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
-          if (!Array.isArray(packet)) {
-            payload.command_received = packet;
+          if (!Array.isArray(frame)) {
+            payload.command_received = frame;
           }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
@@ -354,7 +354,7 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          node.processReceivedBUSCommand (msg, cmd_responses);
+          node.processReceivedBUSFrames (msg, cmd_responses);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

@@ -156,13 +156,15 @@ Note: SmartFilter is never applied when node is running in read-only (status upd
 <p>Adds a MyHome Shutter Node to your flow.</p>
   <ul>
     <li><strong>Name</strong> (mandatory) is the name of the node</li>
-    <li><strong>Shutter</strong> is the address of the shutter in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
-      <ul>
-      <li><strong>This is a group reference</strong> is to be checked when the shutter address defined has to be used as a group-call address instead of a single shutter (point-to-point call)</li>
-      </ul>
     <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
     <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
-    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, a new msg (output) is only generated when a status CHANGE was detected. Not applicable in read-only (status refresh request) mode.</li>
+    <li><strong>Shutter</strong> is the address of the shutter in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
+      <ul>
+        <li><strong>This is a group reference</strong> is to be checked when the shutter address defined has to be used as a group-call address instead of a single shutter (point-to-point call)</li>
+      </ul>
+    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, the node only triggers a new flow (aka output) when a state CHANGED after a MyHome BUS message was received. This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+      <br>Note: SmartFilter is only applied for events received from the BUS (not the node-RED flows)
+    </li>
     <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Read-only</strong> : when enabled, the received payload (being 'OPEN', 'CLOSE', or whatever) is ignored and a status request is sent to gather current shutter state without applying any change.</li>
   </ul>

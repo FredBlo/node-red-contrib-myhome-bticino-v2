@@ -27,57 +27,57 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (packet) {
+    const listenerFunction = function (frame) {
       let msg = {};
-      node.processReceivedBUSCommand (msg, packet);
+      node.processReceivedBUSFrames (msg, frame);
     };
     runningMonitor.addMonitoredEvent ('OWN_LIGHTS', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    this.processReceivedBUSCommand = function (msg, packet) {
+    this.processReceivedBUSFrames = function (msg, frame) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
       // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
-      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      // In this case, even if no frame is found to update something, node is refreshed and msg are sent
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured light point
-      let processedPackets = 0;
-      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
-        let packetMatch;
+      let processedFrames = 0;
+      for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
+        let frameMatch;
         // Checks 1 : Light point/group update [*1*<status>|<dimmerLevel10>*where##]
         //    - <status> [0-1] : 0 = OFF / 1 = ON
         //    - <dimmerLevel10> [2-10] : 2 = 20% / 3 = 30% / ... / 9 = 90% / 10 = 100%
         // Note : the RegEx must only keep 2 characters when <status> begins with 1 to skip 30 or 31 since these are dimming UP / DOWN
-        packetMatch = curPacket.match ('^\\*1\\*(\\d|1\\d)\\*(' + node.lightgroupid + '|0)##');
-        if (packetMatch !== null) {
-          if ((packetMatch[1] === '0') || (packetMatch[1] === '1')) {
-            payloadInfo.state = (packetMatch[1] === '1') ? 'ON' : 'OFF';
+        frameMatch = curFrame.match ('^\\*1\\*(\\d|1\\d)\\*(' + node.lightgroupid + '|0)##');
+        if (frameMatch !== null) {
+          if ((frameMatch[1] === '0') || (frameMatch[1] === '1')) {
+            payloadInfo.state = (frameMatch[1] === '1') ? 'ON' : 'OFF';
           } else {
             payloadInfo.state = 'ON';
-            payloadInfo.brightness = (parseInt(packetMatch[1]) * 10);
+            payloadInfo.brightness = (parseInt(frameMatch[1]) * 10);
           }
         }
         // Checks 2 : Light point/group dimmer info update [*#1*<where>*1*<dimmerLevel100>*<dimmerSpeed>##]
         //    - <dimmerLevel100> [100-200] : 100 = off / 200 = Max
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
-          if (packetMatch !== null) {
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
+          if (frameMatch !== null) {
             payloadInfo.state = 'ON';
-            payloadInfo.brightness = (parseInt(packetMatch[1]) - 100);
+            payloadInfo.brightness = (parseInt(frameMatch[1]) - 100);
           }
         }
         // If we reached here with a non null match, it means command was useful for node
-        if (packetMatch !== null) {
-          processedPackets++;
+        if (frameMatch !== null) {
+          processedFrames++;
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
-      if (processedPackets === 0 && !forceRefreshAndMsg) {
+      if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
@@ -102,8 +102,8 @@ module.exports = function (RED) {
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
-          if (!Array.isArray(packet)) {
-            payload.command_received = packet;
+          if (!Array.isArray(frame)) {
+            payload.command_received = frame;
           }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
@@ -218,7 +218,7 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          node.processReceivedBUSCommand (msg, cmd_responses);
+          node.processReceivedBUSFrames (msg, cmd_responses);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

@@ -12,8 +12,8 @@ module.exports = function (RED) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add all listerners on gateway based on types we have to monitor
     // Define the function which is to be called on any triggered command received from the gateway
-    const listenerFunction = function (packet) {
-      node.send ({payload: packet});
+    const listenerFunction = function (frame) {
+      node.send ({payload: frame});
     };
 
     // LIGHTS

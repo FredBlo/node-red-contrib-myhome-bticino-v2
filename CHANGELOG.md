@@ -6,6 +6,10 @@
   Main included functionalities :
   - node allows to **???**
   - *(See node documentation for full detailed information.)*
+- **MH Temperature Central Unit** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+- **MH Temperature Zone** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
 
 ### v2.2.4 - 10/2022
 - **MH Light**
