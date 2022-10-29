@@ -411,24 +411,25 @@ module.exports = function (RED) {
           // In this case, we will wait a bit + keep waiting as long as this node receives responses directly form the BUS during last xx ms.
           // This is only available when cache is enabled (otherwise info processed are not kept in memory outside of caller flow anyway)
           let waitBUSResponsesDelay = (node.enableCache && commands.length > 0 && (cmd_responses.length + cmd_failed.length) === 0) ? 200 : 0;
-          async function processReceivedBUSFrames_delayed (interDelay , maxTotalDelay) {
+          async function processReceivedBUSFrames_delayed (initialDelay , interDelay , maxTotalDelay) {
             // If a delay is set, first wait once, then check every xxx ms (delay defined) whether node is still processing incoming messages.
             // Once no more processing occurred during last xxx ms (same as delay asked), or total waiting time is too long, shoot the BUS refresh function
             function sleep(ms) {
               return new Promise(resolve => setTimeout(resolve, ms));
             }
-            while (maxTotalDelay > 0) {
+            await sleep(initialDelay);
+            while (maxTotalDelay - initialDelay > 0) {
               maxTotalDelay = maxTotalDelay - interDelay;
-              await sleep(interDelay);
               if ((new Date() - node.processingIncomingFrame) > interDelay*2) {
                 break;
               }
+              await sleep(interDelay);
             }
             // Launch processing of responses by the node BUS receiver function (either node has finished or we waited too long)
             // TechNote : 'FORCED' mode is inserted on Cached ID list so that function always finalizes by outputting a msg with content
             node.processReceivedBUSFrames (msg, cmd_responses, ['FORCED'].concat(requiredCachedIDs));
           }
-          processReceivedBUSFrames_delayed(waitBUSResponsesDelay , waitBUSResponsesDelay*20*commands.length);
+          processReceivedBUSFrames_delayed(waitBUSResponsesDelay*5 , waitBUSResponsesDelay , waitBUSResponsesDelay*20*commands.length);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

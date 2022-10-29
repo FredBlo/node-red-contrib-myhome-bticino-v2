@@ -1,11 +1,22 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.3 (latest available - under construction) - 01/2023
+### v2.3.0 (latest available) - 01/2023
+- **General**
+  - ***Improvement*** : some code clean-up, doc update / correction,...
 - **MH Energy** : ***New node type***\
-  Added support for Ebergy Management.
+  Added support for Energy Management.
   Main included functionalities :
-  - node allows to **???**
+  - node can be configured to **acquire** (when info is read on the BUS, or based on flow-triggered calls) meter information :
+    - Current power, in Watts
+    - Daily consumption (today)
+    - Daily consumption (based on a provided time range)
+    - Hourly consumption (based on a provided time range)
+    - Monthly consumption (current month)
+    - Monthly consumption (based on a provided time range)
+    - Full consumption since begin
   - *(See node documentation for full detailed information.)*
+- **MH Scenario**
+  - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
 - **MH Temperature Central Unit** :
   - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
 - **MH Temperature Zone** :
@@ -14,6 +25,7 @@
 ### v2.2.4 - 10/2022
 - **MH Light**
   - ***Improvement*** : light node can now handle brightness increase / decrease when controlling dimmed lights. This can be done by sending a payload which contains 'UP' or 'DOWN'.
+
 ### v2.2.3(-2) - 09/2022
 - **General**
   - ***Examples flows*** are now available to be imported directly using standard 'Import' menu from node-red for :
@@ -26,6 +38,7 @@
     - MH Inject
     - MH Monitoring
   - small ***typo corrections*** here and there :-)
+
 ### v2.2.2 - 01/2022
 - **MH Light**
   - ***Improvement*** : light node now accepts a simple 'numerical' value (0 - 100) as payload value when used with dimmers (i.e. sending 80 will dim light to 80% as if a full request was sent with `payload.state=ON` and `payload.brightness=80`)

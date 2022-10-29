@@ -22,10 +22,27 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-**v2.2.4**
-- **MH Light**
-  - ***Improvement*** : light node can now handle brightness increase / decrease when controlling dimmed lights. This can be done by sending a payload which contains 'UP' or 'DOWN'.
-
+### v2.3.0 (latest available) - 01/2023
+- **General**
+  - ***Improvement*** : some code clean-up, doc update / correction,...
+- **MH Energy** : ***New node type***\
+  Added support for Energy Management.
+  Main included functionalities :
+  - node can be configured to **acquire** (when info is read on the BUS, or based on flow-triggered calls) meter information :
+    - Current power, in Watts
+    - Daily consumption (today)
+    - Daily consumption (based on a provided time range)
+    - Hourly consumption (based on a provided time range)
+    - Monthly consumption (current month)
+    - Monthly consumption (based on a provided time range)
+    - Full consumption since begin
+  	*(See node documentation for full detailed information.)*
+	- **MH Scenario**
+	  - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
+	- **MH Temperature Central Unit** :
+	  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+	- **MH Temperature Zone** :
+	  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
 ## 3. Installation
