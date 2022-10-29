@@ -69,6 +69,7 @@
       return this.name || 'MH Scenario';
     },
     oneditprepare: function() {
+      $(document).off('change', '#node-input-topic');
       $(document).on('change', '#node-input-topic', function() {
         let infoVar = $('#node-input-topic').val();
         let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
@@ -77,17 +78,18 @@
       });
 
       // When scenario type is changed from CEN <> CEN+, update labels for 'Start press'
+      $(document).off('change', '#node-input-scenariotype');
       $(document).on('change', '#node-input-scenariotype', function() {
         let onStartLabel = '';
-        if ($("#node-input-scenariotype").val() === "CEN") {
+        if ($('#node-input-scenariotype').val() === "CEN") {
           onStartLabel = 'Start short/long press';
         } else {
           onStartLabel = 'Start long press';
         }
-        let rules = $("#node-input-rule-container").editableList('items');
+        let rules = $('#node-input-rule-container').editableList('items');
         rules.each (function (i) {
             let rule = $(this);
-            rule.find("label[for='node-input-onStartPress_" + i + "']").text(onStartLabel);
+            rule.find("label[for^='node-input-onStartPress_']").text(onStartLabel);
         });
       });
 

@@ -44,6 +44,7 @@
       return this.name || 'MH Thermo Zone';
     },
     oneditprepare: function() {
+      $(document).off('change', '#node-input-topic');
       $(document).on('change', '#node-input-topic', function() {
         let infoVar = $('#node-input-topic').val();
         let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
