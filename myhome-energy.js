@@ -261,8 +261,15 @@ module.exports = function (RED) {
       if (typeof(msg) === 'string') {
         try {msg = JSON.parse(msg);} catch(error){}
       }
+      // DEBUG MODE : ouput cache
+      if (msg.__user_inject_props__ === 'DEBUG_SENDCACHE' || msg.payload === 'DEBUG_SENDCACHE') {
+        msg.payload = {'cachedInfo' : node.cachedInfo};
+        node.send(msg);
+        return;
+      }
       // Only process input received from flow when the topic matches with configuration of nodes. For energy, 'cmd/' or 'state/' are both OK & similar
       if ((msg.topic !== 'state/' + config.topic) && (msg.topic !== 'cmd/' + config.topic)) {
+        node.warn('invalid state/cmd provided : ' + JSON.stringify(msg));
         return;
       }
 
@@ -274,12 +281,6 @@ module.exports = function (RED) {
         msg.payload = {'metered_From':msg.payload};
       }
       let payload = msg.payload;
-      //
-      if (payload.metered_From === 'DEBUG_SENDCACHE') {
-        payload.cachedInfo = node.cachedInfo;
-        node.send(msg);
-        return;
-      }
       // Validate From & To dates provided. If invalid, simplify to current date-time
       payload.metered_From = new Date(payload.metered_From);
       if (!(payload.metered_From instanceof Date && !isNaN(payload.metered_From.valueOf()))) {
@@ -390,12 +391,6 @@ module.exports = function (RED) {
           commands.push ('*#18*' + node.meterid + '*51##');
           break;
       }
-
-      /// TEMP DEBUG : When dev on going, if command received is a valid SCS BUS for current meter, send it is as
-      payload.tmp_cachedInfo = node.cachedInfo; // include full content of cache to allow easy debug
-      payload.tmp_cachedIDs = requiredCachedIDs;
-      /// END TEMP DEV PHASE
-
       if (commands.length === 0 && requiredCachedIDs.length === 0) {
         return;
       }
@@ -433,7 +428,7 @@ module.exports = function (RED) {
             // TechNote : 'FORCED' mode is inserted on Cached ID list so that function always finalizes by outputting a msg with content
             node.processReceivedBUSFrames (msg, cmd_responses, ['FORCED'].concat(requiredCachedIDs));
           }
-          processReceivedBUSFrames_delayed(waitBUSResponsesDelay , waitBUSResponsesDelay*10*commands.length);
+          processReceivedBUSFrames_delayed(waitBUSResponsesDelay , waitBUSResponsesDelay*20*commands.length);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

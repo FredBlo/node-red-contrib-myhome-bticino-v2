@@ -52,23 +52,22 @@
         $('#node-input-output2_type option[value="metered_Power_asText"]').text('metered_Power (text in k' + powerUnit + ')');
       });
       $(document).on('click', '#node-myhome_energy-outputcache-button', function() {
-        function doOutputLog(node, customMsg) {
+        function doInject(node, customMsg) {
           $.ajax({
-              url: "inject/" + 'e61b02c6f22cc6cb',// node.id,
+              url: "inject/" + node.id,
               type: "POST",
               data: JSON.stringify(customMsg||{}),
               contentType: "application/json; charset=utf-8",
               success: function (resp) {
-                  alert ('Current cached content output to main output');
+                RED.notify('Current cache content successfully sent to primary output.', {type: 'success'});
               },
               error: function (jqXHR, textStatus, errorThrown) {
-                  alert ('Error outputting current cached content : ['+ errorThrown +'] ' + textStatus);
+                RED.notify('Error outputting current cached content to primary output : ['+ errorThrown +'] ' + textStatus, {type: 'warning'});
               }
           });
         }
-
-        let msg = {'payload':'DEBUG_SENDCACHE'};
-        doOutputLog(node , msg)
+        let msg = {'__user_inject_props__':'DEBUG_SENDCACHE'};
+        doInject(node , msg)
       });
     }
   });
@@ -134,16 +133,16 @@ Note: SmartFilter is only applied for events received from the BUS (not the node
   <div class="form-row">
       <label for="node-input-enablecache"><i class="fa fa-retweet"></i> Use cache</label>
       <label for="node-input-enablecache" style="width:70%">
-        <input type="checkbox" id="node-input-enablecache" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Cache previously fetched results
+        <input type="checkbox" id="node-input-enablecache" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Cache fetched results
         &nbsp;<i class="fa fa-info-circle" title="By default, the node will keep all previously fetched results in memory. When the same scope is asked, cached content is used instead of firing (many) requests on the MyHome BUS. Cache is non persistent and reset on node re-deploy and node-RED restart.
 &#13;
 !! The cache is also useful (/required) for some commands (such as daily consumtpion) and / or when working with gateways which do not provide response to calls as they should... but the node can still fetch info directly on the BUS and cache it instead...
 &#13;
 Note that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call."></i>
+        <button type="button" class="red-ui-button red-ui-button-small" style="margin-top: 0px; margin-right: unset; float: right;" id="node-myhome_energy-outputcache-button">
+          <span> debug: output cache</span>
+        </button>
       </label>
-      <button type="button" class="red-ui-button red-ui-button-small" style="margin-top: 4px; margin-right: unset; float: right;" id="node-myhome_energy-outputcache-button">
-        <span> inject now</span>
-      </button>
   </div>
   <div class="form-tips form-row" style="background:#EFEFEF">
     <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
@@ -229,10 +228,10 @@ Note that, regardless of this setting, cache is never used for partial results (
         <ul>
           <li> <code>.metered_From</code> <em>[string (date-time)]</em> the effective date since which this data interval was collected on the meter</li>
           <li> <code>.metered_To</code> <em>[string (date-time)]</em> the effective date up to which this data interval was collected on the meter</li>
-          <li> <code>payload.metered_Power</code> <em>[number]</em> the power consumption (Wh) metered during the provided date-time range</li>
-          <li> <code>payload.metered_Frame</code> <em>[string]</em> -technical- the OpenWebNet frame which was received form the BUS and was analyzed for this data interval</li>
-          <li> <code>payload.metered_CacheID</code> <em>[boolean]</em> -technical internal use for cache management- is the cache 'unique key'</li>
-          <li> <code>payload.metered_CacheIsStatic</code> <em>[boolean]</em> -technical internal use for cache management- indicates this data interval will not evolve anymore in the future</li>
+          <li> <code>.metered_Power</code> <em>[number]</em> the power consumption (Wh) metered during the provided date-time range</li>
+          <li> <code>.metered_Frame</code> <em>[string]</em> -technical- the OpenWebNet frame which was received form the BUS and was analyzed for this data interval</li>
+          <li> <code>.metered_CacheID</code> <em>[boolean]</em> -technical internal use for cache management- is the cache 'unique key'</li>
+          <li> <code>.metered_CacheIsStatic</code> <em>[boolean]</em> -technical internal use for cache management- indicates this data interval will not evolve anymore in the future</li>
         </ul>
       </li>
       <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol</li>
