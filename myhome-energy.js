@@ -205,13 +205,6 @@ module.exports = function (RED) {
       finalRequiredCachedIDs.forEach(function(requiredCachedID) {
         let requiredCachedInfo = node.cachedInfo[requiredCachedID];
         if (requiredCachedInfo) {
-          // Required ID exists, add it to final list now (by creating a new / independant object with only required content)
-          // let cachedFrameInfo = {};
-          // cachedFrameInfo.metered_From = requiredCachedInfo.metered_From;
-          // cachedFrameInfo.metered_To = requiredCachedInfo.metered_To;
-          // cachedFrameInfo.metered_Power = requiredCachedInfo.metered_Power;
-          // cachedFrameInfo.metered_Frame = requiredCachedInfo.metered_Frame;
-          // cachedFrameInfo.IsFromCache = true;
           payloadInfo.metered_Info.push (requiredCachedInfo);
         }
       });
@@ -278,9 +271,15 @@ module.exports = function (RED) {
         try {msg.payload = JSON.parse(msg.payload);} catch(error){}
       }
       if (typeof(msg.payload) !== 'object') {
-        msg.payload = {};
+        msg.payload = {'metered_From':msg.payload};
       }
       let payload = msg.payload;
+      //
+      if (payload.metered_From === 'DEBUG_SENDCACHE') {
+        payload.cachedInfo = node.cachedInfo;
+        node.send(msg);
+        return;
+      }
       // Validate From & To dates provided. If invalid, simplify to current date-time
       payload.metered_From = new Date(payload.metered_From);
       if (!(payload.metered_From instanceof Date && !isNaN(payload.metered_From.valueOf()))) {

@@ -38,6 +38,7 @@
       return this.name || 'MH Energy';
     },
     oneditprepare: function() {
+      var node = this;
       $(document).on('change', '#node-input-topic', function() {
         let infoVar = $('#node-input-topic').val();
         let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "'"
@@ -49,6 +50,25 @@
         let powerUnit = (curScope === 'instant') ? 'W' : 'Wh';
         $('#node-input-output2_type option[value="metered_Power"]').text('metered_Power (number in ' + powerUnit + ')');
         $('#node-input-output2_type option[value="metered_Power_asText"]').text('metered_Power (text in k' + powerUnit + ')');
+      });
+      $(document).on('click', '#node-myhome_energy-outputcache-button', function() {
+        function doOutputLog(node, customMsg) {
+          $.ajax({
+              url: "inject/" + 'e61b02c6f22cc6cb',// node.id,
+              type: "POST",
+              data: JSON.stringify(customMsg||{}),
+              contentType: "application/json; charset=utf-8",
+              success: function (resp) {
+                  alert ('Current cached content output to main output');
+              },
+              error: function (jqXHR, textStatus, errorThrown) {
+                  alert ('Error outputting current cached content : ['+ errorThrown +'] ' + textStatus);
+              }
+          });
+        }
+
+        let msg = {'payload':'DEBUG_SENDCACHE'};
+        doOutputLog(node , msg)
       });
     }
   });
@@ -121,6 +141,9 @@ Note: SmartFilter is only applied for events received from the BUS (not the node
 &#13;
 Note that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call."></i>
       </label>
+      <button type="button" class="red-ui-button red-ui-button-small" style="margin-top: 4px; margin-right: unset; float: right;" id="node-myhome_energy-outputcache-button">
+        <span> inject now</span>
+      </button>
   </div>
   <div class="form-tips form-row" style="background:#EFEFEF">
     <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
@@ -137,8 +160,8 @@ Note that, regardless of this setting, cache is never used for partial results (
     <div class="form-row">
       <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
       <select id="node-input-output2_type" style="width:55%">
-        <option value="metered_Power">metered_Power (number in W)</option>
-        <option value="metered_Power_asText">metered_Power (text in kW)</option>
+        <option value="metered_Power">.metered_Power (number in W)</option>
+        <option value="metered_Power_asText">.metered_Power (text in kW)</option>
       </select>
     </div>
   </div>
@@ -194,7 +217,6 @@ Note that, regardless of this setting, cache is never used for partial results (
     </ul>
   <p><code>msg.topic</code> is <strong>required</strong> to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> or <code>state/xxxx</code>where xxxx is the value defined as Topic in node configuration. For energy managemetn nodes, there is no different behaviour between 'cmd' or 'state' modes.</p>
 
-TODO - TODO - TODO - TODO
 <h3>Outputs</h3>
   <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
     <ul>
@@ -203,11 +225,16 @@ TODO - TODO - TODO - TODO
       <li> <code>payload.metered_To</code> <em>[string (date-time)]</em> the effective date up to which the data was collected on the meter</li>
       <li> <code>payload.metered_Power</code> <em>[number]</em> the instant power (W) or the total consumption (Wh) metered during the provided date-time range</li>
       <li> <code>payload.metered_Power_asText</code> <em>[string]</em> the power value converted to a 'readable' text (i.e. 900 -> 900Wh, 1250 -> 1,25kWh, 1543134 -> 1,54MWh)</li>
-metered_Info
-    metered_From: "10/28/2022, 6:59:29 PM"
-    metered_To: "10/28/2022, 6:59:29 PM"
-    metered_Power: 1477
-    metered_Frame
+      <li> <code>payload.metered_Info</code> <em>[array of objects]</em> an object is returned for each metered interval (hour / day / month) with, as content :
+        <ul>
+          <li> <code>.metered_From</code> <em>[string (date-time)]</em> the effective date since which this data interval was collected on the meter</li>
+          <li> <code>.metered_To</code> <em>[string (date-time)]</em> the effective date up to which this data interval was collected on the meter</li>
+          <li> <code>payload.metered_Power</code> <em>[number]</em> the power consumption (Wh) metered during the provided date-time range</li>
+          <li> <code>payload.metered_Frame</code> <em>[string]</em> -technical- the OpenWebNet frame which was received form the BUS and was analyzed for this data interval</li>
+          <li> <code>payload.metered_CacheID</code> <em>[boolean]</em> -technical internal use for cache management- is the cache 'unique key'</li>
+          <li> <code>payload.metered_CacheIsStatic</code> <em>[boolean]</em> -technical internal use for cache management- indicates this data interval will not evolve anymore in the future</li>
+        </ul>
+      </li>
       <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol</li>
       <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol</li>
       <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
