@@ -61,8 +61,9 @@ The **complete version history** is available in `CHANGELOG.md` file included in
 
 ## 4. Usage
 ### 4.1 First touch
-In order to easy starting to test the nodes, best way is to import an example provided with installed content (using node-red menu **'Import'** and selecting one listed uner 'node-red-contrib-myhome-bticino-v2'in the **'examples'** tab).
+In order to easy starting to test the nodes, best way is to import an example provided with installed content (using node-red menu **'Import'** and selecting one listed under 'node-red-contrib-myhome-bticino-v2'in the **'examples'** tab).
 Examples are available for :
+- MH Energy
 - MH Light (simple point)
 - MH Light (group of lights)
 - MH Shutter
@@ -88,13 +89,13 @@ Import the provided example node 'MH Monitoring (discover lights)' and follow in
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
 
-| Gateway             | Authentication (tested)           | Lights    | Shutters  | Scenario   | Temperature  | Energy       |
-| ------------------- | --------------------------------- | --------- | --------- | ---------- | ------------ | ------------ |
-| ***MH201*** \*      | IP, OPEN pwd                      | OK [1]    | OK        | ?          | ?            | ?            |
-| ***MH202***         | OPEN pwd                          | OK        | OK        | OK         | OK [3][4]    | OK [?][?]    |
-| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [2]| OK        | OK        | OK         | OK [4]       | OK [6]       |
-| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK        | OK        | OK         | OK           | OK           |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK        | OK        | OK         | OK [5]       | OK [?]       |
+| Gateway             | Authentication (tested)           | Lights    | Shutters  | Scenario   | Temperature  | Energy   |
+| ------------------- | --------------------------------- | --------- | --------- | ---------- | ------------ | -------- |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK [1]    | OK        | ?          | ?            | ?        |
+| ***MH202***         | OPEN pwd                          | OK        | OK        | OK         | OK [3][4]    | OK       |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [2]| OK        | OK        | OK         | OK [4]       | OK [6]   |
+| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK        | OK        | OK         | OK           | OK       |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK        | OK        | OK         | OK [5]       | OK       |
 
 \*based on *Fabio Bui* feedback
 \
@@ -107,6 +108,9 @@ Based on previous authors comments and my own experience when testing/extending 
 [4] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
 \
 [5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
+\
+[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Cache tends to correct most of them when nodes are running for a while...
+
 
 ## 6. Contact me
 If you have questions, remarks, issues,... please add your input using GitHub for this project (either [issues](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues) or [discussions](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/discussions))

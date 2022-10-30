@@ -63,7 +63,7 @@
         "type": "comment",
         "z": "fd5424770bd6a7ab",
         "g": "696d6ed6f29f4f7a",
-        "name": "!! Before you begin, do not forget to configure your gateway (open 'Zone #1' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'Zone' node, you have to set its number (1 - 99). \\n You can use this node to command and monitor a zone about : \\n - manually defining a temperature \\n - switching to auto mode \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n - switching off \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<thermo_node_topic>>' to allow state change",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'Zone #1' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'Zone' node, you have to set its number (1 - 99). \\n You can use this node to command and monitor a zone about : \\n - manually defining a temperature \\n - switching to auto mode \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n - switching off \\n \\n Do NOT forget you also have to include a .topic which is 'cmd/<<thermo_node_topic>>' to allow state change",
         "info": "",
         "x": 560,
         "y": 160,

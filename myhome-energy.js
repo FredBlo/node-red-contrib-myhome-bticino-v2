@@ -313,8 +313,7 @@ module.exports = function (RED) {
           //  Command 3a [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##]
           //    Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
           //  Command 3b [WHAT=513] : Daily consumption for a full month (specified month, in Wh) [*18*59#<M>*<Where>##]
-          //    Note : since a single command sends a full month, we use this one to cover multiple results in a single call.
-          //          DRAWBACK : results of this command are ONLY send on BUS, not as command's response :-//
+          //    Note : is more efficient to use a single call for multiple days BUT this command does not receive responses (frames are send on the BUS only)
           // The gateway is only able to provide daily/hourly details for a range of 12 months : 11 before + current one. Define max date range
           let dailyMeter_FromMin = new Date(curDateTime.getFullYear() , curDateTime.getMonth()-11 , 1);
           let dailyMeter_ToMax = new Date(curDateTime.getFullYear() , curDateTime.getMonth()+1 , 0 , 23 , 59 , 59);
@@ -326,8 +325,14 @@ module.exports = function (RED) {
               if (!node.cachedInfo[requiredCachedID] || !node.cachedInfo[requiredCachedID].metered_CacheIsStatic) {
                 // There is no 'finalized' (static) cache content for this date reference, add the BUS command which will retrieve info (if possible in range gateway can provide)
                 if (processed_From >= dailyMeter_FromMin && processed_From <= dailyMeter_ToMax) {
-                  // let addCommand = mhutils.dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##'); // Hourly mode command, not used, but works -slower-
-                  let addCommand = mhutils.dateTxtMerge(processed_From , '*18*59#M*' + node.meterid + '##'); // Monthly mode command
+                  let addCommand;
+                  if (node.enableCache) {
+                    // The month command sends 1 frame per day, but is only sent on the BUS, not as response. Therefore cache is required to use this mode
+                    addCommand = mhutils.dateTxtMerge(processed_From , '*18*59#M*' + node.meterid + '##');
+                  } else {
+                    // Cache disabled, we must use the 'slower/longer' command which receives responses as a frame per hour + 1 for day total
+                    addCommand = mhutils.dateTxtMerge(processed_From , '*#18*' + node.meterid + '*511#M#D##');
+                  }
                   if (commands.indexOf(addCommand) < 0) {
                     commands.push (addCommand);
                   }
@@ -410,7 +415,7 @@ module.exports = function (RED) {
           // and/or some gateway are not compliant with OpenWebNet doc (i.e. sending on the BUS only but not to command-caller)
           // In this case, we will wait a bit + keep waiting as long as this node receives responses directly form the BUS during last xx ms.
           // This is only available when cache is enabled (otherwise info processed are not kept in memory outside of caller flow anyway)
-          let waitBUSResponsesDelay = (node.enableCache && commands.length > 0 && (cmd_responses.length + cmd_failed.length) === 0) ? 200 : 0;
+          let waitBUSDelay = (node.enableCache && commands.length > 0 && (cmd_responses.length + cmd_failed.length) === 0) ? 200 : 0;
           async function processReceivedBUSFrames_delayed (initialDelay , interDelay , maxTotalDelay) {
             // If a delay is set, first wait once, then check every xxx ms (delay defined) whether node is still processing incoming messages.
             // Once no more processing occurred during last xxx ms (same as delay asked), or total waiting time is too long, shoot the BUS refresh function
@@ -429,7 +434,7 @@ module.exports = function (RED) {
             // TechNote : 'FORCED' mode is inserted on Cached ID list so that function always finalizes by outputting a msg with content
             node.processReceivedBUSFrames (msg, cmd_responses, ['FORCED'].concat(requiredCachedIDs));
           }
-          processReceivedBUSFrames_delayed(waitBUSResponsesDelay*5 , waitBUSResponsesDelay , waitBUSResponsesDelay*20*commands.length);
+          processReceivedBUSFrames_delayed(waitBUSDelay*5 , waitBUSDelay , waitBUSDelay*20*commands.length);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

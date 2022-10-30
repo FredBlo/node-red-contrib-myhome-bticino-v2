@@ -63,7 +63,7 @@
         "type": "comment",
         "z": "33f463aef72c752d",
         "g": "627fb501b9e54f54",
-        "name": "!! Before you begin, do not forget to configure your gateway (open 'CEN+' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'CEN+' node, you have to set its type (CEN/CEN+) and number (A/PL for CEN, identifier for CEN+). \\n You can use this node to : \\n - send commands as if 'buttons' were pressed (short press, long press,...) \\n - monitor button presses (by defining extra outputs with specific filters or monitoring them all) \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<scenario_node_topic>>' to allow state change",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'CEN+' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'CEN+' node, you have to set its type (CEN/CEN+) and number (A/PL for CEN, identifier for CEN+). \\n You can use this node to : \\n - send commands as if 'buttons' were pressed (short press, long press,...) \\n - monitor button presses (by defining extra outputs with specific filters or monitoring them all) \\n \\n Do NOT forget you also have to include a .topic which is 'cmd/<<scenario_node_topic>>' to allow state change",
         "info": "",
         "x": 550,
         "y": 140,

@@ -99,7 +99,7 @@
         "type": "comment",
         "z": "59ad58b444f1e3f6",
         "g": "15111347b5712613",
-        "name": "!! Before you begin, do not forget to configure your gateway (open 'Group of lights' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'group of lights' node, you have to set its number (1 - 255). \\n - To turn lamp on or off, simply send True/False as payload \\n - To dim it, send the percentage (20 - 100%) as payload \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<light_node_topic>>' to allow state change",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'Group of lights' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'group of lights' node, you have to set its number (1 - 255). \\n - To turn lamp on or off, simply send True/False as payload \\n - To dim it, send the percentage (20 - 100%) as payload \\n \\n Do NOT forget you also have to include a .topic which is 'cmd/<<light_node_topic>>' to allow state change",
         "info": "",
         "x": 580,
         "y": 120,
