@@ -14,6 +14,8 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 	- MANUAL:xx.x°C / PROGRAM:x / SCENARIO:xx / OFF / ANTIFREEZE / THERMAL_PROTECT
 - **MH Temperature Zone**
 	- (MANUAL:)xx.x°C / AUTO / OFF / ANTIFREEZE / THERMAL_PROTECT
+- **MH Energy**
+	- Read energy meters power consumption measurements
 - **MH Monitoring**
 	- Listen for any message on the bus and sends it as payload
 - **MH Inject**
