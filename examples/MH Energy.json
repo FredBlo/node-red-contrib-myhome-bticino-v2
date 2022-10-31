@@ -7,64 +7,6 @@
         "info": ""
     },
     {
-        "id": "1c23086ee80c3ea8",
-        "type": "group",
-        "z": "125a7426.3ccc94",
-        "name": "Energy - All modes explained",
-        "style": {
-            "label": true,
-            "fill": "#ffffbf",
-            "stroke-opacity": "0.6",
-            "fill-opacity": "0.6",
-            "color": "#3f3f3f"
-        },
-        "nodes": [
-            "cdd52f6fcc5ae34c",
-            "4535d7f01ba70b90",
-            "c69ec9937877eeee",
-            "e318eed46b6ff29c",
-            "f73325471f10283b",
-            "56bb5821afa1eaad",
-            "0a77e99cfb1e745a",
-            "0155f92f594f3e9d",
-            "15d6b37fee3d40c7",
-            "93eb0a9a02ba9dc1"
-        ],
-        "x": 14,
-        "y": 19,
-        "w": 1218,
-        "h": 1068
-    },
-    {
-        "id": "4535d7f01ba70b90",
-        "type": "group",
-        "z": "125a7426.3ccc94",
-        "g": "1c23086ee80c3ea8",
-        "name": "Monitor changes made on energy meter",
-        "style": {
-            "stroke-opacity": "0.6",
-            "label": true,
-            "fill": "#d1d1d1",
-            "fill-opacity": "0.6",
-            "color": "#6A7E64"
-        },
-        "nodes": [
-            "616748750a2d01c6",
-            "c8fc9d6d3cc04009",
-            "6d489150.4f01d8",
-            "3edcf3531e0eef59",
-            "f5e57c4fc13d48db",
-            "33a3ade5e82c4f6d",
-            "0d273364fd4610a2",
-            "b75ca9b20304f03a",
-            "9c971b6d2fcc889a"
-        ],
-        "x": 754,
-        "y": 219,
-        "w": 452,
-        "h": 822
-    },
-    {
         "id": "c69ec9937877eeee",
         "type": "group",
         "z": "125a7426.3ccc94",
@@ -94,7 +36,72 @@
         "x": 54,
         "y": 221,
         "w": 373,
-        "h": 840
+        "h": 900
+    },
+    {
+        "id": "4535d7f01ba70b90",
+        "type": "group",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Monitor changes made on energy meter",
+        "style": {
+            "stroke-opacity": "0.6",
+            "label": true,
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "color": "#6A7E64"
+        },
+        "nodes": [
+            "616748750a2d01c6",
+            "c8fc9d6d3cc04009",
+            "6d489150.4f01d8",
+            "3edcf3531e0eef59",
+            "f5e57c4fc13d48db",
+            "33a3ade5e82c4f6d",
+            "0d273364fd4610a2",
+            "b75ca9b20304f03a",
+            "9c971b6d2fcc889a",
+            "a90af2b38057bd35",
+            "9a91d4241535f009",
+            "bf909e4de03392f1",
+            "992aa190879d42f8",
+            "8ca9d7e893cb0ee9",
+            "05f69af3db39ac38",
+            "36f6c03b35c31238"
+        ],
+        "x": 754,
+        "y": 219,
+        "w": 472,
+        "h": 902
+    },
+    {
+        "id": "1c23086ee80c3ea8",
+        "type": "group",
+        "z": "125a7426.3ccc94",
+        "name": "Energy - All modes explained",
+        "style": {
+            "label": true,
+            "fill": "#ffffbf",
+            "stroke-opacity": "0.6",
+            "fill-opacity": "0.6",
+            "color": "#3f3f3f"
+        },
+        "nodes": [
+            "cdd52f6fcc5ae34c",
+            "e318eed46b6ff29c",
+            "f73325471f10283b",
+            "56bb5821afa1eaad",
+            "0a77e99cfb1e745a",
+            "0155f92f594f3e9d",
+            "15d6b37fee3d40c7",
+            "93eb0a9a02ba9dc1",
+            "c69ec9937877eeee",
+            "4535d7f01ba70b90"
+        ],
+        "x": 14,
+        "y": 19,
+        "w": 1238,
+        "h": 1128
     },
     {
         "id": "6d489150.4f01d8",
@@ -151,7 +158,7 @@
         "name": "Other modes work based on a provided \\n time-range : \\n  - payload.metered_From \\n  - payload.metered_To",
         "info": "",
         "x": 250,
-        "y": 700,
+        "y": 760,
         "wires": []
     },
     {
@@ -262,15 +269,17 @@
         "smartfilter": true,
         "skipevents": true,
         "enablecache": true,
-        "output2_name": "On",
-        "output2_type": "metered_Power_asText",
+        "output2_name": "",
+        "output2_type": "metered_Info",
         "x": 570,
-        "y": 800,
+        "y": 860,
         "wires": [
             [
                 "0d273364fd4610a2"
             ],
-            []
+            [
+                "9a91d4241535f009"
+            ]
         ]
     },
     {
@@ -301,7 +310,7 @@
         "onceDelay": 0.1,
         "topic": "state/energy",
         "x": 310,
-        "y": 780,
+        "y": 840,
         "wires": [
             [
                 "0155f92f594f3e9d"
@@ -337,7 +346,7 @@
         "onceDelay": 0.1,
         "topic": "state/energy",
         "x": 250,
-        "y": 820,
+        "y": 880,
         "wires": [
             [
                 "0155f92f594f3e9d"
@@ -359,15 +368,17 @@
         "smartfilter": true,
         "skipevents": true,
         "enablecache": true,
-        "output2_name": "On",
-        "output2_type": "metered_Power_asText",
+        "output2_name": "",
+        "output2_type": "metered_Info",
         "x": 570,
-        "y": 900,
+        "y": 960,
         "wires": [
             [
                 "b75ca9b20304f03a"
             ],
-            []
+            [
+                "992aa190879d42f8"
+            ]
         ]
     },
     {
@@ -398,7 +409,7 @@
         "onceDelay": 0.1,
         "topic": "state/energy",
         "x": 290,
-        "y": 920,
+        "y": 980,
         "wires": [
             [
                 "15d6b37fee3d40c7"
@@ -429,7 +440,7 @@
         "onceDelay": 0.1,
         "topic": "state/energy",
         "x": 330,
-        "y": 880,
+        "y": 940,
         "wires": [
             [
                 "15d6b37fee3d40c7"
@@ -451,15 +462,17 @@
         "smartfilter": true,
         "skipevents": true,
         "enablecache": true,
-        "output2_name": "On",
-        "output2_type": "metered_Power",
+        "output2_name": "",
+        "output2_type": "metered_Info",
         "x": 580,
-        "y": 1000,
+        "y": 1060,
         "wires": [
             [
                 "9c971b6d2fcc889a"
             ],
-            []
+            [
+                "05f69af3db39ac38"
+            ]
         ]
     },
     {
@@ -490,7 +503,7 @@
         "onceDelay": 0.1,
         "topic": "state/energy",
         "x": 310,
-        "y": 1020,
+        "y": 1080,
         "wires": [
             [
                 "93eb0a9a02ba9dc1"
@@ -521,7 +534,7 @@
         "onceDelay": 0.1,
         "topic": "state/energy",
         "x": 340,
-        "y": 980,
+        "y": 1040,
         "wires": [
             [
                 "93eb0a9a02ba9dc1"
@@ -665,7 +678,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 880,
-        "y": 800,
+        "y": 840,
         "wires": []
     },
     {
@@ -770,7 +783,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 880,
-        "y": 900,
+        "y": 940,
         "wires": []
     },
     {
@@ -788,7 +801,132 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 880,
-        "y": 1000,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "9a91d4241535f009",
+        "type": "split",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 830,
+        "y": 880,
+        "wires": [
+            [
+                "bf909e4de03392f1"
+            ]
+        ]
+    },
+    {
+        "id": "bf909e4de03392f1",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "hourly details (1 msg per hour)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "a90af2b38057bd35",
+        "type": "comment",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Node reads ranges (of mutiple hours, days or months)  \\n -> Main output is the full object (which summarizes  \\n range and totals and has range details in '.metered_Info')  \\n -> Secondary output can be configured to only  \\n include the details ('.metered_Info\") which  \\n can then easily be split to manage a flow per range",
+        "info": "",
+        "x": 990,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "992aa190879d42f8",
+        "type": "split",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 830,
+        "y": 980,
+        "wires": [
+            [
+                "8ca9d7e893cb0ee9"
+            ]
+        ]
+    },
+    {
+        "id": "8ca9d7e893cb0ee9",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "hourly details (1 msg per day)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "05f69af3db39ac38",
+        "type": "split",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 830,
+        "y": 1080,
+        "wires": [
+            [
+                "36f6c03b35c31238"
+            ]
+        ]
+    },
+    {
+        "id": "36f6c03b35c31238",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "hourly details (1 msg per day)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 1080,
         "wires": []
     },
     {

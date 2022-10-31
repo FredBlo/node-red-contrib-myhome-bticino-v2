@@ -27,6 +27,8 @@
           outputTypeDescr = '.metered_Power (number in ' + ((this.meterscope === 'instant') ? 'W' : 'Wh') + ')';
         } else if (this.output2_type === 'metered_Power_asText') {
           outputTypeDescr = '.metered_Power (text in ' + ((this.meterscope === 'instant') ? 'kW' : 'kWh') + ')';
+        } else if (this.output2_type === 'metered_Info') {
+          outputTypeDescr = '.metered_Info (array of metered details)';
         }
         return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
       }
@@ -164,6 +166,7 @@ Note that, regardless of this setting, cache is never used for partial results (
       <select id="node-input-output2_type" style="width:55%">
         <option value="metered_Power">.metered_Power (number in W)</option>
         <option value="metered_Power_asText">.metered_Power (text in kW)</option>
+        <option value="metered_Info">.metered_Info (array of metered details)</option>
       </select>
     </div>
   </div>
