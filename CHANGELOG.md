@@ -16,6 +16,7 @@
     - Full consumption since begin
   - *(See node documentation for full detailed information.)*
 - **MH Scenario**
+  - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve flow configuration.
   - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
 - **MH Temperature Central Unit** :
   - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)

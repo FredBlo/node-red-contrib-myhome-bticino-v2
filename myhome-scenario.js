@@ -94,7 +94,7 @@ module.exports = function (RED) {
               case '21':
                 // Short pressure (<0.5s)
                 curActionType = 'SHORT';
-              break;
+                break;
               case '22':
                 // Start of extended pressure (>= 0.5s)
                 curActionType = 'LONG_START';
