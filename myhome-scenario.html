@@ -1,26 +1,4 @@
 <script type="text/javascript">
-  function rebuildOutputIndexes (rulesUI , indexAtStart) {
-    // Output order can be updated to keep linked junctions correctly connected. To do so, a reserved item must contains
-    //    outputs re-directions (if outputs are a,b,c,d, after configuring, new outputs are z,a,c, then 'node-input-outputs'
-    //    must now be {"0":"1", "1":"-1", "2":"2", "3":"-1", "someRandomNo":"0"}.
-    // Build new outputs : assume all which were defined before are 'deleted' (if not, they will be re-assigned right after)
-    let orderedRulesIndex = {'0':'0'}; // first output is always static, afterwards always index using i+1 therefore
-    Object.entries(indexAtStart).forEach ((ruleIndex) => {orderedRulesIndex[ruleIndex[1]+1] = -1;});
-    // Parse each rule : if it existed before, build index transfer (Initial ->  To), if new just indicate new index 'usage'
-    rulesUI.each(function(i) {
-      let ruleUI = $(this);
-      let curRowID = ruleUI.find("[id^=node-input-buttonFrom_]").attr('id').split("_").pop(); // row id is appended to each item, so gather it after the '_'
-      if (indexAtStart.hasOwnProperty(curRowID)) {
-        // This rule existed on open, build index .initial -> .toCurrent
-        orderedRulesIndex[indexAtStart[curRowID]+1] = i+1;
-      } else {
-        // This is a new rule : just add its final index using its rowID
-        orderedRulesIndex[curRowID] = i+1;
-      }
-    });
-    $("#node-input-outputs").val(JSON.stringify(orderedRulesIndex));
-  }
-
   RED.nodes.registerType('myhome-scenario',{
     category: 'Bticino MyHome',
     color: '#a6bbcf',
@@ -121,7 +99,29 @@
       $("style").append("#node-input-rule-container .mhrule-select {width:60px; height: 23px; padding: 2px 2px; margin-left: 25px; margin-right: 35px; text-align: center;}");
       $("style").append("#node-input-rule-container .mhrule-checkbox-label {width: auto; margin-bottom: 2px;}");
 
+      // Output order can be updated to keep linked junctions correctly connected. To do so, a reserved item must contains
+      //    outputs re-directions (if outputs are a,b,c,d, after configuring, new outputs are z,a,c, then 'node-input-outputs'
+      //    must now be {"0":"1", "1":"-1", "2":"2", "3":"-1", "someRandomNo":"0"}.
       var outputOrderIndexOnOpen = {};
+      function rebuildOutputIndexes (rulesUI) {
+        // Build new outputs : assume all which were defined before are 'deleted' (if not, they will be re-assigned right after)
+        let orderedRulesIndex = {'0':'0'}; // first output is always static, afterwards always index using i+1 therefore
+        Object.entries(outputOrderIndexOnOpen).forEach ((ruleIndex) => {orderedRulesIndex[ruleIndex[1]+1] = -1;});
+        // Parse each rule : if it existed before, build index transfer (Initial ->  To), if new just indicate new index 'usage'
+        rulesUI.each(function(i) {
+          let ruleUI = $(this);
+          let curRowID = ruleUI.find("[id^=node-input-buttonFrom_]").attr('id').split("_").pop(); // row id is appended to each item, so gather it after the '_'
+          if (outputOrderIndexOnOpen.hasOwnProperty(curRowID)) {
+            // This rule existed on open, build index .initial -> .toCurrent
+            orderedRulesIndex[outputOrderIndexOnOpen[curRowID]+1] = i+1;
+          } else {
+            // This is a new rule : just add its final index using its rowID
+            orderedRulesIndex[curRowID] = i+1;
+          }
+        });
+        $("#node-input-outputs").val(JSON.stringify(orderedRulesIndex));
+      }
+
       $("#node-input-rule-container").css('min-height','300px').css('min-width','450px').editableList({
         addButton: 'add new buttons range',
         header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
@@ -210,7 +210,7 @@
           field_onEndLongPress.prop ('checked', rule.onEndLongPress);
           field_onDuringLongPress.prop ('checked', rule.onDuringLongPress);
           // Update outputs (number of outputs and how the changed since onLoad)
-          rebuildOutputIndexes ($("#node-input-rule-container").editableList('items') , outputOrderIndexOnOpen);
+          rebuildOutputIndexes ($("#node-input-rule-container").editableList('items'));
         },
         removeItem: function (rule) {
           // Re-parse all remaining rules to re-number them in UI
@@ -219,7 +219,7 @@
             $(this).find(".node-input-rule-index").html(i+2);
           });
           // Update outputs (number of outputs and how the changed since onLoad)
-          rebuildOutputIndexes (rules , outputOrderIndexOnOpen);
+          rebuildOutputIndexes (rules);
         },
         sortItems: function (rules) {
           // Re-parse all remaining rules to re-number them in UI
@@ -227,7 +227,7 @@
             $(this).find(".node-input-rule-index").html(i+2);
           });
           // Update outputs (number of outputs and how the changed since onLoad)
-          rebuildOutputIndexes (rules , outputOrderIndexOnOpen);
+          rebuildOutputIndexes (rules);
         },
         sortable: true,
         removable: true
