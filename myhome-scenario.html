@@ -118,6 +118,8 @@
             // This is a new rule : just add its final index using its rowID
             orderedRulesIndex[curRowID] = i+1;
           }
+          // Re-number them in UI (output number)
+          ruleUI.find(".node-input-rule-index").html(i+2);
         });
         $("#node-input-outputs").val(JSON.stringify(orderedRulesIndex));
       }
@@ -213,19 +215,10 @@
           rebuildOutputIndexes ($("#node-input-rule-container").editableList('items'));
         },
         removeItem: function (rule) {
-          // Re-parse all remaining rules to re-number them in UI
-          let rules = $("#node-input-rule-container").editableList('items');
-          rules.each(function(i) {
-            $(this).find(".node-input-rule-index").html(i+2);
-          });
           // Update outputs (number of outputs and how the changed since onLoad)
-          rebuildOutputIndexes (rules);
+          rebuildOutputIndexes ($("#node-input-rule-container").editableList('items'));
         },
         sortItems: function (rules) {
-          // Re-parse all remaining rules to re-number them in UI
-          rules.each(function(i) {
-            $(this).find(".node-input-rule-index").html(i+2);
-          });
           // Update outputs (number of outputs and how the changed since onLoad)
           rebuildOutputIndexes (rules);
         },
