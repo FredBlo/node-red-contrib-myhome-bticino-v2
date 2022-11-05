@@ -34,9 +34,9 @@ module.exports = function (RED) {
           // updating node state
           let nodeStatusText = '';
           if (payload.command_sent.length === 1) {
-            nodeStatusText = "'"+ payload.command_sent[0] + "' sent. Responses: " + cmd_responses.length;
+            nodeStatusText = RED._('mh-cmdsession.node.cmdsent_mono' , {'command':payload.command_sent[0], 'responsesCount':cmd_responses.length});
           } else if (payload.command_sent.length > 1) {
-            nodeStatusText = payload.command_sent.length + ' sent.' + nodeStatusTextErr + ' Responses: ' + cmd_responses.length;
+            nodeStatusText = RED._('mh-cmdsession.node.cmdsent_multi' , {'commandsCount':payload.command_sent.length, 'responsesCount':cmd_responses.length});
           }
           node.status ({fill: 'green', shape: nodeStatusShape, text: nodeStatusText});
         }, function (cmd_failed, nodeStatusErrorMsg) {

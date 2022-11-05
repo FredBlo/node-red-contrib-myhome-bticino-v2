@@ -1,0 +1,75 @@
+<script type="text/x-red" data-help-name="myhome-light">
+<p>Adds a MyHome Light Node to your flow.</p>
+  <ul>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
+    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+    <li><strong>Light</strong> is the address of the load in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
+      <ul>
+        <li><strong>This is a group reference</strong> is to be checked when the load address defined has to be used as a group-call address instead of a single load (point-to-point call)</li>
+      </ul>
+    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, the node only triggers a new flow (aka output) when a state CHANGED after a MyHome BUS message was received. This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
+      <br>Note: SmartFilter is only applied for events received from the BUS (not the node-RED flows)
+    </li>
+    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Read-only</strong> : when enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change.</li>
+  </ul>
+
+<h3>Inputs</h3>
+  <p><code>msg.payload</code> can be of 2 types</p>
+    <ul>
+      <li>A simple value
+        <ul>
+          <li>a simple <em>string</em> being either 'ON' or 'OFF'. When controlling dimmers, current brightness level can be increased / decreased by using 'UP' or 'DOWN'.</li>
+          <li>a simple <em>boolean</em> being either 'true' or 'false'</li>
+          <li>a simple <em>numerical value</em> ranging from '0' to '100'. Only applicable for dimmed lights ('0' being off, another value will turn lamp on at specified brightness % provided, rounded to the nearest ten)</li>
+        </ul>
+      </li>
+      <li>An Object
+        <ul>
+          <li> <code>payload.state</code> <em>[string]</em> value must be 'ON' or 'OFF'. Can also be 'UP' or 'DOWN' for dimmers</li>
+          <li> <code>payload.On</code> <em>[boolean]</em> value must be 'True' or 'False'<br>
+            (is a fallback when .state is undefined)</li>
+          <li> <code>payload.brightness</code> <em>[integer]</em> (optional, for dimmers only) represents brightness percentage being applied to load, ranging from 20 to 100</li>
+        </ul>
+      </li>
+    </ul>
+  <p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
+
+<h3>Outputs</h3>
+  <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[string]</em> value is 'ON' or 'OFF'</li>
+      <li> <code>payload.brightness</code> <em>[integer]</em> (returned for dimmers only) represents current brightness percentage of the load</li>
+      <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
+      <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: <em>'*1*5*25##'</em> means load 2.5 was turned on at 50% brightness)</li>
+      <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+      <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
+    </ul>
+
+  <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector
+    <br>
+    <u>Samples:</u>
+  </p>
+    <ul>
+      <li><strong>HUEMagic</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being a boolean (true/false)</li>
+          <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
+        </ul>
+      </li>
+      <li><strong>Homekit-bridge</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+        </ul>
+        <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
+      </li>
+      <li><strong>MyHome</strong> nodes support :
+        <ul>
+          <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+        </ul>
+      </li>
+    </ul>
+</script>

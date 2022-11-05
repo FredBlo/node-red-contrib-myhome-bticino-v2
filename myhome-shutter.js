@@ -57,17 +57,17 @@ module.exports = function (RED) {
             case '0':
               // STOP
               payloadInfo.state = 'STOP';
-              node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Stopped'});
+              node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-shutter.node.status-isgroup') : '') + RED._('mh-shutter.node.status-stopped')});
               break;
             case '1':
               // OPEN
               payloadInfo.state = 'OPEN';
-              node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Opened'});
+              node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-shutter.node.status-isgroup') : '') + RED._('mh-shutter.node.status-opened')});
               break;
             case '2':
               // CLOSE
               payloadInfo.state = 'CLOSE';
-              node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Closed'});
+              node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-shutter.node.status-isgroup') : '') + RED._('mh-shutter.node.status-closed')});
               break;
           }
         }

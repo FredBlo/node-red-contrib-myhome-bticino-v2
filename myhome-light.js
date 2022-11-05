@@ -84,14 +84,14 @@ module.exports = function (RED) {
       // Update Node displayed status
       if (payloadInfo.state === 'OFF') {
         // turned OFF is the same for all lights (dimmed or not)
-        node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Off'});
+        node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-light.node.status-isgroup') : '') + 'Off'});
       } else if (payloadInfo.state === 'ON') {
         if (payloadInfo.brightness) {
           // Dimmed light, include brightness in state
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On (' + payloadInfo.brightness +'%)'});
+          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-light.node.status-isgroup') : '') + 'On (' + payloadInfo.brightness +'%)'});
         } else {
           // No brightness provided : is a simple 'ON' state
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On'});
+          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-light.node.status-isgroup') : '') + 'On'});
         }
       }
 

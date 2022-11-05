@@ -20,7 +20,6 @@ module.exports = function (RED) {
     // All current meter received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
     payloadInfo.metered_Scope = config.meterscope;
-    node.lastPayloadInfo = JSON.stringify (payloadInfo); // SmartFilter : kept in memory to be able to compare whether an update occurred while processing msg
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Register node for updates
@@ -227,11 +226,8 @@ module.exports = function (RED) {
       });
       payloadInfo.metered_Power_asText = mhutils.numberToAbbr(payloadInfo.metered_Power , (payloadInfo.metered_Scope === 'instant') ? 'W' : 'Wh');
 
-      // Send msg back as new flow : only send update as new flow when something changed after having received this new BUS info
-      // (but always send it when SmartFilter is disabled or when running in 'forced' mode)
+      // Send msg back as new flow
       if (!config.skipevents || forceFromCacheAndMsg) {
-        let newPayloadinfo = JSON.stringify (payloadInfo);
-        if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceFromCacheAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
           if (!Array.isArray(frame)) {
@@ -247,10 +243,8 @@ module.exports = function (RED) {
           // MSG2 : Build secondary payload
           let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, '', '', '');
 
-          // Store last sent payload info & send both msg to output1 and output2
-          node.lastPayloadInfo = newPayloadinfo;
+          // Send both msg to output1 and output2
           node.send ([msg, msg2]);
-        }
       }
     };
 
