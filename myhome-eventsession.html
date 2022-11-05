@@ -23,13 +23,15 @@
 
 <script type="text/x-red" data-template-name="myhome-eventsession">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Monitoring identifier">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-eventsession.config.name-placeholder" />
   </div>
   <div class="form-row">
-      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-      <input type="text" id="node-input-gateway">
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway" />
   </div>
+
+
   <div class="form-tips form-row" style="background:#EFEFEF">
       <i class="fa fa-filter"></i> <b>Define command family filters</b>
       <br>
@@ -37,39 +39,39 @@
       <br>
         &nbsp;
         <div class="form-row">
-            <label for="node-input-own_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> Lights</label>
+            <label for="node-input-own_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> <span data-i18n="mh-eventsession.config.type-lights"></label>
             <label for="node-input-own_lights" style="width:70%" title="OpenWebNet WHO=1">
-              <input type="checkbox" id="node-input-own_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All lights events
+              <input type="checkbox" id="node-input-own_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> <span data-i18n="mh-eventsession.config.type-lights-checkbox">
             </label>
         </div>
         <div class="form-row">
-            <label for="node-input-own_shutters">&nbsp;<i class="fa fa-align-justify"></i> Shutters</label>
+            <label for="node-input-own_shutters">&nbsp;<i class="fa fa-align-justify"></i> <span data-i18n="mh-eventsession.config.type-shutters"></label>
             <label for="node-input-own_shutters" style="width:70%" title="OpenWebNet WHO=2">
-              <input type="checkbox" id="node-input-own_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All shutters events
+              <input type="checkbox" id="node-input-own_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> <span data-i18n="mh-eventsession.config.type-shutters-checkbox"></span>
             </label>
         </div>
         <div class="form-row">
-            <label for="node-input-own_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
+            <label for="node-input-own_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> <span data-i18n="mh-eventsession.config.type-temperature"></label>
             <label for="node-input-own_temperature" style="width:70%" title="OpenWebNet WHO=4">
-              <input type="checkbox" id="node-input-own_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
+              <input type="checkbox" id="node-input-own_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> <span data-i18n="mh-eventsession.config.type-temperature-checkbox"></span>
             </label>
         </div>
         <div class="form-row">
-            <label for="node-input-own_scenario">&nbsp;<i class="fa fa-magic"></i> Scenario</label>
+            <label for="node-input-own_scenario">&nbsp;<i class="fa fa-magic"></i> <span data-i18n="mh-eventsession.config.type-scenario"></span></label>
             <label for="node-input-own_scenario" style="width:70%" title="OpenWebNet WHO=15 & 25">
-              <input type="checkbox" id="node-input-own_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All scenario (CEN/CEN+) events
+              <input type="checkbox" id="node-input-own_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> <span data-i18n="mh-eventsession.config.type-scenario-checkbox"></span>
             </label>
         </div>
         <div class="form-row">
-            <label for="node-input-own_energy">&nbsp;<i class="fa fa-bolt"></i> Energy</label>
+            <label for="node-input-own_energy">&nbsp;<i class="fa fa-bolt"></i> <span data-i18n="mh-eventsession.config.type-energy"></label>
             <label for="node-input-own_energy" style="width:70%" title="OpenWebNet WHO=18">
-              <input type="checkbox" id="node-input-own_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All energy management events
+              <input type="checkbox" id="node-input-own_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> <span data-i18n="mh-eventsession.config.type-energy-checkbox"></span>
             </label>
         </div>
         <div class="form-row">
-            <label for="node-input-own_others">&nbsp;<i class="fa fa-plus-square-o "></i> Others</label>
+            <label for="node-input-own_others">&nbsp;<i class="fa fa-plus-square-o "></i> <span data-i18n="mh-eventsession.config.type-others"></span></label>
             <label for="node-input-own_others" style="width:70%">
-              <input type="checkbox" id="node-input-own_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All all OTHER events
+              <input type="checkbox" id="node-input-own_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> <span data-i18n="mh-eventsession.config.type-others-checkbox"></span>
             </label>
         </div>
     </div>
