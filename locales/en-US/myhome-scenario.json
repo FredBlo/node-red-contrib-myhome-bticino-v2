@@ -42,22 +42,48 @@
 
 
 
-	"mh-light":
+	"mh-scenario":
 	{
 		"config":
 		{
-			"name-placeholder": "Light name",
+			"name-placeholder": "Scenario name",
 			"topic-placeholder": "e.g. firstfloor-office",
-			"lightid":"Light",
-			"lightid-placeholder": "32 (for light 3.2 or group 32)",
-			"light-isgroup": "This is a group reference",
-			"secondary-output-content-state-boolean": ".state (boolean: true / false)",
-			"secondary-output-content-state-txt": ".state (string: ON / OFF)",
-			"secondary-output-content-brightness": ".brightness (number: 20-100)"
+			"scenarioid":"Scenario",
+			"scenarioid-placeholder": "32 (for CEN 3.2) or 126 (for CEN+ 126)",
+			"inputlabel-intro" : "simple mode ('payload' or 'payload.state') 'xx(:yyyy)':",
+			"inputlabel-intro-xx" : "- 'xx' buttonID (0-31)                                              ",
+			"inputlabel-intro-yyyy" : "- 'yyyy' -optional- duration in ms                         ",
+			"additional-output-title": "Additional outputs...",
+			"add-outputs": "Additional outputs...",
+			"add-outputs-range": "Buttons range...",
+			"add-outputs-newflow": "Trigger a new flow on...",
+			"add-outputs-nr": "Output n°",
+			"add-outputs-btn-from": "From...",
+			"add-outputs-btn-to": "To...",
+			"add-outputs-startpress": "Start press",
+			"add-outputs-startpress-any": "Start short/long press",
+			"add-outputs-startpress-long": "Start long press",
+			"add-outputs-shortpress": "Short press ended",
+			"add-outputs-longpress": "Long press ended when >",
+			"add-outputs-longpresswhile": "Long press (while pressed)",
+			"add-outputs-btn-addnew": "add new buttons range",
+			"outputlabel-main": "Main payload",
+			"outputlabel-btn-from": "button #__from__",
+			"outputlabel-btn-from-to": "buttons #__from__ to #__to__",
+			"outputlabel-btn-on": "on :",
+			"outputlabel-btn-startpress": "Start press",
+			"outputlabel-btn-shortpress": "Short press ended",
+			"outputlabel-btn-longpress": "Long press (>__duration__s)",
+			"outputlabel-btn-longpresswhile": "Long press (while pressed)"
 		},
 		"node":
 		{
-			"status-isgroup": "group info: "
+			"status-action-button": "Button #",
+			"status-action-startpress": "short/long pressed started",
+			"status-action-startpress-long": "long pressed (>0.5s) started",
+			"status-action-longpress-ongoing": "long pressed going on",
+			"status-action-endpress-short": "short pressed (<0.5s)",
+			"status-action-endpress-long": "long pressed finished"
 		}
 	}
 }

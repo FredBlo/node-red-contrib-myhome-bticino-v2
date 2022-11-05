@@ -23,9 +23,9 @@
     },
     inputs: 1,
     inputLabels: function () {
-      let inputLabel = "simple mode ('payload' or 'payload.state') 'xx(:yyyy)':";
-      inputLabel += "\n - 'xx' buttonID (0-31)                                              ";
-      inputLabel += "\n - 'yyyy' -optional- duration in ms                         ";
+      let inputLabel = this._('mh-scenario.config.inputlabel-intro');
+      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-intro-xx');
+      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-intro-yyyy');
       return inputLabel;
     },
     outputs: 1,
@@ -34,28 +34,32 @@
       let label = '';
       if (rule) {
         if (rule.buttonFrom == rule.buttonTo) {
-          label = 'button #' + rule.buttonFrom;
+          label = this._('mh-scenario.config.outputlabel-btn-from' , {'from' : rule.buttonFrom});
         } else {
-          label = 'buttons #' + rule.buttonFrom + ' to #' + rule.buttonTo;
+          label = this._('mh-scenario.config.outputlabel-btn-from-to' , {'from' : rule.buttonFrom, 'to' : rule.buttonTo});
         }
         let onEvents = [];
         if (rule.onStartPress) {
-          onEvents.push (' - Start press');
+          if (rule.scenariotype === 'CEN') {
+            onEvents.push (' - ' + this._('mh-scenario.config.add-outputs-startpress-any'));
+          } else {
+            onEvents.push (' - ' + this._('mh-scenario.config.add-outputs-startpress-long'));
+          }
         }
         if (rule.onEndShortPress) {
-          onEvents.push (' - Short press');
+          onEvents.push (' - ' + this._('mh-scenario.config.outputlabel-btn-shortpress'));
         }
         if (rule.onEndLongPress) {
-          onEvents.push (' - Long press (>' + (rule.minLongPressDuration/1000).toFixed(1).toString() + 's)');
+          onEvents.push (' - ' + this._('mh-scenario.config.outputlabel-btn-longpress' , {'duration' : (rule.minLongPressDuration/1000).toFixed(1).toString()}) );
         }
         if (rule.onDuringLongPress) {
-          onEvents.push (' - Long press (while pressed)');
+          onEvents.push (' - ' + this._('mh-scenario.config.outputlabel-btn-longpresswhile') );
         }
         if (onEvents.length) {
-          label += ' on :' + '\n' + onEvents.join ('\n');
+          label += ' ' + this._('mh-scenario.config.outputlabel-btn-on') + '\n' + onEvents.join ('\n');
         }
       } else {
-        label = 'Main payload';
+        label = this._('mh-scenario.config.outputlabel-main');
       }
       return label;
     },
@@ -69,12 +73,12 @@
       return this.name || 'MH Scenario';
     },
     oneditprepare: function() {
+      let scope = this;
       $(document).off('change', '#node-input-topic');
       $(document).on('change', '#node-input-topic', function() {
-        let infoVar = $('#node-input-topic').val();
-        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
-        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message.";
-        $('#node-info-topic').prop('title' , infoMsg);
+        let topicName = $('#node-input-topic').val();
+        let topicInfo = scope._('common.topic-info' , {'topicName': topicName});
+        $('#node-info-topic').prop('title' , topicInfo);
       });
 
       // When scenario type is changed from CEN <> CEN+, update labels for 'Start press'
@@ -82,9 +86,9 @@
       $(document).on('change', '#node-input-scenariotype', function() {
         let onStartLabel = '';
         if ($('#node-input-scenariotype').val() === "CEN") {
-          onStartLabel = 'Start short/long press';
+          onStartLabel = scope._('mh-scenario.config.add-outputs-startpress-any');
         } else {
-          onStartLabel = 'Start long press';
+          onStartLabel = scope._('mh-scenario.config.add-outputs-startpress-long');
         }
         let rules = $('#node-input-rule-container').editableList('items');
         rules.each (function (i) {
@@ -93,11 +97,11 @@
         });
       });
 
-      // Styles used in rules container
-      $("style").append("#node-input-rule-container .mhrule-fromtolabel {display:inline-block; width:100px; margin-left: 20px;}");
-      $("style").append("#node-input-rule-container .mhrule-checkbox {display:inline-block; width:22px; margin-left:0px; vertical-align:baseline;}");
-      $("style").append("#node-input-rule-container .mhrule-select {width:60px; height: 23px; padding: 2px 2px; margin-left: 25px; margin-right: 35px; text-align: center;}");
-      $("style").append("#node-input-rule-container .mhrule-checkbox-label {width: auto; margin-bottom: 2px;}");
+      // Styles used in button range container
+      $("style").append("#node-input-rule-container .buttonrule-fromtolabel {display:inline-block; width:100px; margin-left: 20px;}");
+      $("style").append("#node-input-rule-container .buttonrule-checkbox {display:inline-block; width:22px; margin-left:0px; vertical-align:baseline;}");
+      $("style").append("#node-input-rule-container .buttonrule-select {width:60px; height: 23px; padding: 2px 2px; margin-left: 25px; margin-right: 35px; text-align: center;}");
+      $("style").append("#node-input-rule-container .buttonrule-checkbox-label {width: auto; margin-bottom: 2px;}");
 
       // Output order can be updated to keep linked junctions correctly connected. To do so, a reserved item must contains
       //    outputs re-directions (if outputs are a,b,c,d, after configuring, new outputs are z,a,c, then 'node-input-outputs'
@@ -125,11 +129,11 @@
       }
 
       $("#node-input-rule-container").css('min-height','300px').css('min-width','450px').editableList({
-        addButton: 'add new buttons range',
+        addButton: scope._('mh-scenario.config.add-outputs-btn-addnew'),
         header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
-            +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>Buttons range...</div>"
-            +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>Trigger a new flow on...</div>"
-            +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>Output n°</div>"
+            +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-range') + "</div>"
+            +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-newflow') + "</div>"
+            +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-nr') + "</div>"
             +"</div>"),
 
         addItem: function (container, i, rules) {
@@ -160,31 +164,31 @@
           }
           // ROW 1
           let row1 = $('<div/>').appendTo(container);
-          row1.append('<span class="mhrule-fromtolabel">From...</span>');
-          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"mhrule-checkbox"}).appendTo(row1);
-          row1.append('<label class="mhrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">Start press</label>');
+          row1.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-from') + '</span>');
+          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row1);
+          row1.append('<label class="buttonrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-shortpress') + '</label>');
           // ROW1 : output info (rightest part)
           let finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row1);
           finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span>');
           // ROW 2
           let row2 = $('<div/>').appendTo(container);
-          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"mhrule-select"}).appendTo(row2);
-          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row2);
-          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">Short press ended (<0.5s)</label>');
+          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row2);
+          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row2);
+          row2.append('<label class="buttonrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-startpress') + '</label>');
           // ROW 3
           let row3 = $('<div/>').appendTo(container);
-          row3.append('<span class="mhrule-fromtolabel">To...</span>');
-          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + uniqueRowID + '" style="width:unset";>Long press ended when >&nbsp</label>');
+          row3.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-to') + '</span>');
+          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row3);
+          row3.append('<label class="buttonrule-checkbox-label" for="node-input-onEndLongPress_' + uniqueRowID + '" style="width:unset";>' + scope._('mh-scenario.config.add-outputs-longpress') + '&nbsp</label>');
           let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + uniqueRowID, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-minLongPressDuration_' + uniqueRowID + '">&nbsp ms</label>');
+          row3.append('<label class="buttonrule-checkbox-label" for="node-input-minLongPressDuration_' + uniqueRowID + '">&nbsp ms</label>');
           // ROW 4
           let row4 = $('<div/>').appendTo(container);
-          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + uniqueRowID, class:"mhrule-select"}).appendTo(row4);
-          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row4);
-          row4.append('<label class="mhrule-checkbox-label" for="node-input-onDuringLongPress_' + uniqueRowID + '">Long press (while pressed)</label>');
+          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row4);
+          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row4);
+          row4.append('<label class="buttonrule-checkbox-label" for="node-input-onDuringLongPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-longpresswhile') + '</label>');
 
-          // Build all 0-31 choices to both fields inputs
+          // Build all 0-10 choices to both fields inputs
           for (let i = 0; i <= 31; i++) {
             field_buttonFrom.append($("<option></option>").val(i.toString()).text(i.toString()));
             field_buttonTo.append($("<option></option>").val(i.toString()).text(i.toString()));
@@ -232,92 +236,98 @@
       }
     },
 
-    oneditresize: function(size) {
-        let rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
-        let height = size.height;
-        for (let i = 0 ; i<rows.length ; i++) {
-            height -= $(rows[i]).outerHeight(true);
-        }
-        let editorRow = $("#dialog-form>div.node-input-rule-container-row");
-        height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
-        height += 16;
-        $("#node-input-rule-container").editableList('height',height);
-    },
+  oneditresize: function(size) {
+      let rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
+      let height = size.height;
+      for (let i = 0 ; i<rows.length ; i++) {
+          height -= $(rows[i]).outerHeight(true);
+      }
+      let editorRow = $("#dialog-form>div.node-input-rule-container-row");
+      height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+      height += 16;
+      $("#node-input-rule-container").editableList('height',height);
+  },
 
-    oneditsave: function() {
-      let rules = $("#node-input-rule-container").editableList('items');
-      let node = this;
-      node.rules = [];
-      rules.each (function (i) {
-        let rule = $(this);
-        let savedRule = {};
-        savedRule.buttonFrom = parseInt(rule.find("[id^=node-input-buttonFrom_]").val());
-        savedRule.buttonTo = parseInt(rule.find("[id^=node-input-buttonTo_]").val());
-        savedRule.onStartPress = rule.find("[id^=node-input-onStartPress_]").prop("checked");
-        savedRule.onEndShortPress = rule.find("[id^=node-input-onEndShortPress_]").prop("checked");
-        savedRule.onEndLongPress = rule.find("[id^=node-input-onEndLongPress_]").prop("checked");
-        savedRule.onDuringLongPress = rule.find("[id^=node-input-onDuringLongPress_]").prop("checked");
-        savedRule.minLongPressDuration = parseInt(rule.find("[id^=node-input-minLongPressDuration_]").val());
-        node.rules.push (savedRule);
-      });
-    }
+  oneditsave: function() {
+    let rules = $("#node-input-rule-container").editableList('items');
+    let node = this;
+    node.rules = [];
+    rules.each (function (i) {
+      let rule = $(this);
+      let savedRule = {};
+      savedRule.buttonFrom = parseInt(rule.find("[id^=node-input-buttonFrom_]").val());
+      savedRule.buttonTo = parseInt(rule.find("[id^=node-input-buttonTo_]").val());
+      savedRule.onStartPress = rule.find("[id^=node-input-onStartPress_]").prop("checked");
+      savedRule.onEndShortPress = rule.find("[id^=node-input-onEndShortPress_]").prop("checked");
+      savedRule.onEndLongPress = rule.find("[id^=node-input-onEndLongPress_]").prop("checked");
+      savedRule.onDuringLongPress = rule.find("[id^=node-input-onDuringLongPress_]").prop("checked");
+      savedRule.minLongPressDuration = parseInt(rule.find("[id^=node-input-minLongPressDuration_]").val());
+      node.rules.push (savedRule);
+    });
+  },
+
   });
 </script>
 
 <script type="text/x-red" data-template-name="myhome-scenario">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Scenario name" />
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-scenario.config.name-placeholder" />
   </div>
   <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-scenario.config.topic-placeholder" />
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
-      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-      <input type="text" id="node-input-gateway" />
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway"/>
   </div>
+
   <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
   <div class="form-row">
-    <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
+    <label for="node-input-scenarioid"><i class="fa fa-magic"></i> <span data-i18n="mh-scenario.config.scenarioid"></span></label>
     <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
       <select id="node-input-buslevel" style="width:110px">
-        <option value="private_riser">Private riser</option>
-        <option value="01">Local bus 1</option>
-        <option value="02">Local bus 2</option>
-        <option value="03">Local bus 3</option>
-        <option value="04">Local bus 4</option>
-        <option value="05">Local bus 5</option>
-        <option value="06">Local bus 6</option>
-        <option value="07">Local bus 7</option>
-        <option value="08">Local bus 8</option>
-        <option value="09">Local bus 9</option>
-        <option value="10">Local bus 10</option>
-        <option value="11">Local bus 11</option>
-        <option value="12">Local bus 12</option>
-        <option value="13">Local bus 13</option>
-        <option value="14">Local bus 14</option>
-        <option value="15">Local bus 15</option>
+        <option value="private_riser" data-i18n="common.riser-private"></option>
+        <option value="01" data-i18n="common.riser-localbus-01">[Local bus 1]</option>
+        <option value="02" data-i18n="common.riser-localbus-02">[Local bus 2]</option>
+        <option value="03" data-i18n="common.riser-localbus-03">[Local bus 3]</option>
+        <option value="04" data-i18n="common.riser-localbus-04">[Local bus 4]</option>
+        <option value="05" data-i18n="common.riser-localbus-05">[Local bus 5]</option>
+        <option value="06" data-i18n="common.riser-localbus-06">[Local bus 6]</option>
+        <option value="07" data-i18n="common.riser-localbus-07">[Local bus 7]</option>
+        <option value="08" data-i18n="common.riser-localbus-08">[Local bus 8]</option>
+        <option value="09" data-i18n="common.riser-localbus-09">[Local bus 9]</option>
+        <option value="10" data-i18n="common.riser-localbus-10">[Local bus 10]</option>
+        <option value="11" data-i18n="common.riser-localbus-11">[Local bus 11]</option>
+        <option value="12" data-i18n="common.riser-localbus-12">[Local bus 12]</option>
+        <option value="13" data-i18n="common.riser-localbus-13">[Local bus 13]</option>
+        <option value="14" data-i18n="common.riser-localbus-14">[Local bus 14]</option>
+        <option value="15" data-i18n="common.riser-localbus-15">[Local bus 15]</option>
       </select>
       <select id="node-input-scenariotype" style="width:65px">
         <option value="CEN">CEN</option>
         <option value="CEN+">CEN+</option>
       </select>
       <div style="position: absolute; left: 183px; right: 0px; top:0px;">
-        <input type="text" id="node-input-scenarioid" style="width:100%" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
+        <input type="text" id="node-input-scenarioid" style="width:100%" data-i18n="[placeholder]mh-scenario.config.scenarioid-placeholder" />
       </div>
     </div>
   </div>
-  <div class="form-row">
-      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
-      <label for="node-input-skipevents" style="width:70%">
-        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
-        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-      </label>
+
   </div>
   <div class="form-row">
-    <i class="fa fa-sign-out"></i> <b>Additional outputs...</b>
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
+  </div>
+
+  <div class="form-row">
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="mh-scenario.config.additional-output-title"></b>
   </div>
   <div class="form-row node-input-rule-container-row" style="width:100%">
     <input type="hidden" id="node-input-outputs"/>

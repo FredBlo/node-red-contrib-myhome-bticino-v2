@@ -1,6 +1,7 @@
 {
 	"common":
 	{
+		"_version_common": "2022.11.05",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",

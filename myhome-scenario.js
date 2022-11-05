@@ -120,31 +120,31 @@ module.exports = function (RED) {
               // Start of (short or extended) pressure
               curButtonLastState = {};
               curButtonLastState.actionStart = Date.now();
-              nodeStatusText = 'short/long pressed started';
+              nodeStatusText = RED._('mh-scenario.node.status-action-startpress');
+              break;
+            case 'LONG_START':
+              // Start of extended pressure (>= 0.5s)
+              curButtonLastState = {};
+              curButtonLastState.actionStart = Date.now();
+              nodeStatusText = RED._('mh-scenario.node.status-action-startpress-long');
+              break;
+            case 'LONG_ONGOING':
+              // Extended pressure (sent every 0.5s as long as button is pressed)
+              curButtonLastState.actionEnd = Date.now();
+              curButtonLastState.countExtPressures = (curButtonLastState.countExtPressures||0) + 1;
+              nodeStatusText = RED._('mh-scenario.node.status-action-longpress-ongoing');
               break;
             case 'SHORT':
               // Short pressure (<0.5s)
               curButtonLastState = {};
               curButtonLastState.actionStart = Date.now();
               curButtonLastState.actionEnd = Date.now();
-              nodeStatusText = 'short pressed (<0.5s)';
-              break;
-            case 'LONG_START':
-              // Start of extended pressure (>= 0.5s)
-              curButtonLastState = {};
-              curButtonLastState.actionStart = Date.now();
-              nodeStatusText = 'long pressed (>0.5s) started';
-              break;
-            case 'LONG_ONGOING':
-              // Extended pressure (sent every 0.5s as long as button is pressed)
-              curButtonLastState.actionEnd = Date.now();
-              curButtonLastState.countExtPressures = (curButtonLastState.countExtPressures||0) + 1;
-              nodeStatusText = 'long pressed going on';
+              nodeStatusText = RED._('mh-scenario.node.status-action-endpress-short');
               break;
             case 'LONG':
               // Release after an extended pressure
               curButtonLastState.actionEnd = Date.now();
-              nodeStatusText = 'long pressed';
+              nodeStatusText = RED._('mh-scenario.node.status-action-endpress-long');
               break;
           }
           // Append info which are common to all states
@@ -152,7 +152,7 @@ module.exports = function (RED) {
           curButtonLastState.actionType = curActionType;
           curButtonLastState.actionDuration = (curButtonLastState.actionEnd - curButtonLastState.actionStart) || 0;
           curButtonLastState.state = curButtonID + ':' + curButtonLastState.actionType + ((curButtonLastState.actionDuration > 0) ? ':' + curButtonLastState.actionDuration.toString() : '');
-          nodeStatusText = 'Button #' + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
+          nodeStatusText = RED._('mh-scenario.node.status-action-button') + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
           payloadInfo['buttonsLastState_' + curButtonID] = curButtonLastState;
 
           // Transfer all current button info to main payload (as direct properties of it)
