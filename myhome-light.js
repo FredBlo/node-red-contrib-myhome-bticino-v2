@@ -57,6 +57,10 @@ module.exports = function (RED) {
         if (frameMatch !== null) {
           if ((frameMatch[1] === '0') || (frameMatch[1] === '1')) {
             payloadInfo.state = (frameMatch[1] === '1') ? 'ON' : 'OFF';
+            // When light is turned off, it it had a brightness level gathered before, reset it to 0
+            if (typeof(payloadInfo.brightness) !== 'undefined') {
+              payloadInfo.brightness = 0;
+            }
           } else {
             payloadInfo.state = 'ON';
             payloadInfo.brightness = (parseInt(frameMatch[1]) * 10);

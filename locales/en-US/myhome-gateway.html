@@ -16,23 +16,26 @@
       </ul>
     </li>
     <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
-    <br><i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
+      <br><i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
+    <li><strong>Reload</strong> : when the gateway connects successfully, the state of all loads connected on the BUS will be gathered. All deployed nodes will also get updated accordingly, and flows will be started.</li>
   </ul>
   <br>
   Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :
   <table id="mh-tableinfo">
-    <tr>  <th>Gateway</th>                         <th>Authentication (tested)</th>             <th>Lights</th> <th>Shutters</th> <th>Scenario</th> <th>Temperature</th>	</tr>
-    <tr>  <td><strong>MH201 *</strong></td>        <td>IP, OPEN pwd</td>                        <td>OK</td>     <td>OK</td>       <td>?</td>        <td>?</td>            </tr>
-    <tr>  <td><strong>MH202</strong></td>          <td>OPEN pwd</td>                            <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [2][3]</td>    </tr>
-    <tr>  <td><strong>F455</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-1) pwd [1]</td>  <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [3]</td>       </tr>
-    <tr>  <td><strong>F459</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>      <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK</td>           </tr>
-    <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                    <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [4]</td>       </tr>
+    <tr>  <th>Gateway</th>                        <th>Authentication (tested)</th>            <th>Lights</th> <th>Shutters</th> <th>Scenario</th> <th>Temperature</th>	<th>Energy</th>	</tr>
+    <tr>  <td><strong>MH201 *</strong></td>       <td>IP, OPEN pwd</td>                       <td>OK [1]</td> <td>OK</td>       <td>?</td>        <td>?</td>            <td>?</td>      </tr>
+    <tr>  <td><strong>MH202</strong></td>         <td>OPEN pwd</td>                           <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [3][4]</td>    <td>OK</td>     </tr>
+    <tr>  <td><strong>F455</strong></td>          <td>IP, OPEN pwd, HMAC (SHA-1) pwd [2]</td> <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [4]</td>       <td>OK [6]</td> </tr>
+    <tr>  <td><strong>F459</strong></td>          <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>     <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK</td>           <td>OK</td>     </tr>
+    <tr>  <td><strong>myHOMEServer1</strong></td> <td>HMAC (SHA-2) pwd</td>                   <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [5]</td>       <td>OK</td>     </tr>
   </table>
   <i>* based on *Fabio Bui* feedback</i>
-  <br> <i>[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.</i>
-  <br> <i>[2] MH202 gateway returns the temperature set-point without taking the local offset into account</i>
-  <br> <i>[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)</i>
-  <br> <i>[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
+  <br> <i>[1] MH201 gateway does not 'respond' to light status request (on update or in read-only mode), but the response itself is sent on the BUS and can be read/used through another flow if necessary. See more info on <a href="https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues/11">GitHub issue #11</a></i>
+  <br> <i>[2] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.</i>
+  <br> <i>[3] MH202 gateway returns the temperature set-point without taking the local offset into account</i>
+  <br> <i>[4] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)</i>
+  <br> <i>[5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
+  <br> <i>[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Nodes caching must be enabled to correct most of them when nodes are running for a while...</i>
 
   <h3>BUS logging options</h3>
     <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>

@@ -93,7 +93,7 @@ Based on previous authors comments and my own experience when testing/extending 
 \
 [5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
 \
-[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Cache tends to correct most of them when nodes are running for a while...
+[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Nodes caching must be enabled to correct most of them when nodes are running for a while...
 
 
 ## 6. Contact me
