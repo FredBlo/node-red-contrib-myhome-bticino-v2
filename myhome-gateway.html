@@ -8,6 +8,7 @@
       port: { value: '20000', required: true },
       pass: { value: '12345', required: false },
       timeout: { value: '600', required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
+      onconnect_refreshloads: { value: true, required: false},
       log_in_lights: { value: false, required: false},
       log_in_shutters: { value: false, required: false},
       log_in_temperature: { value: false, required: false},
@@ -46,14 +47,13 @@
     &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.keepalive-info"></i>
   </div>
   <div class="form-row">
-    <label for="node-config-input-onconnect_refreshload">
-      <i class="fa fa-eye"></i>
-      <<img src="icons/node-red-contrib-myhome-bticino-v2/manylights.png" width="16" height="16">
-      <span data-i18n="mh-gateway.config.onconnect-refreshload"></span>
+    <label for="node-config-input-onconnect_refreshloads">
+      <img src="icons/node-red-contrib-myhome-bticino-v2/manylights.png" width="16" height="16">
+      <span data-i18n="mh-gateway.config.onconnect-refreshloads"></span>
     </label>
-    <label for="node-config-input-onconnect_refreshload" style="width:70%">
-      <input type="checkbox" id="node-config-input-onconnect_refreshload" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="mh-gateway.config.onconnect-refreshload-checkbox"></span>
-      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.onconnect-refreshload-info"></i>
+    <label for="node-config-input-onconnect_refreshloads" style="width:70%">
+      <input type="checkbox" id="node-config-input-onconnect_refreshloads" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-gateway.config.onconnect-refreshloads-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.onconnect-refreshloads-info"></i>
     </label>
   </div>
 

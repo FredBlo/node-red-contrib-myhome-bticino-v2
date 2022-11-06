@@ -6,6 +6,7 @@ const ACK  = '*#*1##';
 const NACK = '*#*0##';
 const START_COMMAND = '*99*0##';
 const START_MONITOR = '*99*1##';
+const REFRESH_ALLLIGHTS = '*#1*0##';
 const SERVER_REQUIRES_HMAC1 = '*98*1##';
 const SERVER_REQUIRES_HMAC2 = '*98*2##';
 const INTER_COMMANDS_DELAY = 50; // ms
@@ -129,6 +130,21 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
   if (persistentObj.state === 'authenticating') {
     logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : Connection successful !');
     persistentObj.state = 'connected';
+    // When starting the monitoring (i.e. the calling node is the gateway), refresh all connected lights if configured so.
+    // TechNote : the command is delayed by a few seconds. During tests, without such delay, the gateway did not respond (or only partially) is if it was too busy
+    if (startCommand === START_MONITOR && callingNode.onconnect_refreshloads) {
+      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights within a few seconds...');
+      setTimeout (function() {
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started...');
+        let success_callback = function (commands, cmd_responses, cmd_failed) {
+          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started was successful (' + cmd_responses.length + ' responded)');
+        };
+        let error_callback = function (cmd_failed, nodeStatusErrorMsg) {
+          logNodeEvent (callingNode, 'warn', logEnabled, 'gateway connection : gathering status of all connected lights started FAILED : ' + nodeStatusErrorMsg);
+        };
+        executeCommand (callingNode, REFRESH_ALLLIGHTS, gateway, 0, false, success_callback, error_callback);
+      } , 3000);
+    }
     return true;
   }
 }
