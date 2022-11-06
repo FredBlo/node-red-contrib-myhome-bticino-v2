@@ -42,36 +42,40 @@
 
 
 
-	"mh-thcentral":
+	"mh-thzone":
 	{
 		"config":
 		{
-			"name-placeholder": "Central unit identifier",
-			"topic-placeholder": "e.g. Home",
-			"secondary-output-content-text-state": ".state (string: see doc)",
-			"secondary-output-content-mode": ".operationMode (string: see doc)",
-			"secondary-output-content-mode-ownvalue": ".operationMode_ownValue (string: see doc)",
-			"secondary-output-content-mode-settemp": ".operationMode_setTemperature (number: °C)",
-			"secondary-output-content-mode-curprg": ".operationMode_curProgram (string: 1-3)",
-			"secondary-output-content-mode-curscen": ".operationMode_curScenario (string: 01-16)",
-			"secondary-output-content-remotecontrol": ".remoteControl (boolean: true / false)"
+			"name-placeholder": "Zone identifier",
+			"topic-placeholder": "e.g. firstfloor",
+			"zoneid": "Zone",
+			"secondary-output-content-textstate": ".state (number: °C)",
+			"secondary-output-content-settemp": ".setTemperature (number: °C)",
+			"secondary-output-content-optype-ownvalue": ".operationType_ownValue (string: see doc)",
+			"secondary-output-content-optype": ".operationType (string: see doc)",
+			"secondary-output-content-opmode-ownvalue": ".operationMode_ownValue (string: see doc)",
+			"secondary-output-content-opmode": ".operationMode (string: see doc)",
+			"secondary-output-content-offset-ownvalue": ".localOffset_ownValue (string: see doc)",
+			"secondary-output-content-offset": ".localOffset (string/number: see doc)",
+			"secondary-output-content-actuatorstates-on": ".actuatorStates.On (boolean: true / false)"
 		},
 		"node":
 		{
+			"status-optype-conditioning": "Conditioning",
+			"status-optype-heating": "Heating",
+			"status-optype-antifreeze": "Antifreeze",
+			"status-optype-thermalprotect": "Thermal Protection",
+			"status-optype-genoff": "Generic OFF",
+			"status-localoffset-off": "Local OFF",
+			"status-localoffset-protect": "Local protection",
 			"status-opmode-antifreeze": "Antifreeze",
 			"status-opmode-off-heating": "Off Heating",
 			"status-opmode-manual-heating": "Manual Heating",
-			"status-opmode-prog-heating": "Auto Heating Program",
-			"status-opmode-scen-heating": "Auto Heating Scenario",
+			"status-opmode-auto-heating": "Automatic Heating",
 			"status-opmode-thermal-protect": "Thermal Protection",
 			"status-opmode-off-conditioning": "Off Conditioning",
 			"status-opmode-manual-conditioning": "Manual Conditioning",
-			"status-opmode-prog-conditioning": "Auto Conditioning Program",
-			"status-opmode-scen-conditioning": "Auto Conditioning Scenario",
-			"status-opmode-off-generic": "Off Generic",
-			"status-opmode-manual-generic": "Manual Generic",
-			"status-opmode-prog-generic": "Auto Generic Program",
-			"status-opmode-scen-generic": "Auto Generic Scenario"
+			"status-opmode-auto-conditioning": "Automatic Conditioning"
 		}
 	}
 }

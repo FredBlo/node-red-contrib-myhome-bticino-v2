@@ -77,11 +77,11 @@ module.exports = function (RED) {
           if (frameMatch !== null) {
             payloadInfo.operationType_ownValue = frameMatch[1];
             let operationType_List = [];
-            operationType_List.push (['0' , 'Conditioning']);
-            operationType_List.push (['1' , 'Heating']);
-            operationType_List.push (['102' , 'Antifreeze']);
-            operationType_List.push (['202' , 'Thermal Protection']);
-            operationType_List.push (['303' , 'Generic OFF']);
+            operationType_List.push (['0' ,   RED._('mh-thzone.node.status-optype-conditioning')]);
+            operationType_List.push (['1' ,   RED._('mh-thzone.node.status-optype-heating')]);
+            operationType_List.push (['102' , RED._('mh-thzone.node.status-optype-antifreeze')]);
+            operationType_List.push (['202' , RED._('mh-thzone.node.status-optype-thermalprotect')]);
+            operationType_List.push (['303' , RED._('mh-thzone.node.status-optype-genoff')]);
 
             for (let i = 0; i < operationType_List.length; i++) {
               if (operationType_List[i][0] == payloadInfo.operationType_ownValue) {
@@ -136,8 +136,8 @@ module.exports = function (RED) {
             localOffset_List.push (['11' , -1]); // -1°C
             localOffset_List.push (['12' , -2]); // -2°C
             localOffset_List.push (['13' , -3]); // -3°C
-            localOffset_List.push (['04' , 'Local OFF']);
-            localOffset_List.push (['05' , 'Local protection']);
+            localOffset_List.push (['04' , RED._('mh-thzone.node.status-localoffset-off')]);
+            localOffset_List.push (['05' , RED._('mh-thzone.node.status-localoffset-protect')]);
 
             for (let i = 0; i < localOffset_List.length; i++) {
               if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
@@ -155,14 +155,14 @@ module.exports = function (RED) {
           if (frameMatch !== null) {
             payloadInfo.operationMode_ownValue = frameMatch[1];
             let operationMode_List = [];
-            operationMode_List.push ({own:'102', mode:'Antifreeze',             icon:['yellow','ring'], needTempInfo:false});
-            operationMode_List.push ({own:'103', mode:'Off Heating',            icon:['grey','dot'],    needTempInfo:false});
-            operationMode_List.push ({own:'110', mode:'Manual Heating',         icon:['yellow','dot'],  needTempInfo:true});
-            operationMode_List.push ({own:'111', mode:'Automatic Heating',      icon:['yellow','dot'],  needTempInfo:true});
-            operationMode_List.push ({own:'202', mode:'Thermal Protection',     icon:['blue','ring'],   needTempInfo:false});
-            operationMode_List.push ({own:'203', mode:'Off Conditioning',       icon:['grey','dot'],    needTempInfo:false});
-            operationMode_List.push ({own:'210', mode:'Manual Conditioning',    icon:['blue','dot'],    needTempInfo:true});
-            operationMode_List.push ({own:'211', mode:'Automatic Conditioning', icon:['blue','dot'],    needTempInfo:true});
+            operationMode_List.push ({own:'102', mode:RED._('mh-thzone.node.status-opmode-antifreeze'),          icon:['yellow','ring'], needTempInfo:false});
+            operationMode_List.push ({own:'103', mode:RED._('mh-thzone.node.status-opmode-off-heating'),         icon:['grey','dot'],    needTempInfo:false});
+            operationMode_List.push ({own:'110', mode:RED._('mh-thzone.node.status-opmode-manual-heating'),      icon:['yellow','dot'],  needTempInfo:true});
+            operationMode_List.push ({own:'111', mode:RED._('mh-thzone.node.status-opmode-auto-heating'),        icon:['yellow','dot'],  needTempInfo:true});
+            operationMode_List.push ({own:'202', mode:RED._('mh-thzone.node.status-opmode-thermal-protect'),     icon:['blue','ring'],   needTempInfo:false});
+            operationMode_List.push ({own:'203', mode:RED._('mh-thzone.node.status-opmode-off-conditioning'),    icon:['grey','dot'],    needTempInfo:false});
+            operationMode_List.push ({own:'210', mode:RED._('mh-thzone.node.status-opmode-manual-conditioning'), icon:['blue','dot'],    needTempInfo:true});
+            operationMode_List.push ({own:'211', mode:RED._('mh-thzone.node.status-opmode-auto-conditioning'),   icon:['blue','dot'],    needTempInfo:true});
 
             // Add main & associated sub info if any
             for (let i = 0; i < operationMode_List.length; i++) {

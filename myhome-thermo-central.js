@@ -42,9 +42,9 @@ module.exports = function (RED) {
       operationMode_Params.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-heating'),         icon:['yellow','dot'], addField:'curScenario'});
       operationMode_Params.push ({state:'THERMAL_PROTECT',            own:'202',    mode:RED._('mh-thcentral.node.status-opmode-thermal-protect'),      icon:['blue','ring']});
       operationMode_Params.push ({state:'OFF_CONDITIONING',           own:'203',    mode:RED._('mh-thcentral.node.status-opmode-off-conditioning'),     icon:['grey','dot']});
-      operationMode_Params.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:RED._('mh-thcentral.node.status-opmode-manual_conditioning'),  icon:['blue','dot'],   addField:'setTemperature'});
-      operationMode_Params.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:RED._('mh-thcentral.node.status-opmode-prog_conditioning'),    icon:['blue','dot'],   addField:'curProgram'});
-      operationMode_Params.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:RED._('mh-thcentral.node.status-opmode-scen_conditioning'),    icon:['blue','dot'],   addField:'curScenario'});
+      operationMode_Params.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:RED._('mh-thcentral.node.status-opmode-manual-conditioning'),  icon:['blue','dot'],   addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-conditioning'),    icon:['blue','dot'],   addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-conditioning'),    icon:['blue','dot'],   addField:'curScenario'});
       operationMode_Params.push ({state:'OFF',                        own:'303',    mode:RED._('mh-thcentral.node.status-opmode-off-generic'),          icon:['grey','dot']});
       operationMode_Params.push ({state:'MANUAL:(....)',              own:'310',    mode:RED._('mh-thcentral.node.status-opmode-manual-generic'),       icon:['yellow','dot'], addField:'setTemperature'});
       operationMode_Params.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-generic'),         icon:['yellow','dot'], addField:'curProgram'});
