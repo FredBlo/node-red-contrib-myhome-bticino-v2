@@ -20,7 +20,9 @@
     <ul>
       <li>A simple value
         <ul>
-          <li>a simple <em>string</em> being either 'ON' or 'OFF'. When controlling dimmers, current brightness level can be increased / decreased by using 'UP' or 'DOWN'.</li>
+          <li>a simple <em>string</em> being either 'ON' or 'OFF'.
+            <br>'TOGGLE' can also be used to switch ON->OFF or OFF->ON based on last known state (when unknown, OFF is assumed).
+            <br>When controlling dimmers, current brightness level can be increased / decreased by using 'UP' or 'DOWN'.</li>
           <li>a simple <em>boolean</em> being either 'true' or 'false'</li>
           <li>a simple <em>numerical value</em> ranging from '0' to '100'. Only applicable for dimmed lights ('0' being off, another value will turn lamp on at specified brightness % provided, rounded to the nearest ten)</li>
         </ul>

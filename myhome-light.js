@@ -195,6 +195,8 @@ module.exports = function (RED) {
         } else if (payload.state === 'DOWN') {
           // Working in dimmer : dimming DOWN
           cmd_what = '31';
+        } else if (payload.state === 'TOGGLE') {
+          cmd_what = (payloadInfo.state === 'ON') ? '0' : '1';
         }
         if (cmd_what) {
           commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');

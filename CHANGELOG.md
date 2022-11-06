@@ -6,12 +6,8 @@
   - ***Improvement*** : technical revamp to support internationalization (if someone want to translate to other languages, let me know :-) )
 - **MH Light**
   - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled for new installs.
-
-  - TODO
   - ***Improvement*** : Lights allow a new 'simple' command 'TOGGLE' which will, based on last light state, switch from ON -> OFF or OFF -> ON. When last state is unknown, it is considered as 'OFF'.
-  - TODO
-  
-  - ***Bug fix*** : when asking for light status of a dimmmed lights, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brigtness known before light was turned off.
+  - ***Bug fix*** : when asking for light status of a dimmmed lights, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brightness known before light was turned off.
 - **MH Energy** : ***New node type***
   Added support for Energy Management.
   Main included functionalities :
