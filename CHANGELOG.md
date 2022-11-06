@@ -3,7 +3,13 @@
 ### v2.3.0 (latest available) - 01/2023
 - **General**
   - ***Improvement*** : some code clean-up, doc update / correction,...
-- **MH Energy** : ***New node type***\
+  - ***Improvement*** : technical revamp to support internationalization (if someone want to translate to other languages, let me know :-) )
+- **MH Light**
+  - TODO
+  - TODO : TOGGLE MANGEMENT
+  - TODO : ABILITY TO REFRESH ALL LOADS ON CONNECT
+  - TODO
+- **MH Energy** : ***New node type***
   Added support for Energy Management.
   Main included functionalities :
   - node can be configured to **acquire** (when info is read on the BUS, or based on flow-triggered calls) meter information :
@@ -17,6 +23,7 @@
   - *(See node documentation for full detailed information.)*
 - **MH Scenario**
   - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve flow configuration.
+  - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)
   - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
 - **MH Temperature Central Unit** :
   - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)

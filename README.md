@@ -25,27 +25,8 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 
 ## 2. Version history
 ### v2.3.0 (latest available) - 01/2023
-- **General**
-  - ***Improvement*** : some code clean-up, doc update / correction,...
-- **MH Energy** : ***New node type***\
-  Added support for Energy Management.
-  Main included functionalities :
-  - node can be configured to **acquire** (when info is read on the BUS, or based on flow-triggered calls) meter information :
-    - Current power, in Watts
-    - Daily consumption (today)
-    - Daily consumption (based on a provided time range)
-    - Hourly consumption (based on a provided time range)
-    - Monthly consumption (current month)
-    - Monthly consumption (based on a provided time range)
-    - Full consumption since begin
-  - *(See node documentation for full detailed information.)*
-- **MH Scenario**
-  - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve flow configuration.
-  - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
-- **MH Temperature Central Unit** :
-  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
-- **MH Temperature Zone** :
-  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+-TODO : take from CHANGELOG in release
+
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
 ## 3. Installation
