@@ -8,6 +8,14 @@
   - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled for new installs.
   - ***Improvement*** : Lights allow a new 'simple' command 'TOGGLE' which will, based on last light state, switch from ON -> OFF or OFF -> ON. When last state is unknown, it is considered as 'OFF'.
   - ***Bug fix*** : when asking for light status of a dimmmed lights, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brightness known before light was turned off.
+- **MH Scenario**
+  - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve flow configuration.
+  - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)
+  - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
+- **MH Temperature Central Unit** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+- **MH Temperature Zone** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
 - **MH Energy** : ***New node type***
   Added support for Energy Management.
   Main included functionalities :
@@ -20,14 +28,6 @@
     - Monthly consumption (based on a provided time range)
     - Full consumption since begin
   - *(See node documentation for full detailed information.)*
-- **MH Scenario**
-  - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve flow configuration.
-  - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)
-  - ***Bug fix*** : label of 'Short press' was not updated anymore based on 'CEN/CEN+' node type defined
-- **MH Temperature Central Unit** :
-  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
-- **MH Temperature Zone** :
-  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
 
 ### v2.2.4 - 10/2022
 - **MH Light**
