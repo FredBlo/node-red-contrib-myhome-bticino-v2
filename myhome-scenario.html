@@ -92,8 +92,8 @@
         }
         let rules = $('#node-input-rule-container').editableList('items');
         rules.each (function (i) {
-            let rule = $(this);
-            rule.find("label[for^='node-input-onStartPress_']").text(onStartLabel);
+          let rule = $(this);
+          rule.find("label[for^='node-input-onStartPress_']").text(onStartLabel);
         });
       });
 
@@ -128,13 +128,13 @@
         $("#node-input-outputs").val(JSON.stringify(orderedRulesIndex));
       }
 
-      $("#node-input-rule-container").css('min-height','300px').css('min-width','450px').editableList({
+      $("#node-input-rule-container").css('min-height','370px').css('min-width','450px').editableList({
         addButton: scope._('mh-scenario.config.add-outputs-btn-addnew'),
         header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
-            +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-range') + "</div>"
-            +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-newflow') + "</div>"
-            +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-nr') + "</div>"
-            +"</div>"),
+          +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-range') + "</div>"
+          +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-newflow') + "</div>"
+          +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-nr') + "</div>"
+          +"</div>"),
 
         addItem: function (container, i, rules) {
           let uniqueRowID = Math.floor((0x99999-0x10000)*Math.random()).toString()
@@ -229,14 +229,12 @@
         sortable: true,
         removable: true
       });
-
       // Add all previously saved rules back to UI List
       for (let i = 0 ; i < this.rules.length ; i++) {
         $("#node-input-rule-container").editableList('addItem',{rule:this.rules[i], i:i});
       }
     },
-
-  oneditresize: function(size) {
+    oneditresize: function(size) {
       let rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
       let height = size.height;
       for (let i = 0 ; i<rows.length ; i++) {
@@ -246,27 +244,25 @@
       height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
       height += 16;
       $("#node-input-rule-container").editableList('height',height);
-  },
-
-  oneditsave: function() {
-    let rules = $("#node-input-rule-container").editableList('items');
-    let node = this;
-    node.rules = [];
-    rules.each (function (i) {
-      let rule = $(this);
-      let savedRule = {};
-      savedRule.buttonFrom = parseInt(rule.find("[id^=node-input-buttonFrom_]").val());
-      savedRule.buttonTo = parseInt(rule.find("[id^=node-input-buttonTo_]").val());
-      savedRule.onStartPress = rule.find("[id^=node-input-onStartPress_]").prop("checked");
-      savedRule.onEndShortPress = rule.find("[id^=node-input-onEndShortPress_]").prop("checked");
-      savedRule.onEndLongPress = rule.find("[id^=node-input-onEndLongPress_]").prop("checked");
-      savedRule.onDuringLongPress = rule.find("[id^=node-input-onDuringLongPress_]").prop("checked");
-      savedRule.minLongPressDuration = parseInt(rule.find("[id^=node-input-minLongPressDuration_]").val());
-      node.rules.push (savedRule);
+    },
+    oneditsave: function() {
+      let rules = $("#node-input-rule-container").editableList('items');
+      let node = this;
+      node.rules = [];
+      rules.each (function (i) {
+        let rule = $(this);
+        let savedRule = {};
+        savedRule.buttonFrom = parseInt(rule.find("[id^=node-input-buttonFrom_]").val());
+        savedRule.buttonTo = parseInt(rule.find("[id^=node-input-buttonTo_]").val());
+        savedRule.onStartPress = rule.find("[id^=node-input-onStartPress_]").prop("checked");
+        savedRule.onEndShortPress = rule.find("[id^=node-input-onEndShortPress_]").prop("checked");
+        savedRule.onEndLongPress = rule.find("[id^=node-input-onEndLongPress_]").prop("checked");
+        savedRule.onDuringLongPress = rule.find("[id^=node-input-onDuringLongPress_]").prop("checked");
+        savedRule.minLongPressDuration = parseInt(rule.find("[id^=node-input-minLongPressDuration_]").val());
+        node.rules.push (savedRule);
+        });
+      },
     });
-  },
-
-  });
 </script>
 
 <script type="text/x-red" data-template-name="myhome-scenario">
