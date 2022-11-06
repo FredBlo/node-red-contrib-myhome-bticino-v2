@@ -13,7 +13,7 @@ module.exports = function (RED) {
     // where N is the ID number [1-255].
     node.meterid = ((config.metertype === 'actuator') ? ('7' + config.meterid + '#0') : ('5'+ config.meterid));
     // Caching mechanism init : only for types which return complete data from the past
-    node.enableCache = (config.enablecache && (config.meterscope === 'hour' || config.meterscope === 'day' || config.meterscope === 'month'));
+    node.enableCache = (config.enablecache && (['hour','day','month'].indexOf(config.meterscope) >= 0));
     node.cachedInfo = {};
     node.processingIncomingFrame = 0;
 
@@ -162,7 +162,7 @@ module.exports = function (RED) {
               frameInfo.metered_Power = parseInt(frameMatch[1]);
               // Manage the cached content : none for 'uptonow' mode
               // Build node status message
-              nodeStatusInfo = ['grey' , 'dot' , 'From begin: ' + mhutils.numberToAbbr(frameInfo.metered_Power , 'Wh')];
+              nodeStatusInfo = ['grey' , 'dot' , RED._('mh-energy.node.status-sincebegin') + mhutils.numberToAbbr(frameInfo.metered_Power , 'Wh')];
             }
             break;
         }

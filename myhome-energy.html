@@ -15,19 +15,23 @@
       output2_type: { value: 'metered_Power', required: false}
     },
     inputs: 1,
-    inputLabels: "simple mode: 'ON / OFF'",
+    inputLabels: function () {
+      let metertype_isDateRange = (['hour','day','month'].indexOf(this.meterscope) >= 0);
+      return this._((metertype_isDateRange) ? 'mh-energy.config.inputlabel-daterange' : 'mh-energy.config.inputlabel-any');
+    },
     outputs: 2,
     outputLabels: function (index) {
       if (index === 0) {
         return 'payload';
       } else if (index === 1) {
         let outputTypeDescr;
+        let powerUnit = (this.meterscope === 'instant') ? '' : 'h';
         if (this.output2_type === 'metered_Power') {
-          outputTypeDescr = '.metered_Power (number in ' + ((this.meterscope === 'instant') ? 'W' : 'Wh') + ')';
+          outputTypeDescr = this._('mh-energy.config.secondary-output-content-pwr', {'h':powerUnit});
         } else if (this.output2_type === 'metered_Power_asText') {
-          outputTypeDescr = '.metered_Power (text in ' + ((this.meterscope === 'instant') ? 'kW' : 'kWh') + ')';
+          outputTypeDescr = this._('mh-energy.config.secondary-output-content-pwr-txt', {'h':powerUnit});
         } else if (this.output2_type === 'metered_Info') {
-          outputTypeDescr = '.metered_Info (array of metered details)';
+          outputTypeDescr = this._('mh-energy.config.secondary-output-content-pwr-info');
         }
         return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
       }
@@ -39,20 +43,19 @@
       return this.name || 'MH Energy';
     },
     oneditprepare: function() {
-      var node = this;
+      let scope = this;
       $(document).off('change', '#node-input-topic');
       $(document).on('change', '#node-input-topic', function() {
-        let infoVar = $('#node-input-topic').val();
-        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "'"
-        + "or 'cmd/" + infoVar + "', otherwise node will skip incoming message. For energy node, there is no difference between 'state' or 'cmd', both will perform the same operations."
-        $('#node-info-topic').prop('title' , infoMsg);
+        let topicName = $('#node-input-topic').val();
+        let topicInfo = scope._('mh-energy.config.topic-info' , {'topicName': topicName});
+        $('#node-info-topic').prop('title' , topicInfo);
       });
       $(document).off('change', '#node-input-meterscope');
       $(document).on('change', '#node-input-meterscope', function() {
         let curScope = $('#node-input-meterscope').val();
-        let powerUnit = (curScope === 'instant') ? 'W' : 'Wh';
-        $('#node-input-output2_type option[value="metered_Power"]').text('.metered_Power (number in ' + powerUnit + ')');
-        $('#node-input-output2_type option[value="metered_Power_asText"]').text('.metered_Power (text in k' + powerUnit + ')');
+        let powerUnit = (curScope === 'instant') ? '' : 'h';
+        $('#node-input-output2_type option[value="metered_Power"]').text(scope._('mh-energy.config.secondary-output-content-pwr', {'h':powerUnit}));
+        $('#node-input-output2_type option[value="metered_Power_asText"]').text(scope._('mh-energy.config.secondary-output-content-pwr-txt', {'h':powerUnit}));
       });
       $(document).off('click', '#node-myhome_energy-outputcache-button');
       $(document).on('click', '#node-myhome_energy-outputcache-button', function() {
@@ -63,15 +66,15 @@
               data: JSON.stringify(customMsg||{}),
               contentType: "application/json; charset=utf-8",
               success: function (resp) {
-                RED.notify('Current cache content successfully sent to primary output.', {type: 'success'});
+                RED.notify(node._('mh-energy.config.enablecache-outputlog-ok'), {type: 'success'});
               },
               error: function (jqXHR, textStatus, errorThrown) {
-                RED.notify('Error outputting current cached content to primary output : ['+ errorThrown +'] ' + textStatus, {type: 'warning'});
+                RED.notify(node._('mh-energy.config.enablecache-outputlog-error') + ' ['+ errorThrown +'] ' + textStatus, {type: 'warning'});
               }
           });
         }
         let msg = {'__user_inject_props__':'DEBUG_SENDCACHE'};
-        doInject(node , msg)
+        doInject(scope , msg)
       });
     }
   });
@@ -79,83 +82,83 @@
 
 <script type="text/x-red" data-template-name="myhome-energy">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Energy meter name" />
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-energy.config.name-placeholder" />
   </div>
   <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. solar-panels" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-energy.config.topic-placeholder" />
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
-      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-      <input type="text" id="node-input-gateway" />
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway" />
   </div>
+
   <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
   <div class="form-row">
-    <label for="node-input-meterid"><i class="fa fa-bolt"></i>&nbsp;&nbsp;Meter</label>
+    <label for="node-input-meterid"><i class="fa fa-bolt"></i>&nbsp;&nbsp;<span data-i18n="mh-energy.config.meterid"></span></label>
     <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
       <select id="node-input-metertype" style="width:220px">
-        <option value="meter">Power management meter</option>
-        <option value="actuator">Power management actuator</option>
+        <option value="meter" data-i18n="mh-energy.config.meter-type-meter">[Power management meter]</option>
+        <option value="actuator" data-i18n="mh-energy.config.meter-type-actuator">[Power management actuator]</option>
       </select>
       <div style="position: absolute; left: 228px; right: 0px; top:0px;">
         <input type="text" id="node-input-meterid" style="width:100%" placeholder="ID [1-255]" />
       </div>
     </div>
-    &nbsp;<i class="fa fa-info-circle" title="Power meters devices are Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554, while Power management actuators are Bticino F522, F523 / Legrand 03558, 03559."></i>
+    &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-energy.config.meter-type-info"></i>
   </div>
   <div class="form-row">
-      <label for="node-input-meterscope"><i class="fa fa-tachometer"></i> Scope</label>
+      <label for="node-input-meterscope"><i class="fa fa-tachometer"></i> <span data-i18n="mh-energy.config.meterscope"></span></label>
       <select id="node-input-meterscope" style="width:70%">
-        <option value="instant">Current power</option>
-        <option value="day_uptonow">Daily consumption (today)</option>
-        <option value="day">Daily consumption (time range)</option>
-        <option value="hour">Hourly consumption (time range)</option>
-        <option value="month_uptonow">Monthly consumption (current month)</option>
-        <option value="month">Monthly consumption (time range)</option>
-        <option value="sincebegin">Full consumption since begin</option>
+        <option value="instant" data-i18n="mh-energy.config.meterscope-instant">[Current power]</option>
+        <option value="day_uptonow" data-i18n="mh-energy.config.meterscope-dayuptonow">[Daily consumption (today)]</option>
+        <option value="day" data-i18n="mh-energy.config.meterscope-day">[Daily consumption (time range)]</option>
+        <option value="hour" data-i18n="mh-energy.config.meterscope-hour">[Hourly consumption (time range)]</option>
+        <option value="month_uptonow" data-i18n="mh-energy.config.meterscope-monthuptonow">[Monthly consumption (current month)]</option>
+        <option value="month" data-i18n="mh-energy.config.meterscope-month">[Monthly consumption (time range)]</option>
+        <option value="sincebegin" data-i18n="mh-energy.config.meterscope-sincebegin">[Full consumption since begin]</option>
       </select>
   </div>
   <div class="form-row">
-      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
-      <label for="node-input-skipevents" style="width:70%">
-        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
-        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-      </label>
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
   </div>
   <div class="form-row">
-      <label for="node-input-enablecache"><i class="fa fa-retweet"></i> Use cache</label>
+      <label for="node-input-enablecache"><i class="fa fa-retweet"></i> <span data-i18n="mh-energy.config.enablecache"></span></label>
       <label for="node-input-enablecache" style="width:70%">
-        <input type="checkbox" id="node-input-enablecache" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Cache fetched results
-        &nbsp;<i class="fa fa-info-circle" title="By default, the node will keep all previously fetched results in memory. When the same scope is asked, cached content is used instead of firing (many) requests on the MyHome BUS. Cache is non persistent and reset on node re-deploy and node-RED restart.
-&#13;
-!! The cache is also useful (/required) for some commands (such as daily consumtpion) and / or when working with gateways which do not provide response to calls as they should... but the node can still fetch info directly on the BUS and cache it instead...
-&#13;
-Note that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call."></i>
+        <input type="checkbox" id="node-input-enablecache" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-energy.config.enablecache-checkbox"></span>
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-energy.config.enablecache-info"></i>
         <button type="button" class="red-ui-button red-ui-button-small" style="margin-top: 0px; margin-right: unset; float: right;" id="node-myhome_energy-outputcache-button">
-          <span> debug: output cache</span>
+          <span data-i18n="mh-energy.config.enablecache-outputlog"></span>
         </button>
       </label>
   </div>
+
   <div class="form-tips form-row" style="background:#EFEFEF">
-    <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
     <br>
-    You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
+    <span data-i18n="common.secondary-output-intro"></span>
     <br>
     <div class="form-row">
-      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
-      <input type="text" id="node-input-output2_name" placeholder="e.g. Power / state / ... / (empty)" style="width:55%" />
+      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
+      <input type="text" id="node-input-output2_name" data-i18n="[placeholder]common.secondary-output-name-placeholder" style="width:55%"/>
       <label for="node-input-output2_name" style="width:15px">
-        &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.secondary-output-name-info"></i>
       </label>
     </div>
     <div class="form-row">
-      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
+      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
       <select id="node-input-output2_type" style="width:55%">
-        <option value="metered_Power">.metered_Power (number in W)</option>
-        <option value="metered_Power_asText">.metered_Power (text in kW)</option>
-        <option value="metered_Info">.metered_Info (array of metered details)</option>
+        <!-- Select values are set in onEditPrepare because part of them are dynamix and i18n-options does not work  -->
+        <option value="metered_Power">[.metered_Power (number in W)]</option>
+        <option value="metered_Power_asText">[.metered_Power (text in kW)]</option>
+        <option value="metered_Info" data-i18n="mh-energy.config.secondary-output-content-pwr-info">[.metered_Info (array of metered details)]</option>
       </select>
     </div>
   </div>

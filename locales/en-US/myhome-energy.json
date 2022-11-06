@@ -42,38 +42,41 @@
 
 
 
-	"mh-gateway":
+	"mh-energy":
 	{
 		"config":
 		{
-			"host": "IP address",
-			"port": "Port",
-			"password":"Password",
-			"keepalive": "Keep alive",
-			"keepalive-placeholder": "Send a 'keep alive' message to BUS every ... seconds",
-			"keepalive-info": "Interval in seconds between time requests to ensure connection is kept alive (minimum is 15s, set to 0 to disable 'keep alive' mechanism)",
-			"advBusTracking": "Advanced BUS tracking logging options",
-			"advBusTracking-intro": "By default, all the OpenWebNet commands received through the MyHome BUS are not logged.\nIf needed for test/tracking reasons, you can enable some of them. Be aware number of logged lines can grow quite fast, mainly when energy management elements are enabled on the BUS.\n\nWhen enabled, logging level of such output is set to 'info'.",
-			"advBusTracking-incoming": "Incoming commands",
-			"type-lights": "Lights",
-			"type-lights-checkbox": "All lights events",
-			"type-shutters": "Shutters",
-			"type-shutters-checkbox": "All shutters events",
-			"type-temperature": "Temperature",
-			"type-temperature-checkbox": "All temperature control events",
-			"type-scenario": "Scenario",
-			"type-scenario-checkbox": "All scenario (CEN/CEN+) events",
-			"type-energy": "Energy",
-			"type-energy-checkbox": "All energy management events",
-			"type-others": "Others",
-			"type-others-checkbox": "All OTHER events",
-			"advBusTracking-outgoing": "Outgoing commands",
-			"type-sent": "Sent",
-			"type-sent-checkbox": "All commands sent by flows"
+
+			"topic-info": "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/__topicName__' or 'cmd/__topicName__', otherwise node will skip incoming message.For energy node, there is no difference between 'state' or 'cmd', both will perform the same operations.",
+			"name-placeholder": "Energy meter name",
+			"topic-placeholder": "e.g. solar-panels",
+			"meterid": "Meter",
+			"meter-type-info": "Power meters devices are Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554, while Power management actuators are Bticino F522, F523 / Legrand 03558, 03559.",
+			"meter-type-meter": "Power management meter",
+			"meter-type-actuator": "Power management actuator",
+			"meterscope": "Scope",
+			"meterscope-instant": "Current power",
+			"meterscope-dayuptonow": "Daily consumption (today)",
+			"meterscope-day": "Daily consumption (time range)",
+			"meterscope-hour": "Hourly consumption (time range)",
+			"meterscope-monthuptonow": "Monthly consumption (current month)",
+			"meterscope-month": "Monthly consumption (time range)",
+			"meterscope-sincebegin": "Full consumption since begin",
+			"enablecache": "Use cache",
+			"enablecache-checkbox": "Cache fetched results",
+			"enablecache-info": "By default, the node will keep all previously fetched results in memory. When the same scope is asked, cached content is used instead of firing (many) requests on the MyHome BUS. Cache is non persistent and reset on node re-deploy and node-RED restart.\n\n!! The cache is also useful (/required) for some commands (such as daily consumtpion) and / or when working with gateways which do not provide response to calls as they should... but the node can still fetch info directly on the BUS and cache it instead...\n\nNote that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call.",
+			"enablecache-outputlog": "debug: output cache",
+			"enablecache-outputlog-ok": "Current cache content successfully sent to primary output.",
+			"enablecache-outputlog-error": "Error outputting current cached content to primary output :",
+			"inputlabel-any": "any payload with a valid '.Topic' \nwill trigger for node output",
+			"inputlabel-daterange": "payload with a valid '.Topic' will trigger \ndata collection for date-time range \nfrom '.metered_From' to '.metered_To'",
+			"secondary-output-content-pwr": ".metered_Power (number in W__h__)",
+			"secondary-output-content-pwr-txt": ".metered_Power (text in kW__h__)",
+			"secondary-output-content-pwr-info": ".metered_Info (array of metered details)"
 		},
 		"node":
 		{
-
+			"status-sincebegin": "From begin: "
 		}
 	}
 }

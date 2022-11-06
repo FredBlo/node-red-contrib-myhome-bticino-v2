@@ -14,7 +14,7 @@ central unit<script type="text/javascript">
     },
     inputs: 1,
     inputLabels: function () {
-      let inputLabel = "simple mode ('payload' or 'payload.state'):";
+      let inputLabel = this._("common.input-label-simple") + ":";
       inputLabel += "\n - 'ANTIFREEZE'                                              ";
       inputLabel += "\n - 'OFF_HEATING'                                           ";
       inputLabel += "\n - 'MANUAL_HEATING:xxxx'                           ";
@@ -51,12 +51,12 @@ central unit<script type="text/javascript">
       return this.name || 'MH Thermo Central';
     },
     oneditprepare: function() {
+      let scope = this;
       $(document).off('change', '#node-input-topic');
       $(document).on('change', '#node-input-topic', function() {
-        let infoVar = $('#node-input-topic').val();
-        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
-        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
-        $('#node-info-topic').prop('title' , infoMsg);
+        let topicName = $('#node-input-topic').val();
+        let topicInfo = scope._('common.topic-info' , {'topicName': topicName});
+        $('#node-info-topic').prop('title' , topicInfo);
       });
     }
   });

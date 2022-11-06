@@ -1,7 +1,7 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.05",
+		"_version_common": "2022.11.06",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",
@@ -27,7 +27,7 @@
 		"option-smartfilter-checkbox" : "Enable 'Smart filtering' of gateway events",
 		"option-smartfilter-info": "SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.\nThis is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...) \n\nNote: SmartFilter is never applied when node is running in read-only (status update request) mode.",
 		"option-skipevents": "Skip events",
-		"option-skipevents-checkbox" : "Skip incoming events from gateway",
+		"option-skipevents-checkbox": "Skip incoming events from gateway",
 		"option-skipevents-info": "If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed.",
 		"option-readonly": "Read-only",
 		"option-readonly-checkbox" : "Only ask for current load status",

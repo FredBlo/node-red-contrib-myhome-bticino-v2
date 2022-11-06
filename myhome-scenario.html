@@ -23,9 +23,9 @@
     },
     inputs: 1,
     inputLabels: function () {
-      let inputLabel = this._('mh-scenario.config.inputlabel-intro');
-      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-intro-xx');
-      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-intro-yyyy');
+      let inputLabel = this._("common.input-label-simple") + ": 'xx(:yyyy)':";
+      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-simple-xx');
+      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-simple-yyyy');
       return inputLabel;
     },
     outputs: 1,
@@ -275,7 +275,7 @@
     <input type="text" id="node-input-name" data-i18n="[placeholder]mh-scenario.config.name-placeholder" />
   </div>
   <div class="form-row">
-    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></label>
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
     <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-scenario.config.topic-placeholder" />
     &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
