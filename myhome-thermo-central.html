@@ -64,66 +64,66 @@ central unit<script type="text/javascript">
 
 <script type="text/x-red" data-template-name="myhome-thermo-central">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Central unit identifier" />
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-thcentral.config.name-placeholder" />
   </div>
   <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. home" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-thcentral.config.topic-placeholder" />
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
+  <div class="form-row">
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway" />
+  </div>
+
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
+  <div class="form-row">
+    <label for="node-input-smartfilter"><i class="fa fa-filter"></i> <span data-i18n="common.option-smartfilter"></span></label>
+    <label for="node-input-smartfilter" style="width:70%">
+      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-smartfilter-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-smartfilter-info"></i>
+    </label>
+  </div>
+  <div class="form-row">
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
+  </div>
+  <div class="form-row">
+    <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> <span data-i18n="common.option-readonly"></span></label>
+    <label for="node-input-isstatusrequest" style="width:70%">
+      <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-readonly-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-readonly-info"></i>
+    </label>
+  </div>
+
+  <div class="form-tips form-row" style="background:#EFEFEF">
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
+    <br>
+    <span data-i18n="common.secondary-output-intro"></span>
+    <br>
     <div class="form-row">
-        <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-        <input type="text" id="node-input-gateway" />
-    </div>
-    <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
-    <div class="form-row">
-      <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
-      <label for="node-input-smartfilter" style="width:70%">
-        <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
-        &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
-This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
-&#13;
-Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
+      <input type="text" id="node-input-output2_name" data-i18n="[placeholder]common.secondary-output-name-placeholder" style="width:55%"/>
+      <label for="node-input-output2_name" style="width:15px">
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.secondary-output-name-info"></i>
       </label>
     </div>
     <div class="form-row">
-        <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
-        <label for="node-input-skipevents" style="width:70%">
-          <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
-          &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-        </label>
+      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
+      <select id="node-input-output2_type" style="width:55%">
+        <option value="text_state" data-i18n="mh-thcentral.config.secondary-output-content-text-state">[.state (string: see doc)]</option>
+        <option value="operationMode" data-i18n="mh-thcentral.config.secondary-output-content-mode">[.operationMode (string: see doc)]</option>
+        <option value="operationMode_ownValue" data-i18n="mh-thcentral.config.secondary-output-content-mode-ownvalue">[.operationMode_ownValue (string: see doc)]</option>
+        <option value="operationMode_setTemperature" data-i18n="mh-thcentral.config.secondary-output-content-mode-settemp">[.operationMode_setTemperature (number: °C)]</option>
+        <option value="operationMode_curProgram" data-i18n="mh-thcentral.config.secondary-output-content-mode-curprg">[.operationMode_curProgram (string: 1-3)]</option>
+        <option value="operationMode_curScenario" data-i18n="mh-thcentral.config.secondary-output-content-mode-curscen">[.operationMode_curScenario (string: 01-16)]</option>
+        <option value="remoteControl" data-i18n="mh-thcentral.config.secondary-output-content-remotecontrol">[.remoteControl (boolean: true / false)]</option>
+      </select>
     </div>
-    <div class="form-row">
-        <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> Read-only</label>
-        <label for="node-input-isstatusrequest" style="width:70%">
-          <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current central unit status
-          &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (whatever it contains) is ignored and a status request is sent to gather current zone state without applying any change."></i>
-        </label>
-    </div>
-    <div class="form-tips form-row" style="background:#EFEFEF">
-      <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
-      <br>
-      You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
-      <br>
-      <div class="form-row">
-        <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
-        <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
-        <label for="node-input-output2_name" style="width:15px">
-          &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
-        </label>
-      </div>
-      <div class="form-row">
-        <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
-        <select id="node-input-output2_type" style="width:55%">
-          <option value="text_state">.state (string: see doc)</option>
-          <option value="operationMode">.operationMode (string: see doc)</option>
-          <option value="operationMode_ownValue">.operationMode_ownValue (string: see doc)</option>
-          <option value="operationMode_setTemperature">.operationMode_setTemperature (number: °C)</option>
-          <option value="operationMode_curProgram">.operationMode_curProgram (string: 1-3)</option>
-          <option value="operationMode_curScenario">.operationMode_curScenario (string: 01-16)</option>
-          <option value="remoteControl">.remoteControl (boolean: true / false)</option>
-        </select>
-      </div>
-    </div>
+  </div>
 </script>
