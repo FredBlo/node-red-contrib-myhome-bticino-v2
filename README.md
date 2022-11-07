@@ -58,6 +58,7 @@ Examples are available for :
 - MH Monitoring (discover lights)
 
 ![MH Nodes Examples](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/.resources/HowTo_Import_Example.gif)
+
 You can also directly copy this basic flow in Node-RED selecting **Import** in the node-red menu, pasting the provided JSON (do not forget to change the **IP address in the Gateway** configuration and of course the light number in switch node) :
 
 ```
