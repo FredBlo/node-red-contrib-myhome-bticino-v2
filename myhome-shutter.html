@@ -65,16 +65,16 @@
 <script type="text/x-red" data-template-name="myhome-shutter">
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
-    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-shutter.config.name-placeholder" />
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-shutter.config.name-placeholder"/>
   </div>
   <div class="form-row">
     <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
-    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-shutter.config.topic-placeholder" />
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-shutter.config.topic-placeholder"/>
     &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
     <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
-    <input type="text" id="node-input-gateway" />
+    <input type="text" id="node-input-gateway"/>
   </div>
 
   <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
@@ -101,34 +101,36 @@
         <option value="15" data-i18n="common.riser-localbus-15">[Local bus 15]</option>
       </select>
       <div style="position: absolute; left: 114px; right: 0px; top:0px;">
-        <input type="text" id="node-input-shutterid" style="width:100%" data-i18n="[placeholder]mh-shutter.config.shutterid-placeholder" />
+        <input type="text" id="node-input-shutterid" style="width:100%" data-i18n="[placeholder]mh-shutter.config.shutterid-placeholder"/>
+      </div>
+    </div>
+    <br>
+    <div style="display: inline-block; position: relative; width: 100%; height: 20px;">
+      <div style="position: absolute; left: 210px; right: 0px; top:3px;">
+        <label for="node-input-isgroup" style="width:100%">
+          <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-shutter.config.shutter-isgroup"></span>
+        </label>
       </div>
     </div>
   </div>
   <div class="form-row">
-    <label><i class="fa"></i></label>
-    <label for="node-input-isgroup" style="width:70%">
-      <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;" /><span data-i18n="mh-shutter.config.shutter-isgroup"></span>
-    </label>
-  </div>
-  <div class="form-row">
     <label for="node-input-smartfilter"><i class="fa fa-filter"></i> <span data-i18n="common.option-smartfilter"></span></label>
     <label for="node-input-smartfilter" style="width:70%">
-      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-smartfilter-checkbox"></span>
+      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-smartfilter-checkbox"></span>
       &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-smartfilter-info"></i>
     </label>
   </div>
   <div class="form-row">
     <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
     <label for="node-input-skipevents" style="width:70%">
-      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-skipevents-checkbox"></span>
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-skipevents-checkbox"></span>
       &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
     </label>
   </div>
   <div class="form-row">
     <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> <span data-i18n="common.option-readonly"></span></label>
     <label for="node-input-isstatusrequest" style="width:70%">
-      <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /><span data-i18n="common.option-readonly-checkbox"></span>
+      <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-readonly-checkbox"></span>
       &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-readonly-info"></i>
     </label>
   </div>

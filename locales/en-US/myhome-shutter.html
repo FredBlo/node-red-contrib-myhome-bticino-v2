@@ -11,7 +11,7 @@
     <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, the node only triggers a new flow (aka output) when a state CHANGED after a MyHome BUS message was received. This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
       <br>Note: SmartFilter is only applied for events received from the BUS (not the node-RED flows)
     </li>
-    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Skip ALL incoming gateway events</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Read-only</strong> : when enabled, the received payload (being 'OPEN', 'CLOSE', or whatever) is ignored and a status request is sent to gather current shutter state without applying any change.</li>
   </ul>
 

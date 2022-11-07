@@ -23,7 +23,7 @@
         <i>* meters store daily/hourly details for 12 months (i.e. current month and 11 months before), asking for info outside this range will result in range being limited when possible, or return a null range (when both From and To date are outside of this range).</i>
         <br><i>** meters store monthly details for 12 years.</i>
       </ul>
-    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Skip ALL incoming gateway events</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Cache previously fetched results</strong> : by default, the node will keep all previously fetched results in memory. When the same scope is asked, cached content is used instead of firing (many) requests on the MyHome BUS. Cache is non persistent and reset on node re-deploy and node-RED restart.
       <br>!! The cache is also useful (/required) for some commands (such as daily consumtpion) and / or when working with gateways which do not provide response to calls as they should... but the node can still fetch info directly on the BUS and cache it instead...
       <br>Note that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call.

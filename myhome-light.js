@@ -172,22 +172,25 @@ module.exports = function (RED) {
       if (!isReadOnly) {
         // Working in update mode: build the status change request
         let cmd_what = '';
-        if (payload.state === 'OFF') {
-          // turning OFF is the same for all lights (dimmed or not)
-          cmd_what = '0';
-        } else if (payload.state === 'ON') {
-          if(payload.brightness) {
-            // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
-            let requested_brightness = Math.round(parseInt(payload.brightness)/10);
-            if (requested_brightness < 2) {
-              requested_brightness = 2;
-            } else if (requested_brightness > 10) {
-              requested_brightness = 10;
+        if (payload.state === 'OFF' || payload.state === 'ON') {
+          // if (config.smartfilter_out && payload.state === payloadInfo.state && payload.brightness === payloadInfo.brightness) {}
+          if (payload.state === 'OFF') {
+            // turning OFF is the same for all lights (dimmed or not)
+            cmd_what = '0';
+          } else if (payload.state === 'ON') {
+            if(payload.brightness) {
+              // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
+              let requested_brightness = Math.round(parseInt(payload.brightness)/10);
+              if (requested_brightness < 2) {
+                requested_brightness = 2;
+              } else if (requested_brightness > 10) {
+                requested_brightness = 10;
+              }
+              cmd_what = requested_brightness.toString();
+            } else {
+              // No brightness provided : is a simple 'ON' call
+              cmd_what = '1';
             }
-            cmd_what = requested_brightness.toString();
-          } else {
-            // No brightness provided : is a simple 'ON' call
-            cmd_what = '1';
           }
         } else if (payload.state === 'UP') {
           // Working in dimmer : dimming UP
