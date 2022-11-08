@@ -172,34 +172,50 @@ module.exports = function (RED) {
       if (!isReadOnly) {
         // Working in update mode: build the status change request
         let cmd_what = '';
-        if (payload.state === 'OFF' || payload.state === 'ON') {
-          // if (config.smartfilter_out && payload.state === payloadInfo.state && payload.brightness === payloadInfo.brightness) {}
-          if (payload.state === 'OFF') {
-            // turning OFF is the same for all lights (dimmed or not)
-            cmd_what = '0';
-          } else if (payload.state === 'ON') {
-            if(payload.brightness) {
-              // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
-              let requested_brightness = Math.round(parseInt(payload.brightness)/10);
-              if (requested_brightness < 2) {
-                requested_brightness = 2;
-              } else if (requested_brightness > 10) {
-                requested_brightness = 10;
+        switch (payload.state) {
+          case 'ON':
+          case 'OFF':
+            // Working in ON (potentially with a dimmed level) and OFF mode
+            // SmartFiltering on this outgoing call ? (i.e. if last state is already the one which would result of this command being sent, BREAK to stop the flow)
+            if (config.smartfilter_out && payload.state === payloadInfo.state) {
+              if (payload.state === 'OFF') {
+                // Was OFF and remains OFF (brightness is unchecked, it will always be 0 afterwards. If a value was provided it could 'cheat' the filter)
+                break;
+              } else if (payload.brightness == payloadInfo.brightness) {
+                // New state is ON, but brightness is the same (same value (text/number) or never been defined)
+                break;
               }
-              cmd_what = requested_brightness.toString();
-            } else {
-              // No brightness provided : is a simple 'ON' call
-              cmd_what = '1';
             }
-          }
-        } else if (payload.state === 'UP') {
-          // Working in dimmer : dimming UP
-          cmd_what = '30';
-        } else if (payload.state === 'DOWN') {
-          // Working in dimmer : dimming DOWN
-          cmd_what = '31';
-        } else if (payload.state === 'TOGGLE') {
-          cmd_what = (payloadInfo.state === 'ON') ? '0' : '1';
+            if (payload.state === 'OFF') {
+              // turning OFF is the same for all lights (dimmed or not)
+              cmd_what = '0';
+            } else if (payload.state === 'ON') {
+                if(payload.brightness) {
+                  // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
+                  let requested_brightness = Math.round(parseInt(payload.brightness)/10);
+                  if (requested_brightness < 2) {
+                    requested_brightness = 2;
+                  } else if (requested_brightness > 10) {
+                    requested_brightness = 10;
+                  }
+                  cmd_what = requested_brightness.toString();
+                } else {
+                  // No brightness provided : is a simple 'ON' call
+                  cmd_what = '1';
+                }
+            }
+            break;
+          case 'UP':
+            // Working in dimmer : dimming UP
+            cmd_what = '30';
+            break;
+          case 'DOWN':
+            // Working in dimmer : dimming DOWN
+            cmd_what = '31';
+            break;
+          case 'TOGGLE':
+            cmd_what = (payloadInfo.state === 'ON') ? '0' : '1';
+            break;
         }
         if (cmd_what) {
           commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
