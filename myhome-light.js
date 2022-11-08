@@ -181,8 +181,8 @@ module.exports = function (RED) {
               if (payload.state === 'OFF') {
                 // Was OFF and remains OFF (brightness is unchecked, it will always be 0 afterwards. If a value was provided it could 'cheat' the filter)
                 break;
-              } else if (payload.brightness == payloadInfo.brightness) {
-                // New state is ON, but brightness is the same (i.e. same value (text/number) or never been defined)
+              } else if (typeof(payload.brightness) === 'undefined' || payload.brightness == payloadInfo.brightness) {
+                // New state is ON, but brightness is unspecified or the same (i.e. same value (text / number/ never been defined))
                 break;
               }
             }

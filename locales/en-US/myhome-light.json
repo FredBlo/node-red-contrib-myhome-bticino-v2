@@ -1,7 +1,7 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.07",
+		"_version_common": "2022.11.08",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",
@@ -27,7 +27,6 @@
 		"option-smartfilter-checkbox": "Filter incoming gateway events",
 		"option-smartfilter-info": "SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.\nThis is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...) \n\nNote: SmartFilter is never applied when node is running in read-only (status update request) mode.",
 		"option-smartfilter-out-checkbox": "Filter outgoing commands sent to gateway",
-		"option-smartfilter-out-info": "SmartFilter can also be enabled to avoid sending useless commands to the gateway. The node will define whether a command is useful based on last node's known state (i.e. when a light is known as 'ON', there is no need sending another command to turn it 'ON' again).",
 		"option-skipevents": "Skip events",
 		"option-skipevents-checkbox": "Skip ALL incoming gateway events",
 		"option-skipevents-info": "If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed.",
@@ -53,6 +52,7 @@
 			"lightid":"Light",
 			"lightid-placeholder": "32 (for light 3.2 or group 32)",
 			"light-isgroup": "This is a group reference",
+			"option-smartfilter-out-info": "SmartFilter can also be enabled to avoid sending useless commands to the gateway, and interrupt flows (i.e. no output is sent). The node will define whether a command is useful based on last node's known state (i.e. when a light is known as 'ON', there is no need sending another command to turn it 'ON' again).\n\nNote that, if used for groups, node will only rely on last calls it made by itself, since groups do not have state as such on the myHome system...",
 			"secondary-output-content-state-boolean": ".state (boolean: true / false)",
 			"secondary-output-content-state-txt": ".state (string: ON / OFF)",
 			"secondary-output-content-brightness": ".brightness (number: 20-100)"

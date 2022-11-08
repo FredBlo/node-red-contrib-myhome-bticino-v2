@@ -63,12 +63,23 @@
         $('#node-info-topic').prop('title' , topicInfo);
       });
 
-      $(document).off('click', '#label-for-smartfilter-options');
-      $(document).on('click', '#label-for-smartfilter-options', function () {
-        let toggleValue = $('#node-input-smartfilter').prop('checked');
-        $('#node-input-smartfilter').prop('checked' , !toggleValue);
-        $('#node-input-smartfilter_out').prop('checked' , !toggleValue);
+      function checkboxEditable (checkBoxIDs , isEditable, readonlyValue) {
+    		// Function to turn checkbox(es) uneditable (=greyed out box & label, disabled access and value forced), or back editable
+    		[].concat(checkBoxIDs).forEach(function(checkBoxID) {
+    			$('#' + checkBoxID)
+    				.prop('checked', (isEditable) ? $('#' + checkBoxID).prop('checked') : readonlyValue)
+    				.prop('disabled', !isEditable)
+    				.next().css('color', (isEditable) ? '' : 'grey');
+    		});
+    	}
+      $(document).on('change', '#node-input-isgroup', function() {
+        let isEditable = !($('#node-input-isgroup').prop('checked'));
+        checkboxEditable ('node-input-isstatusrequest' , isEditable, false);
       });
+    	$(document).on('change', '#node-input-skipevents', function() {
+    		let isEditable = !($('#node-input-skipevents').prop('checked'));
+    		checkboxEditable ('node-input-smartfilter' , isEditable, true);
+    	});
 
     }
   });
@@ -126,7 +137,7 @@
     </div>
   </div>
   <div class="form-row">
-    <label id="label-for-smartfilter-options"><i class="fa fa-filter"></i> <span data-i18n="common.option-smartfilter"></span></label>
+    <label><i class="fa fa-filter"></i> <span data-i18n="common.option-smartfilter"></span></label>
     <label for="node-input-smartfilter" style="width:70%">
       <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-smartfilter-checkbox"></span>
       &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-smartfilter-info"></i>
@@ -135,7 +146,7 @@
     <label></label>
     <label for="node-input-smartfilter_out" style="width:70%">
       <input type="checkbox" id="node-input-smartfilter_out" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-smartfilter-out-checkbox"></span>
-      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-smartfilter-out-info"></i>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-light.config.option-smartfilter-out-info"></i>
     </label>
   </div>
   <div class="form-row">
