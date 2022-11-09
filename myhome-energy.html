@@ -44,21 +44,18 @@
     },
     oneditprepare: function() {
       let scope = this;
-      $(document).off('change', '#node-input-topic');
-      $(document).on('change', '#node-input-topic', function() {
+      $('#node-input-topic').on('change', function() {
         let topicName = $('#node-input-topic').val();
-        let topicInfo = scope._('mh-energy.config.topic-info' , {'topicName': topicName});
+        let topicInfo = scope._('mh-energy.config.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
       });
-      $(document).off('change', '#node-input-meterscope');
-      $(document).on('change', '#node-input-meterscope', function() {
+      $('#node-input-meterscope').on('change', function() {
         let curScope = $('#node-input-meterscope').val();
         let powerUnit = (curScope === 'instant') ? '' : 'h';
         $('#node-input-output2_type option[value="metered_Power"]').text(scope._('mh-energy.config.secondary-output-content-pwr', {'h':powerUnit}));
         $('#node-input-output2_type option[value="metered_Power_asText"]').text(scope._('mh-energy.config.secondary-output-content-pwr-txt', {'h':powerUnit}));
       });
-      $(document).off('click', '#node-myhome_energy-outputcache-button');
-      $(document).on('click', '#node-myhome_energy-outputcache-button', function() {
+      $('#node-myhome_energy-outputcache-button').on('click', function() {
         function doInject(node, customMsg) {
           $.ajax({
               url: "inject/" + node.id,

@@ -74,16 +74,14 @@
     },
     oneditprepare: function() {
       let scope = this;
-      $(document).off('change', '#node-input-topic');
-      $(document).on('change', '#node-input-topic', function() {
+      $('#node-input-topic').on('change', function() {
         let topicName = $('#node-input-topic').val();
-        let topicInfo = scope._('common.topic-info' , {'topicName': topicName});
+        let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
       });
 
       // When scenario type is changed from CEN <> CEN+, update labels for 'Start press'
-      $(document).off('change', '#node-input-scenariotype');
-      $(document).on('change', '#node-input-scenariotype', function() {
+      $('#node-input-scenariotype').on('change', function() {
         let onStartLabel = '';
         if ($('#node-input-scenariotype').val() === "CEN") {
           onStartLabel = scope._('mh-scenario.config.add-outputs-startpress-any');

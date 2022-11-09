@@ -45,11 +45,23 @@
     },
     oneditprepare: function() {
       let scope = this;
-      $(document).off('change', '#node-input-topic');
-      $(document).on('change', '#node-input-topic', function() {
+      $('#node-input-topic').on('change', function() {
         let topicName = $('#node-input-topic').val();
-        let topicInfo = scope._('common.topic-info' , {'topicName': topicName});
+        let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
+      });
+
+      function checkboxEditable (checkBoxID , isEditable, readonlyValue) {
+        // Function to turn checkbox uneditable (=greyed out box & label, disabled access and value forced), or back editable
+        $('#' + checkBoxID)
+          .prop('checked', (isEditable) ? $('#' + checkBoxID).prop('checked') : readonlyValue)
+          .prop('disabled', !isEditable)
+          .next().css('color', (isEditable) ? '' : 'LightGrey');
+      }
+      $('#node-input-skipevents').on('change', function() {
+        // All gateway events are to be ignored. SmartFilter has nothig to filter (so assume is always 'forced on')
+        let isEditable = !($('#node-input-skipevents').prop('checked'));
+        checkboxEditable ('node-input-smartfilter' , isEditable, true);
       });
     }
   });
