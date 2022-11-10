@@ -66,7 +66,7 @@ You can also directly copy this basic flow in Node-RED selecting **Import** in t
 ```
 
 ### 4.2 SCS BUS addresses
-When adding nodes, you have to provide the BUS address (known as 'A/PL' in myHome). The references used in nodes are to be set as a single value : `A=1 PL=5` becomes `15`, also be aware that, when A>9 or PL>9, the format becomes 4 digits, e.g. `A=11 PL=5` becomes `1105`, `A=1 PL=15` becomes `0115`.
+When adding nodes, you have to provide the BUS address (known as 'A/PL' in MyHome). The references used in nodes are to be set as a single value : `A=1 PL=5` becomes `15`, also be aware that, when A>9 or PL>9, the format becomes 4 digits, e.g. `A=11 PL=5` becomes `1105`, `A=1 PL=15` becomes `0115`.
 
 ### 4.3 Tips : How to discover device A/PL
 Import the provided example node 'MH Monitoring (discover lights)' and follow info and comments :-)

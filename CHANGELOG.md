@@ -3,11 +3,14 @@
 ### v2.3.0 (latest available) - 01/2023
 - **General**
   - ***Improvement*** : some code clean-up, doc update / correction,...
-  - ***Improvement*** : technical revamp to support internationalization (if someone want to translate to other languages, let me know :-) )
+  - ***Improvement*** : many nodes UI were reviewed to be more consistent / easy to understand (options re-ordering, options which have become inapplicable because of other options are now greyed out,...)
+  - ***Improvement*** : technical revamp to support **internationalization** (if someone want to translate to other languages, let me know :-) )
 - **MH Light**
-  - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled for new installs.
-  - ***Improvement*** : Lights allow a new 'simple' command 'TOGGLE' which will, based on last light state, switch from ON -> OFF or OFF -> ON. When last state is unknown, it is considered as 'OFF'.
-  - ***Bug fix*** : when asking for light status of a dimmmed lights, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brightness known before light was turned off.
+  - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled by default for new installs.
+  - ***Improvement*** : Lights allow a new 'simple' command 'TOGGLE' which will, based on last light state, switch from 'ON' -> 'OFF' or 'OFF' -> 'ON'. When last state is unknown, it is considered as 'OFF'.
+  - ***Improvement*** : SmartFilter can now be enabled to avoid sending unnecessary commands to the gateway. The node will define whether a command is useful based on the last known state of the node (e.g. when a light is known to be 'on', it is not necessary to send another command to turn it on again). When the received message (msg.payload) is judged 'useless', the node stops the flow (i.e. no message is sent to an output).
+  Note that, if used for groups, the node will only rely on the last calls it made itself, since groups have no status as such on the MyHome system...
+  - ***Bug fix*** : when asking for light status of a dimmmed light, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brightness known before light was turned off.
 - **MH Scenario**
   - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve flow configuration.
   - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)

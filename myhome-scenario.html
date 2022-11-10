@@ -160,7 +160,7 @@
           if (!rule.hasOwnProperty('minLongPressDuration')) {
             rule.minLongPressDuration = 1000;
           }
-          // ROW 1
+          // ROW 1 : 'From label' & checkbox 'Start press'
           let row1 = $('<div/>').appendTo(container);
           row1.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-from') + '</span>');
           let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row1);
@@ -168,19 +168,19 @@
           // ROW1 : output info (rightest part)
           let finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row1);
           finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span>');
-          // ROW 2
+          // ROW 2 : 'From list' & checkbox 'End short press'
           let row2 = $('<div/>').appendTo(container);
           let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row2);
           let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row2);
           row2.append('<label class="buttonrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-startpress') + '</label>');
-          // ROW 3
+          // ROW 3 : 'To label' & checkbox 'End long press after [xx] seconds'
           let row3 = $('<div/>').appendTo(container);
           row3.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-to') + '</span>');
           let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row3);
           row3.append('<label class="buttonrule-checkbox-label" for="node-input-onEndLongPress_' + uniqueRowID + '" style="width:unset";>' + scope._('mh-scenario.config.add-outputs-longpress') + '&nbsp</label>');
           let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + uniqueRowID, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
           row3.append('<label class="buttonrule-checkbox-label" for="node-input-minLongPressDuration_' + uniqueRowID + '">&nbsp ms</label>');
-          // ROW 4
+          // ROW 4 : 'To list' & checkbox 'During long press'
           let row4 = $('<div/>').appendTo(container);
           let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row4);
           let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row4);

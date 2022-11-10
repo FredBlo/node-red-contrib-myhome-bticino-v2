@@ -132,7 +132,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     persistentObj.state = 'connected';
     // When starting the monitoring (i.e. the calling node is the gateway), refresh all connected lights if configured so.
     // TechNote : the command is delayed by a few seconds. During tests, without such delay, the gateway did not respond (or only partially) is if it was too busy
-    if (startCommand === START_MONITOR && callingNode.onconnect_refreshloads) {
+    if (startCommand === START_MONITOR && callingNode.lights_onconnect_refreshloads) {
       logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights within a few seconds...');
       setTimeout (function() {
         logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started...');
