@@ -1,11 +1,13 @@
-[{
+[
+    {
         "id": "33f463aef72c752d",
         "type": "tab",
         "label": "Scenario CEN/CEN+ (example)",
         "disabled": false,
         "info": "",
         "env": []
-    }, {
+    },
+    {
         "id": "627fb501b9e54f54",
         "type": "group",
         "z": "33f463aef72c752d",
@@ -17,12 +19,18 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["4a4a27b41b70c3f5", "b5fed5b2a2657309", "9080bcd88d342f1b", "f9c815a3dffe944c"],
+        "nodes": [
+            "4a4a27b41b70c3f5",
+            "b5fed5b2a2657309",
+            "9080bcd88d342f1b",
+            "f9c815a3dffe944c"
+        ],
         "x": 14,
         "y": 15,
         "w": 1318,
         "h": 592
-    }, {
+    },
+    {
         "id": "9080bcd88d342f1b",
         "type": "group",
         "z": "33f463aef72c752d",
@@ -35,12 +43,19 @@
             "color": "#6A7E64",
             "stroke-opacity": "0.6"
         },
-        "nodes": ["f292c9a51951f77e", "e2af2108a8f4a6a2", "8e6acdcb9bdeed82", "11c8562e5a007a94", "4329f82e186a47cc"],
+        "nodes": [
+            "f292c9a51951f77e",
+            "e2af2108a8f4a6a2",
+            "8e6acdcb9bdeed82",
+            "11c8562e5a007a94",
+            "4329f82e186a47cc"
+        ],
         "x": 714,
         "y": 259,
         "w": 592,
         "h": 322
-    }, {
+    },
+    {
         "id": "f9c815a3dffe944c",
         "type": "group",
         "z": "33f463aef72c752d",
@@ -53,12 +68,20 @@
             "color": "#7E909D",
             "stroke-opacity": "0.6"
         },
-        "nodes": ["d3953b7760ba2cb2", "c8ffc384b4d95bc1", "6e117300610cd83b", "7f0c86194d3da0e3", "e1009468ab1cdaf2", "dd8ad93458a16a83"],
+        "nodes": [
+            "d3953b7760ba2cb2",
+            "c8ffc384b4d95bc1",
+            "6e117300610cd83b",
+            "7f0c86194d3da0e3",
+            "e1009468ab1cdaf2",
+            "dd8ad93458a16a83"
+        ],
         "x": 54,
         "y": 259,
         "w": 412,
         "h": 322
-    }, {
+    },
+    {
         "id": "4a4a27b41b70c3f5",
         "type": "comment",
         "z": "33f463aef72c752d",
@@ -68,7 +91,8 @@
         "x": 550,
         "y": 140,
         "wires": []
-    }, {
+    },
+    {
         "id": "d3953b7760ba2cb2",
         "type": "comment",
         "z": "33f463aef72c752d",
@@ -78,7 +102,8 @@
         "x": 300,
         "y": 300,
         "wires": []
-    }, {
+    },
+    {
         "id": "f292c9a51951f77e",
         "type": "debug",
         "z": "33f463aef72c752d",
@@ -95,7 +120,8 @@
         "x": 890,
         "y": 300,
         "wires": []
-    }, {
+    },
+    {
         "id": "e2af2108a8f4a6a2",
         "type": "comment",
         "z": "33f463aef72c752d",
@@ -105,7 +131,8 @@
         "x": 1010,
         "y": 400,
         "wires": []
-    }, {
+    },
+    {
         "id": "7f0c86194d3da0e3",
         "type": "comment",
         "z": "33f463aef72c752d",
@@ -115,7 +142,8 @@
         "x": 260,
         "y": 460,
         "wires": []
-    }, {
+    },
+    {
         "id": "b5fed5b2a2657309",
         "type": "myhome-scenario",
         "z": "33f463aef72c752d",
@@ -127,7 +155,8 @@
         "topic": "CEN+",
         "gateway": "a4e23617.d0c288",
         "skipevents": false,
-        "rules": [{
+        "rules": [
+            {
                 "buttonFrom": 1,
                 "buttonTo": 1,
                 "onStartPress": false,
@@ -135,7 +164,8 @@
                 "onEndLongPress": true,
                 "onDuringLongPress": false,
                 "minLongPressDuration": 1000
-            }, {
+            },
+            {
                 "buttonFrom": 2,
                 "buttonTo": 4,
                 "onStartPress": true,
@@ -143,7 +173,8 @@
                 "onEndLongPress": false,
                 "onDuringLongPress": false,
                 "minLongPressDuration": 1000
-            }, {
+            },
+            {
                 "buttonFrom": 4,
                 "buttonTo": 4,
                 "onStartPress": false,
@@ -156,16 +187,32 @@
         "outputs": 4,
         "x": 590,
         "y": 400,
-        "wires": [["f292c9a51951f77e"], ["8e6acdcb9bdeed82"], ["11c8562e5a007a94"], ["4329f82e186a47cc"]]
-    }, {
+        "wires": [
+            [
+                "f292c9a51951f77e"
+            ],
+            [
+                "8e6acdcb9bdeed82"
+            ],
+            [
+                "11c8562e5a007a94"
+            ],
+            [
+                "4329f82e186a47cc"
+            ]
+        ]
+    },
+    {
         "id": "6e117300610cd83b",
         "type": "inject",
         "z": "33f463aef72c752d",
         "g": "f9c815a3dffe944c",
         "name": "Long press button #1 (2s)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -179,23 +226,31 @@
         "payloadType": "str",
         "x": 330,
         "y": 380,
-        "wires": [["b5fed5b2a2657309"]],
+        "wires": [
+            [
+                "b5fed5b2a2657309"
+            ]
+        ],
         "icon": "font-awesome/fa-hourglass-half"
-    }, {
+    },
+    {
         "id": "dd8ad93458a16a83",
         "type": "inject",
         "z": "33f463aef72c752d",
         "g": "f9c815a3dffe944c",
         "name": "Long press button #4 (1,5s)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload.buttonID",
                 "v": "4",
                 "vt": "str"
-            }, {
+            },
+            {
                 "p": "payload.actionDuration",
                 "v": "1500",
                 "vt": "num"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -207,17 +262,24 @@
         "topic": "cmd/CEN+",
         "x": 320,
         "y": 540,
-        "wires": [["b5fed5b2a2657309"]],
+        "wires": [
+            [
+                "b5fed5b2a2657309"
+            ]
+        ],
         "icon": "font-awesome/fa-hourglass-half"
-    }, {
+    },
+    {
         "id": "c8ffc384b4d95bc1",
         "type": "inject",
         "z": "33f463aef72c752d",
         "g": "f9c815a3dffe944c",
         "name": "Short press button #1",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -231,9 +293,14 @@
         "payloadType": "str",
         "x": 340,
         "y": 340,
-        "wires": [["b5fed5b2a2657309"]],
+        "wires": [
+            [
+                "b5fed5b2a2657309"
+            ]
+        ],
         "icon": "font-awesome/fa-hand-o-right"
-    }, {
+    },
+    {
         "id": "8e6acdcb9bdeed82",
         "type": "debug",
         "z": "33f463aef72c752d",
@@ -250,7 +317,8 @@
         "x": 960,
         "y": 460,
         "wires": []
-    }, {
+    },
+    {
         "id": "11c8562e5a007a94",
         "type": "debug",
         "z": "33f463aef72c752d",
@@ -267,7 +335,8 @@
         "x": 950,
         "y": 500,
         "wires": []
-    }, {
+    },
+    {
         "id": "4329f82e186a47cc",
         "type": "debug",
         "z": "33f463aef72c752d",
@@ -284,17 +353,20 @@
         "x": 980,
         "y": 540,
         "wires": []
-    }, {
+    },
+    {
         "id": "e1009468ab1cdaf2",
         "type": "inject",
         "z": "33f463aef72c752d",
         "g": "f9c815a3dffe944c",
         "name": "Short press button #4",
-        "props": [{
+        "props": [
+            {
                 "p": "payload.buttonID",
                 "v": "4",
                 "vt": "str"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -306,9 +378,14 @@
         "topic": "cmd/CEN+",
         "x": 340,
         "y": 500,
-        "wires": [["b5fed5b2a2657309"]],
+        "wires": [
+            [
+                "b5fed5b2a2657309"
+            ]
+        ],
         "icon": "font-awesome/fa-hand-o-right"
-    }, {
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -316,6 +393,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,

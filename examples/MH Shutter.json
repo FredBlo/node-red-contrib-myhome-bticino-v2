@@ -1,11 +1,13 @@
-[{
+[
+    {
         "id": "768c6b3dbed7ea7d",
         "type": "tab",
         "label": "Shutter (example)",
         "disabled": false,
         "info": "",
         "env": []
-    }, {
+    },
+    {
         "id": "20065e304bb0a995",
         "type": "group",
         "z": "768c6b3dbed7ea7d",
@@ -17,12 +19,18 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["220c83501dd7616a", "ec3f2571bd4200cb", "fec2aca47bc3ddac", "edd9e175b87a013b"],
+        "nodes": [
+            "220c83501dd7616a",
+            "ec3f2571bd4200cb",
+            "fec2aca47bc3ddac",
+            "edd9e175b87a013b"
+        ],
         "x": 14,
         "y": 27,
         "w": 1212,
         "h": 800
-    }, {
+    },
+    {
         "id": "ec3f2571bd4200cb",
         "type": "group",
         "z": "768c6b3dbed7ea7d",
@@ -35,12 +43,25 @@
             "label": true,
             "color": "#7E909D"
         },
-        "nodes": ["5f44a0b7e836a68b", "b3dd9c34fab062fa", "4ec14f341337205d", "bfae18e4669b7e38", "f2a111b2b3612c10", "a423efa03a570aa0", "3dd699e087645956", "ba4f87561e0fcf09", "52e61e8fcbba429d", "7255ef0338ed17ee", "edf695f06fad1ad4"],
+        "nodes": [
+            "5f44a0b7e836a68b",
+            "b3dd9c34fab062fa",
+            "4ec14f341337205d",
+            "bfae18e4669b7e38",
+            "f2a111b2b3612c10",
+            "a423efa03a570aa0",
+            "3dd699e087645956",
+            "ba4f87561e0fcf09",
+            "52e61e8fcbba429d",
+            "7255ef0338ed17ee",
+            "edf695f06fad1ad4"
+        ],
         "x": 54,
         "y": 239,
         "w": 372,
         "h": 562
-    }, {
+    },
+    {
         "id": "fec2aca47bc3ddac",
         "type": "group",
         "z": "768c6b3dbed7ea7d",
@@ -53,12 +74,17 @@
             "fill-opacity": "0.6",
             "color": "#6A7E64"
         },
-        "nodes": ["a14bc4219a8f5f01", "82b155ad463d333c", "eb5aa6707a2d34a0"],
+        "nodes": [
+            "a14bc4219a8f5f01",
+            "82b155ad463d333c",
+            "eb5aa6707a2d34a0"
+        ],
         "x": 734,
         "y": 239,
         "w": 452,
         "h": 322
-    }, {
+    },
+    {
         "id": "220c83501dd7616a",
         "type": "comment",
         "z": "768c6b3dbed7ea7d",
@@ -68,15 +94,18 @@
         "x": 620,
         "y": 140,
         "wires": []
-    }, {
+    },
+    {
         "id": "5f44a0b7e836a68b",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Start opening (\"OPEN\")",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -90,17 +119,24 @@
         "payloadType": "str",
         "x": 300,
         "y": 320,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "font-awesome/fa-angle-double-up"
-    }, {
+    },
+    {
         "id": "b3dd9c34fab062fa",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Start closing (\"CLOSE\")",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -114,17 +150,24 @@
         "payloadType": "str",
         "x": 300,
         "y": 360,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "font-awesome/fa-angle-double-down"
-    }, {
+    },
+    {
         "id": "4ec14f341337205d",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Stop current move (\"STOP\")",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -138,17 +181,24 @@
         "payloadType": "str",
         "x": 280,
         "y": 400,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "font-awesome/fa-stop-circle"
-    }, {
+    },
+    {
         "id": "bfae18e4669b7e38",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Advanced mode : msg (\"OPEN\")",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -162,15 +212,21 @@
         "payloadType": "json",
         "x": 270,
         "y": 760,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "node-red/parser-json.svg"
-    }, {
+    },
+    {
         "id": "f2a111b2b3612c10",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Ask for current state",
-        "props": [{
+        "props": [
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -182,9 +238,14 @@
         "topic": "state/shutter",
         "x": 310,
         "y": 660,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "font-awesome/fa-question-circle-o"
-    }, {
+    },
+    {
         "id": "a423efa03a570aa0",
         "type": "comment",
         "z": "768c6b3dbed7ea7d",
@@ -194,7 +255,8 @@
         "x": 250,
         "y": 600,
         "wires": []
-    }, {
+    },
+    {
         "id": "3dd699e087645956",
         "type": "comment",
         "z": "768c6b3dbed7ea7d",
@@ -204,7 +266,8 @@
         "x": 240,
         "y": 720,
         "wires": []
-    }, {
+    },
+    {
         "id": "a14bc4219a8f5f01",
         "type": "debug",
         "z": "768c6b3dbed7ea7d",
@@ -221,7 +284,8 @@
         "x": 950,
         "y": 520,
         "wires": []
-    }, {
+    },
+    {
         "id": "82b155ad463d333c",
         "type": "comment",
         "z": "768c6b3dbed7ea7d",
@@ -231,7 +295,8 @@
         "x": 960,
         "y": 440,
         "wires": []
-    }, {
+    },
+    {
         "id": "eb5aa6707a2d34a0",
         "type": "debug",
         "z": "768c6b3dbed7ea7d",
@@ -248,7 +313,8 @@
         "x": 860,
         "y": 280,
         "wires": []
-    }, {
+    },
+    {
         "id": "edd9e175b87a013b",
         "type": "myhome-shutter",
         "z": "768c6b3dbed7ea7d",
@@ -266,16 +332,26 @@
         "output2_type": "text_state",
         "x": 580,
         "y": 380,
-        "wires": [["eb5aa6707a2d34a0"], ["a14bc4219a8f5f01"]]
-    }, {
+        "wires": [
+            [
+                "eb5aa6707a2d34a0"
+            ],
+            [
+                "a14bc4219a8f5f01"
+            ]
+        ]
+    },
+    {
         "id": "ba4f87561e0fcf09",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Start opening (True)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -289,17 +365,24 @@
         "payloadType": "bool",
         "x": 310,
         "y": 500,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "font-awesome/fa-angle-double-up"
-    }, {
+    },
+    {
         "id": "52e61e8fcbba429d",
         "type": "inject",
         "z": "768c6b3dbed7ea7d",
         "g": "ec3f2571bd4200cb",
         "name": "Start closing (False)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -313,9 +396,14 @@
         "payloadType": "bool",
         "x": 310,
         "y": 540,
-        "wires": [["edd9e175b87a013b"]],
+        "wires": [
+            [
+                "edd9e175b87a013b"
+            ]
+        ],
         "icon": "font-awesome/fa-angle-double-down"
-    }, {
+    },
+    {
         "id": "7255ef0338ed17ee",
         "type": "comment",
         "z": "768c6b3dbed7ea7d",
@@ -325,7 +413,8 @@
         "x": 290,
         "y": 280,
         "wires": []
-    }, {
+    },
+    {
         "id": "edf695f06fad1ad4",
         "type": "comment",
         "z": "768c6b3dbed7ea7d",
@@ -335,7 +424,8 @@
         "x": 280,
         "y": 460,
         "wires": []
-    }, {
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -343,6 +433,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,

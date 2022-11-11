@@ -1,11 +1,13 @@
-[{
+[
+    {
         "id": "fd5424770bd6a7ab",
         "type": "tab",
         "label": "Thermo Zone (example)",
         "disabled": false,
         "info": "",
         "env": []
-    }, {
+    },
+    {
         "id": "696d6ed6f29f4f7a",
         "type": "group",
         "z": "fd5424770bd6a7ab",
@@ -17,12 +19,18 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["78c4bd5383afd680", "7d47c92713b8bd48", "6ed32217bdcdb17b", "c88946583784278f"],
+        "nodes": [
+            "78c4bd5383afd680",
+            "7d47c92713b8bd48",
+            "6ed32217bdcdb17b",
+            "c88946583784278f"
+        ],
         "x": 14,
         "y": 11,
         "w": 1218,
         "h": 756
-    }, {
+    },
+    {
         "id": "6ed32217bdcdb17b",
         "type": "group",
         "z": "fd5424770bd6a7ab",
@@ -35,12 +43,17 @@
             "label": true,
             "color": "#6A7E64"
         },
-        "nodes": ["6d25fb0cb65e8906", "3bbe134c28710a37", "8568c0dc001190ed"],
+        "nodes": [
+            "6d25fb0cb65e8906",
+            "3bbe134c28710a37",
+            "8568c0dc001190ed"
+        ],
         "x": 754,
         "y": 299,
         "w": 452,
         "h": 422
-    }, {
+    },
+    {
         "id": "c88946583784278f",
         "type": "group",
         "z": "fd5424770bd6a7ab",
@@ -53,12 +66,23 @@
             "label": true,
             "color": "#7E909D"
         },
-        "nodes": ["bd01b6733fc90bf3", "ab8fa89fd0c69b55", "5d0c72c62f2017a2", "bf975eee5fe33633", "55c526e70425afb1", "a0b0816e2af6b10d", "360f84b6322a40f0", "0693be8ecdd04d7d", "e07cf8d0d5f5f4a8"],
+        "nodes": [
+            "bd01b6733fc90bf3",
+            "ab8fa89fd0c69b55",
+            "5d0c72c62f2017a2",
+            "bf975eee5fe33633",
+            "55c526e70425afb1",
+            "a0b0816e2af6b10d",
+            "360f84b6322a40f0",
+            "0693be8ecdd04d7d",
+            "e07cf8d0d5f5f4a8"
+        ],
         "x": 54,
         "y": 299,
         "w": 352,
         "h": 442
-    }, {
+    },
+    {
         "id": "78c4bd5383afd680",
         "type": "comment",
         "z": "fd5424770bd6a7ab",
@@ -68,7 +92,8 @@
         "x": 560,
         "y": 160,
         "wires": []
-    }, {
+    },
+    {
         "id": "bd01b6733fc90bf3",
         "type": "comment",
         "z": "fd5424770bd6a7ab",
@@ -78,7 +103,8 @@
         "x": 230,
         "y": 340,
         "wires": []
-    }, {
+    },
+    {
         "id": "8568c0dc001190ed",
         "type": "debug",
         "z": "fd5424770bd6a7ab",
@@ -95,7 +121,8 @@
         "x": 880,
         "y": 340,
         "wires": []
-    }, {
+    },
+    {
         "id": "3bbe134c28710a37",
         "type": "debug",
         "z": "fd5424770bd6a7ab",
@@ -112,15 +139,18 @@
         "x": 940,
         "y": 680,
         "wires": []
-    }, {
+    },
+    {
         "id": "ab8fa89fd0c69b55",
         "type": "inject",
         "z": "fd5424770bd6a7ab",
         "g": "c88946583784278f",
         "name": "Set zone to 'Antifreeze'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -134,17 +164,24 @@
         "payloadType": "str",
         "x": 280,
         "y": 560,
-        "wires": [["7d47c92713b8bd48"]],
+        "wires": [
+            [
+                "7d47c92713b8bd48"
+            ]
+        ],
         "icon": "font-awesome/fa-snowflake-o"
-    }, {
+    },
+    {
         "id": "5d0c72c62f2017a2",
         "type": "inject",
         "z": "fd5424770bd6a7ab",
         "g": "c88946583784278f",
         "name": "Turn zone off",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -158,17 +195,24 @@
         "payloadType": "str",
         "x": 310,
         "y": 600,
-        "wires": [["7d47c92713b8bd48"]],
+        "wires": [
+            [
+                "7d47c92713b8bd48"
+            ]
+        ],
         "icon": "font-awesome/fa-power-off"
-    }, {
+    },
+    {
         "id": "bf975eee5fe33633",
         "type": "inject",
         "z": "fd5424770bd6a7ab",
         "g": "c88946583784278f",
         "name": "Set in manual mode 20°C",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -182,15 +226,21 @@
         "payloadType": "str",
         "x": 270,
         "y": 380,
-        "wires": [["7d47c92713b8bd48"]],
+        "wires": [
+            [
+                "7d47c92713b8bd48"
+            ]
+        ],
         "icon": "font-awesome/fa-hand-pointer-o"
-    }, {
+    },
+    {
         "id": "55c526e70425afb1",
         "type": "inject",
         "z": "fd5424770bd6a7ab",
         "g": "c88946583784278f",
         "name": "Refresh current zone sate",
-        "props": [{
+        "props": [
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -202,9 +252,14 @@
         "topic": "state/livingroom",
         "x": 270,
         "y": 700,
-        "wires": [["7d47c92713b8bd48"]],
+        "wires": [
+            [
+                "7d47c92713b8bd48"
+            ]
+        ],
         "icon": "font-awesome/fa-question-circle-o"
-    }, {
+    },
+    {
         "id": "6d25fb0cb65e8906",
         "type": "comment",
         "z": "fd5424770bd6a7ab",
@@ -214,15 +269,18 @@
         "x": 980,
         "y": 600,
         "wires": []
-    }, {
+    },
+    {
         "id": "a0b0816e2af6b10d",
         "type": "inject",
         "z": "fd5424770bd6a7ab",
         "g": "c88946583784278f",
         "name": "Set zone to 'Protection'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -236,9 +294,14 @@
         "payloadType": "str",
         "x": 280,
         "y": 520,
-        "wires": [["7d47c92713b8bd48"]],
+        "wires": [
+            [
+                "7d47c92713b8bd48"
+            ]
+        ],
         "icon": "font-awesome/fa-shield"
-    }, {
+    },
+    {
         "id": "360f84b6322a40f0",
         "type": "comment",
         "z": "fd5424770bd6a7ab",
@@ -248,7 +311,8 @@
         "x": 270,
         "y": 440,
         "wires": []
-    }, {
+    },
+    {
         "id": "0693be8ecdd04d7d",
         "type": "comment",
         "z": "fd5424770bd6a7ab",
@@ -258,7 +322,8 @@
         "x": 240,
         "y": 660,
         "wires": []
-    }, {
+    },
+    {
         "id": "7d47c92713b8bd48",
         "type": "myhome-thermo-zone",
         "z": "fd5424770bd6a7ab",
@@ -274,16 +339,26 @@
         "output2_type": "text_state",
         "x": 590,
         "y": 500,
-        "wires": [["8568c0dc001190ed"], ["3bbe134c28710a37"]]
-    }, {
+        "wires": [
+            [
+                "8568c0dc001190ed"
+            ],
+            [
+                "3bbe134c28710a37"
+            ]
+        ]
+    },
+    {
         "id": "e07cf8d0d5f5f4a8",
         "type": "inject",
         "z": "fd5424770bd6a7ab",
         "g": "c88946583784278f",
         "name": "Set zone to 'Auto'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -297,9 +372,14 @@
         "payloadType": "str",
         "x": 300,
         "y": 480,
-        "wires": [["7d47c92713b8bd48"]],
+        "wires": [
+            [
+                "7d47c92713b8bd48"
+            ]
+        ],
         "icon": "node-red/serial.svg"
-    }, {
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -307,6 +387,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,
