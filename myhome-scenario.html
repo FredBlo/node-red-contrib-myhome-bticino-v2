@@ -75,7 +75,7 @@
     oneditprepare: function() {
       let scope = this;
       $('#node-input-topic').on('change', function() {
-        let topicName = $('#node-input-topic').val();
+        let topicName = $(this).val();
         let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
       });

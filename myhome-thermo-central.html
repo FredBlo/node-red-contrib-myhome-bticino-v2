@@ -53,7 +53,7 @@ central unit<script type="text/javascript">
     oneditprepare: function() {
       let scope = this;
       $('#node-input-topic').on('change', function() {
-        let topicName = $('#node-input-topic').val();
+        let topicName = $(this).val();
         let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
       });
@@ -63,11 +63,12 @@ central unit<script type="text/javascript">
         $('#' + checkBoxID)
           .prop('checked', (isEditable) ? $('#' + checkBoxID).prop('checked') : readonlyValue)
           .prop('disabled', !isEditable)
+          .change()
           .next().css('color', (isEditable) ? '' : 'LightGrey');
       }
       $('#node-input-skipevents').on('change', function() {
         // All gateway events are to be ignored. SmartFilter has nothig to filter (so assume is always 'forced on')
-        let isEditable = !($('#node-input-skipevents').prop('checked'));
+        let isEditable = !($(this).prop('checked'));
         checkboxEditable ('node-input-smartfilter' , isEditable, true);
       });
     }

@@ -57,7 +57,7 @@
     oneditprepare: function() {
       let scope = this;
       $('#node-input-topic').on('change', function() {
-        let topicName = $('#node-input-topic').val();
+        let topicName = $(this).val();
         let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
       });
@@ -67,16 +67,22 @@
   			$('#' + checkBoxID)
   				.prop('checked', (isEditable) ? $('#' + checkBoxID).prop('checked') : readonlyValue)
   				.prop('disabled', !isEditable)
+          .change()
   				.next().css('color', (isEditable) ? '' : 'LightGrey');
     	}
       $('#node-input-isgroup').on('change', function() {
         // When group mode is enabled, read-only mode (status request) is not allowed
-        let isEditable = !($('#node-input-isgroup').prop('checked'));
+        let isEditable = !($(this).prop('checked'));
         checkboxEditable ('node-input-isstatusrequest' , isEditable, false);
+      });
+      $('#node-input-isstatusrequest').on('change', function() {
+        // When in read-only mode, outgoing commands are status request only and cannot be filtered
+        let isEditable = !($(this).prop('checked'));
+        checkboxEditable ('node-input-smartfilter_out' , isEditable, false);
       });
       $('#node-input-skipevents').on('change', function() {
         // All gateway events are to be ignored. SmartFilter has nothig to filter (so assume is always 'forced on')
-    		let isEditable = !($('#node-input-skipevents').prop('checked'));
+    		let isEditable = !($(this).prop('checked'));
     		checkboxEditable ('node-input-smartfilter' , isEditable, true);
     	});
     }

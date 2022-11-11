@@ -8,7 +8,9 @@
       <ul>
         <li><strong>This is a group reference</strong> is to be checked when the load address defined has to be used as a group-call address instead of a single load (point-to-point call)</li>
       </ul>
-    <li><strong>Only ask for current load status</strong> : when enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change.</li>
+    <li><strong>Only ask for current load status</strong> : when enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change.
+      <br>Note : this cannot be enabled for groups since they don't have a status as such on the MyHome system.
+    </li>
     <li><strong>Skip ALL incoming gateway events</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>SmartFilter</strong>
       <ul>
@@ -17,7 +19,7 @@
         </li>
         <li>
             <strong>Filter outgoing commands sent to gateway</strong> : can be enabled to avoid sending unnecessary commands to the gateway. The node will define whether a command is useful based on the last known state of the node (e.g. when a light is known to be 'on', it is not necessary to send another command to turn it on again). When the received message (msg.payload) is judged 'useless', the node stops the flow (i.e. no message is sent to an output).
-            Note that, if used for groups, the node will only rely on the last calls it made itself, since groups have no status as such on the MyHome system...
+            Note : if used for groups, the node will only rely on the last calls it made itself, since groups have no status as such on the MyHome system.
         </li>
       </ul>
     </li>
