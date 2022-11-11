@@ -18,8 +18,6 @@
     <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
       <br><i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
     <li><strong>Reload</strong> : when the gateway connects successfully, the state of all loads connected on the BUS will be gathered. All deployed nodes will also get updated accordingly, and flows will be started.</li>
-    <li><strong>Translate</strong> : In the OpenWebNet protocol definition, a command to turn a lamp on or off is '*1*&lt;STATE&gt;*&lt;WHERE&gt;##'. The 'problem' is that, when the lamp changes status, it sends exactly the same message on the bus to communicate it changed status. This de-duplicates the same message.
-      <br>By default, when light nodes send commands, they apply the appropriate OpenWebNet 'translation' which will transform the initial command into '*1*1000#&lt;STATE&gt;*&lt;WHERE&gt;##' to allow for differentiation of the command sent. You can disable it if you encounter problems with such translations.</li>
   </ul>
   <br>
   Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :

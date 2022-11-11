@@ -23,7 +23,6 @@ module.exports = function (RED) {
     node.port = config.port;
     node.pass = config.pass || '';
     node.lights_onconnect_refreshloads = config.lights_onconnect_refreshloads;
-    node.lights_cmd_notranslate = config.lights_cmd_notranslate;
     node.log_out_cmd = config.log_out_cmd || false;
     node.timeout = (Number(config.timeout) || 0)*1000; // ms
     node.setMaxListeners (100);

@@ -7,7 +7,6 @@ module.exports = function (RED) {
     RED.nodes.createNode (this, config);
     var node = this;
     let gateway = RED.nodes.getNode (config.gateway);
-    node.lights_cmd_notranslate = gateway.lights_cmd_notranslate;
     let runningMonitor = new mhutils.eventsMonitor (gateway);
 
     // Build the light point name. If node is configured as being a group, add '#' as prefix.
@@ -219,17 +218,13 @@ module.exports = function (RED) {
             break;
         }
         if (cmd_what) {
-          // By default -if not configured otherwise in the gateway config-, translation is applied (which adds '1000#' to the <WHAT>
-          // of the command to allow differentiation of sent command vs. its response)
-          let cmd_translate = (node.lights_cmd_notranslate) ? '' : '1000#';
-          commands.push ('*1*' + cmd_translate + cmd_what + '*' + node.lightgroupid + '##');
+          commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
         }
       }
       if ((isReadOnly || commands.length) && !config.isgroup) {
         // In Read-Only mode : build a status enquiry request (no status update sent)
         // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
         // Note : This does not work for groups
-
         commands.push ('*#1*' + node.lightgroupid + '##');
       }
       if (commands.length === 0) {
