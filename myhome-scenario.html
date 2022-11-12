@@ -126,7 +126,7 @@
         $("#node-input-outputs").val(JSON.stringify(orderedRulesIndex));
       }
 
-      $("#node-input-rule-container").css('min-height','370px').css('min-width','450px').editableList({
+      $("#node-input-rule-container").css('min-height','350px').css('min-width','450px').editableList({
         addButton: scope._('mh-scenario.config.add-outputs-btn-addnew'),
         header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
           +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-range') + "</div>"
@@ -164,7 +164,7 @@
           let row1 = $('<div/>').appendTo(container);
           row1.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-from') + '</span>');
           let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row1);
-          row1.append('<label class="buttonrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-shortpress') + '</label>');
+          row1.append('<label class="buttonrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-startpress') + '</label>');
           // ROW1 : output info (rightest part)
           let finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row1);
           finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span>');
@@ -172,7 +172,7 @@
           let row2 = $('<div/>').appendTo(container);
           let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row2);
           let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row2);
-          row2.append('<label class="buttonrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-startpress') + '</label>');
+          row2.append('<label class="buttonrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-shortpress') + '</label>');
           // ROW 3 : 'To label' & checkbox 'End long press after [xx] seconds'
           let row3 = $('<div/>').appendTo(container);
           row3.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-to') + '</span>');
@@ -240,7 +240,7 @@
       }
       let editorRow = $("#dialog-form>div.node-input-rule-container-row");
       height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
-      height += 16;
+      height += 30;
       $("#node-input-rule-container").editableList('height',height);
     },
     oneditsave: function() {

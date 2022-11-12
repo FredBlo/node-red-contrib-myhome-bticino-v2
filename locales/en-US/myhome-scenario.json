@@ -79,9 +79,9 @@
 		"node":
 		{
 			"status-action-button": "Button #",
-			"status-action-startpress": "short/long pressed started",
-			"status-action-startpress-long": "long pressed (>0.5s) started",
-			"status-action-longpress-ongoing": "long pressed going on",
+			"status-action-startpress": "short/long press started",
+			"status-action-startpress-long": "long press (>0.5s) started",
+			"status-action-longpress-ongoing": "long press going on",
 			"status-action-endpress-short": "short pressed (<0.5s)",
 			"status-action-endpress-long": "long pressed finished"
 		}

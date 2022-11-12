@@ -181,7 +181,7 @@ module.exports = function (RED) {
                 toMonitor = true;
               }
             }
-            // Reached here : monitored action, build payload (which is actually simply th current button state with all collected info)
+            // Reached here : monitored action, build payload (which is actually simply the current button state with all collected info)
             if (toMonitor) {
               let curMsg = multiOutput[i+1] = {};
               curMsg.payload = curButtonLastState;
