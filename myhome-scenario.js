@@ -87,7 +87,7 @@ module.exports = function (RED) {
         //    - WHAT = push button N value [0-31]
         //    - WHERE = 2 [0-2047] Virtual Address
         if (config.scenariotype === 'CEN+') {
-          frameMatch = curFrame.match ('^\\*25\\*(\\d{2}})#(\\d+)\\*2' + node.scenarioid + '##');
+          frameMatch = curFrame.match ('^\\*25\\*(\\d{2})#(\\d+)\\*2' + node.scenarioid + '##');
           if (frameMatch !== null) {
             curButtonID = frameMatch[2];
             switch (frameMatch[1]) {
