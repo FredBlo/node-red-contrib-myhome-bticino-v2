@@ -48,6 +48,8 @@
 		"config":
 		{
 			"name-placeholder": "Monitoring identifier",
+			"secondary-output-title": "Define command family filters",
+			"secondary-output-intro": "You may define which families of MyHome events must trigger new Node-RED flows.",
 			"type-lights": "Lights",
 			"type-lights-checkbox": "All lights events",
 			"type-shutters": "Shutters",

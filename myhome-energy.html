@@ -137,21 +137,20 @@
       </label>
   </div>
 
-  <div class="form-tips form-row" style="background:#EFEFEF">
+  <div class="form-tips form-row" style="max-width:none; background:#EFEFEF">
     <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
     <br>
-    <span data-i18n="common.secondary-output-intro"></span>
-    <br>
+    <p style="max-width:450px" data-i18n="common.secondary-output-intro"></p>
     <div class="form-row">
-      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
+      <label for="node-input-output2_name" style="width:130px; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
       <input type="text" id="node-input-output2_name" data-i18n="[placeholder]common.secondary-output-name-placeholder" style="width:55%"/>
       <label for="node-input-output2_name" style="width:15px">
         &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.secondary-output-name-info"></i>
       </label>
     </div>
     <div class="form-row">
-      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
-      <select id="node-input-output2_type" style="width:55%">
+      <label for="node-input-output2_type" style="width:130px; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
+      <select id="node-input-output2_type" style="width:60%">
         <!-- Select values are set in onEditPrepare because part of them are dynamix and i18n-options does not work  -->
         <option value="metered_Power">[.metered_Power (number in W)]</option>
         <option value="metered_Power_asText">[.metered_Power (text in kW)]</option>
