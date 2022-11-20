@@ -7,7 +7,8 @@ module.exports = function (RED) {
     RED.nodes.createNode (this, config);
     var node = this;
     let gateway = RED.nodes.getNode (config.gateway);
-    let interCommandsDelay = parseInt(config.intercommandsdelay) || 0;
+    let interCommandsDelay_Cfg = parseInt(config.intercommandsdelay) || 0;
+    let interCommandsDelay_AllowOverride = config.intercommandsdelay_frommsg || false;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Function called when a message (payload) is received from the node-RED flow ///////////////////////////////////////
@@ -16,6 +17,13 @@ module.exports = function (RED) {
       let commands = msg.payload;
       let payload = {};
 
+      // Define delay to be applied between 2 commands (defaults to node config but can be overriden by msg.rate)
+      let interCommandsDelay = interCommandsDelay_Cfg;
+      if (interCommandsDelay_AllowOverride && !isNaN(msg.rate)) {
+        interCommandsDelay = parseInt(msg.rate);
+      }
+      
+      // Execute received commands
       mhutils.executeCommand (node, commands, gateway, interCommandsDelay, true,
         function (commands, cmd_responses, cmd_failed) {
           let nodeStatusShape = 'dot';

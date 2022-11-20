@@ -5,7 +5,8 @@
     defaults: {
       name: { value: '', required: true },
       gateway: { type: 'myhome-gateway', required: true },
-      intercommandsdelay: { value: '', required: false, validate: function(v){return (v === '' || v === undefined || parseInt(v) >= 50)} }
+      intercommandsdelay: { value: '', required: false, validate: function(v){return (v === '' || v === undefined || parseInt(v) >= 50)} },
+      intercommandsdelay_frommsg: { value: false, required: false}
     },
     inputs: 1,
     outputs: 1,
@@ -33,5 +34,12 @@
     <label for="node-input-intercommandsdelay"><i class="fa fa-history"></i> <span data-i18n="mh-cmdsession.config.intercommandsdelay"></span></label>
     <input type="text" id="node-input-intercommandsdelay" data-i18n="[placeholder]mh-cmdsession.config.intercommandsdelay-placeholder"/>
     &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-cmdsession.config.intercommandsdelay-info"></i>
+    <br>
+    <div style="display: inline-block; position: relative; width: 100%; height: 20px;">
+      <label></label>
+      <label for="node-input-intercommandsdelay_frommsg" style="width:70%">
+        <input type="checkbox" id="node-input-intercommandsdelay_frommsg" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-cmdsession.config.intercommandsdelay_frommsg"></span>
+      </label>
+    </div>
   </div>
 </script>

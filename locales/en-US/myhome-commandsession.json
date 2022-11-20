@@ -49,7 +49,8 @@
 			"name-placeholder": "Injector identifier",
 			"intercommandsdelay": "Delay (ms)",
 			"intercommandsdelay-placeholder": "50 ms (minimum delay between 2 commands)",
-			"intercommandsdelay-info": "By default, a very limited delay (50ms) is applied before sending a new command to the MyHome gateway. \nIf you encounter some refused commands when processing multiple at once, you may decide to extend this delay to let the gateway 'breathe' a bit more."
+			"intercommandsdelay-info": "By default, rate is limited by applying a very limited delay (50ms) before sending a new command to the MyHome gateway. \nIf you encounter some refused commands when processing multiple at once, you may decide to extend this delay to let the gateway 'breathe' a bit more.\n \n You can also allow the rate to be overridden when the received message contains a numerical value (in ms) in 'msg.rate'.",
+			"intercommandsdelay_frommsg": "allow 'msg.rate' (in ms) to override delay"
 		},
 		"node":
 		{
