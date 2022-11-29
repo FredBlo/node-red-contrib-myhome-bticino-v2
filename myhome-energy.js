@@ -43,8 +43,8 @@ module.exports = function (RED) {
         msg.payload = {};
       }
       let payload = msg.payload;
-      // When the function is called with a specified list of required entries from the cache, it means function was called internally (from 'processInput')
-      // to return content (for which maybe no command was required because all are already in cache)
+      // When the function is called with a specified list of required entries from the cache, it means function was called
+      // internally (from 'processInput') to return content (for which no command was required because were already in cache)
       let forceFromCacheAndMsg = finalRequiredCachedIDs.length; // when has only 1 element, is the 'FORCED' mode. When >1, these are ID to be filtered/taken from cache
 
       payloadInfo.metered_Info = [];
