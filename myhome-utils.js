@@ -322,7 +322,7 @@ exports.eventsMonitor = eventsMonitor;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // EXTERNAL Function : Node Secondary output generator (based on load ON/OFF state)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueTextValue, falseTextValue) {
+function buildSecondaryOutput (primaryClonedMsg, payloadInfo , config, outputDefaultName, trueTextValue, falseTextValue) {
   // Build state content based on configured type (text or boolean)
   let msg2_value;
   let msg2_type = (config.output2_type === undefined) ? 'boolean' : config.output2_type;
@@ -347,8 +347,7 @@ function buildSecondaryOutput (payloadInfo , config, outputDefaultName, trueText
     }
   }
   // Build & return a new msg object
-  let msg2 = {};
-  msg2.topic = 'state/' + config.topic;
+  let msg2 = primaryClonedMsg;
   let msg2_name = (config.output2_name === undefined) ? outputDefaultName : config.output2_name;
   if (msg2_name === '') {
     // Output property is empty, which means we have to return a non-object payload

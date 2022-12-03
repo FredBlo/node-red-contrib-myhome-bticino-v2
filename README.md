@@ -25,7 +25,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 
 ## 2. Version history
 ### v2.3.0 (latest available) - 01/2023
--TODO : take from CHANGELOG in release
+-TODO : take from CHANGELOG on release
 
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 

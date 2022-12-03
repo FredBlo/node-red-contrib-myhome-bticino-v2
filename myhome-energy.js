@@ -241,7 +241,7 @@ module.exports = function (RED) {
           msg.topic = 'state/' + config.topic;
 
           // MSG2 : Build secondary payload
-          let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, '', '', '');
+          let msg2 = mhutils.buildSecondaryOutput (RED.util.cloneMessage (msg), payloadInfo, config, '', '', '');
 
           // Send both msg to output1 and output2
           node.send ([msg, msg2]);

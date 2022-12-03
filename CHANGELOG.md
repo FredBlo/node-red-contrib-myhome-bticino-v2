@@ -5,6 +5,7 @@
   - ***Improvement*** : quite many code clean-up, doc content updated and fine-tuned,...
   - ***Improvement*** : many nodes UI were reviewed to be more consistent / easier to understand (options re-ordering, greying out options which have become inapplicable because of other options,...)
   - ***Improvement*** : technical revamp to support **internationalization** (if someone wants to translate to other languages, let me know :-) )
+  - ***Improvement*** : nodes which have a secondary output will now include all info from initial received 'msg' (i.e. received 'msg' is cloned and only 'msg.payload' is simplified)
 - **MH Light**
   - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled by default for new installs.
   - ***Improvement*** : support for a new 'simple' command 'TOGGLE' which will, based on last light state, switch from 'ON' -> 'OFF' or 'OFF' -> 'ON'. When last state is unknown, it is considered as 'OFF' and will be turned 'ON'.
