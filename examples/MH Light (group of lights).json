@@ -1,11 +1,13 @@
-[{
+[
+    {
         "id": "59ad58b444f1e3f6",
         "type": "tab",
         "label": "Light (group of) - example",
         "disabled": false,
         "info": "",
         "env": []
-    }, {
+    },
+    {
         "id": "15111347b5712613",
         "type": "group",
         "z": "59ad58b444f1e3f6",
@@ -17,12 +19,18 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["978c2a20a1585c95", "069c8076881754f7", "6ad414604489c8da", "c9371f7b8c9cf640"],
+        "nodes": [
+            "978c2a20a1585c95",
+            "069c8076881754f7",
+            "6ad414604489c8da",
+            "c9371f7b8c9cf640"
+        ],
         "x": 14,
         "y": 7,
         "w": 1198,
         "h": 560
-    }, {
+    },
+    {
         "id": "6ad414604489c8da",
         "type": "group",
         "z": "59ad58b444f1e3f6",
@@ -35,12 +43,17 @@
             "label": true,
             "color": "#6A7E64"
         },
-        "nodes": ["1d412d8f7677645f", "339e55f92ceeea96", "6d3744c54bf0ec66"],
+        "nodes": [
+            "1d412d8f7677645f",
+            "339e55f92ceeea96",
+            "6d3744c54bf0ec66"
+        ],
         "x": 734,
         "y": 219,
         "w": 452,
         "h": 322
-    }, {
+    },
+    {
         "id": "c9371f7b8c9cf640",
         "type": "group",
         "z": "59ad58b444f1e3f6",
@@ -53,12 +66,20 @@
             "label": true,
             "color": "#7E909D"
         },
-        "nodes": ["a87332210d8c59b0", "159ec2e59c997403", "1dc46228f97862c6", "9135df058461aa07", "d49b7dc5cead4e32", "414ee82bf52c7ea5"],
+        "nodes": [
+            "a87332210d8c59b0",
+            "159ec2e59c997403",
+            "1dc46228f97862c6",
+            "9135df058461aa07",
+            "d49b7dc5cead4e32",
+            "414ee82bf52c7ea5"
+        ],
         "x": 54,
         "y": 219,
         "w": 372,
         "h": 322
-    }, {
+    },
+    {
         "id": "978c2a20a1585c95",
         "type": "myhome-light",
         "z": "59ad58b444f1e3f6",
@@ -70,14 +91,23 @@
         "topic": "light",
         "gateway": "a4e23617.d0c288",
         "smartfilter": true,
+        "smartfilter_out": false,
         "skipevents": false,
         "isstatusrequest": false,
         "output2_name": "",
         "output2_type": "boolean",
         "x": 580,
         "y": 360,
-        "wires": [["1d412d8f7677645f"], ["339e55f92ceeea96"]]
-    }, {
+        "wires": [
+            [
+                "1d412d8f7677645f"
+            ],
+            [
+                "339e55f92ceeea96"
+            ]
+        ]
+    },
+    {
         "id": "1d412d8f7677645f",
         "type": "debug",
         "z": "59ad58b444f1e3f6",
@@ -94,25 +124,29 @@
         "x": 860,
         "y": 260,
         "wires": []
-    }, {
+    },
+    {
         "id": "069c8076881754f7",
         "type": "comment",
         "z": "59ad58b444f1e3f6",
         "g": "15111347b5712613",
-        "name": "!! Before you begin, do not forget to configure your gateway (open 'Group of lights' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'group of lights' node, you have to set its number (1 - 255). \\n - To turn lamp on or off, simply send True/False as payload \\n - To dim it, send the percentage (20 - 100%) as payload \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<light_node_topic>>' to allow state change",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'Group of lights' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'group of lights' node, you have to set its number (1 - 255). \\n - To turn lamp on or off, simply send True/False as payload \\n - To dim it, send the percentage (20 - 100%) as payload \\n \\n Do NOT forget you also have to include a .topic which is 'cmd/<<light_node_topic>>' to allow state change",
         "info": "",
         "x": 580,
         "y": 120,
         "wires": []
-    }, {
+    },
+    {
         "id": "a87332210d8c59b0",
         "type": "inject",
         "z": "59ad58b444f1e3f6",
         "g": "c9371f7b8c9cf640",
         "name": "Turn off",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -126,17 +160,24 @@
         "payloadType": "bool",
         "x": 350,
         "y": 300,
-        "wires": [["978c2a20a1585c95"]],
+        "wires": [
+            [
+                "978c2a20a1585c95"
+            ]
+        ],
         "icon": "font-awesome/fa-toggle-off"
-    }, {
+    },
+    {
         "id": "159ec2e59c997403",
         "type": "inject",
         "z": "59ad58b444f1e3f6",
         "g": "c9371f7b8c9cf640",
         "name": "Turn on",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -150,9 +191,14 @@
         "payloadType": "bool",
         "x": 350,
         "y": 260,
-        "wires": [["978c2a20a1585c95"]],
+        "wires": [
+            [
+                "978c2a20a1585c95"
+            ]
+        ],
         "icon": "font-awesome/fa-toggle-on"
-    }, {
+    },
+    {
         "id": "339e55f92ceeea96",
         "type": "debug",
         "z": "59ad58b444f1e3f6",
@@ -169,15 +215,18 @@
         "x": 910,
         "y": 500,
         "wires": []
-    }, {
+    },
+    {
         "id": "1dc46228f97862c6",
         "type": "inject",
         "z": "59ad58b444f1e3f6",
         "g": "c9371f7b8c9cf640",
         "name": "Dim to 20%",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -191,17 +240,24 @@
         "payloadType": "num",
         "x": 330,
         "y": 360,
-        "wires": [["978c2a20a1585c95"]],
+        "wires": [
+            [
+                "978c2a20a1585c95"
+            ]
+        ],
         "icon": "font-awesome/fa-star-half-empty"
-    }, {
+    },
+    {
         "id": "9135df058461aa07",
         "type": "inject",
         "z": "59ad58b444f1e3f6",
         "g": "c9371f7b8c9cf640",
         "name": "Dim to 100%",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -215,17 +271,24 @@
         "payloadType": "num",
         "x": 330,
         "y": 400,
-        "wires": [["978c2a20a1585c95"]],
+        "wires": [
+            [
+                "978c2a20a1585c95"
+            ]
+        ],
         "icon": "font-awesome/fa-star"
-    }, {
+    },
+    {
         "id": "d49b7dc5cead4e32",
         "type": "inject",
         "z": "59ad58b444f1e3f6",
         "g": "c9371f7b8c9cf640",
         "name": "Advanced mode : msg (ON @50%)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -239,9 +302,14 @@
         "payloadType": "json",
         "x": 260,
         "y": 500,
-        "wires": [["978c2a20a1585c95"]],
+        "wires": [
+            [
+                "978c2a20a1585c95"
+            ]
+        ],
         "icon": "node-red/parser-json.svg"
-    }, {
+    },
+    {
         "id": "414ee82bf52c7ea5",
         "type": "comment",
         "z": "59ad58b444f1e3f6",
@@ -251,7 +319,8 @@
         "x": 240,
         "y": 460,
         "wires": []
-    }, {
+    },
+    {
         "id": "6d3744c54bf0ec66",
         "type": "comment",
         "z": "59ad58b444f1e3f6",
@@ -261,7 +330,8 @@
         "x": 960,
         "y": 420,
         "wires": []
-    }, {
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -269,6 +339,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,

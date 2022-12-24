@@ -1,0 +1,75 @@
+<script type="text/x-red" data-help-name="myhome-energy">
+<p>Adds a MyHome Energy management Node to your flow.</p>
+  <ul>
+    <li><strong>Name</strong> (mandatory) is the name of the node</li>
+    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
+    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+    <li><strong>Meter</strong> is the type and address (1 to 255) of the meter in MyHome system :</li>
+      <ul>
+        <li><strong>Power management meter</strong> are, according to OpenWebNet documentation, Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554</li>
+        <li><strong>Power management actuators</strong> are, according to OpenWebNet documentation, Bticino F522, F523 / Legrand 03558, 03559</li>
+      </ul>
+      <i>Note : I only tested using F520... if you test / use it with another devices (successfully or not), let me know !</i>
+    <li><strong>Scope</strong> allows to define which mode of the meter is to be used for this node :</li>
+      <ul>
+        <li><strong>Current power</strong> : returns the 'real-time' consumption, in Watts</li>
+        <li><strong>Daily consumption (today)</strong> : returns the consumption (Wh) since begin of the day (@00:00:00 AM)</li>
+        <li><strong>Daily consumption (time range)</strong> : returns the consumption (Wh), for a time range specified in input (see below), detailled per day*.
+        <br><i>TechNote : MyHome only exposes daily consumption by asking for hourly details (on a day) or daily details (on a full month). The node will filter correctly based on your time range, but processing of request can take a bit longer and generate more responses than required.</i></li>
+        <li><strong>Hourly consumption (time range)</strong> : returns the consumption (Wh), for a time range specified in input (see below), detailled per hour*.</li>
+        <li><strong>Monthly consumption (current month)</strong> : returns the consumption (Wh) since begin of the month (1st day @00:00:00 AM)</li>
+        <li><strong>Monthly consumption (time range)</strong> : returns the consumption (Wh), for a time range specified in input (see below), detailled per month**.</li>
+        <li><strong>Full consumption since begin</strong> : returns the consumption (Wh), since meter was last reset.</li>
+        <i>* meters store daily/hourly details for 12 months (i.e. current month and 11 months before), asking for info outside this range will result in range being limited when possible, or return a null range (when both From and To date are outside of this range).</i>
+        <br><i>** meters store monthly details for 12 years.</i>
+      </ul>
+    <li><strong>Skip ALL incoming gateway events</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
+    <li><strong>Cache previously fetched results</strong> : by default, the node will keep all previously fetched results in memory. When the same scope is asked, cached content is used instead of firing (many) requests on the MyHome BUS. Cache is non persistent and reset on node re-deploy and node-RED restart.
+      <br>!! The cache is also useful (/required) for some commands (such as daily consumtpion) and / or when working with gateways which do not provide response to calls as they should... but the node can still fetch info directly on the BUS and cache it instead...
+      <br>Note that, regardless of this setting, cache is never used for partial results (i.e. instant power, today, current month,...) since content will keep changing from call to call.
+    </li>
+  </ul>
+
+<h3>Inputs</h3>
+  <p><code>msg.payload</code> can be of 2 types</p>
+    <ul>
+      <li>... anything</li>
+      When node is configured in 'Current power', 'Daily consumption (today)', 'Monthly consumption (current month)' or 'Full consumption since begin', no parameter is necessary. The node will always gather info from the BUS and return value(s) as configured.
+      </li>
+      <li>An Object
+        <ul>
+          <li> <code>payload.metered_From</code> <em>[string]</em> value must be convertible to a valid date (+time); if not defaults to current date-time.
+            <br>Defines from when meter info must be collected</li>
+          <li> <code>payload.metered_To</code> <em>[string]</em> value must be convertible to a valid date (+time); if not defaults to <code>payload.metered_From</code>.
+            <br>Defines until when meter info must be collected</li>
+        </ul>
+      </li>
+    </ul>
+  <p><code>msg.topic</code> is <strong>required</strong> to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> or <code>state/xxxx</code>where xxxx is the value defined as Topic in node configuration. For energy managemetn nodes, there is no different behaviour between 'cmd' or 'state' modes.</p>
+
+<h3>Outputs</h3>
+  <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
+    <ul>
+      <li> <code>payload.metered_Scope</code> <em>[string]</em> the node's configured scope (can be : 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin')</li>
+      <li> <code>payload.metered_From</code> <em>[string (date-time)]</em> the effective date since which the data was collected on the meter</li>
+      <li> <code>payload.metered_To</code> <em>[string (date-time)]</em> the effective date up to which the data was collected on the meter</li>
+      <li> <code>payload.metered_Power</code> <em>[number]</em> the instant power (W) or the total consumption (Wh) metered during the provided date-time range</li>
+      <li> <code>payload.metered_Power_asText</code> <em>[string]</em> the power value converted to a 'readable' text (i.e. 900 -> 900Wh, 1250 -> 1,25kWh, 1543134 -> 1,54MWh)</li>
+      <li> <code>payload.metered_Info</code> <em>[array of objects]</em> an object is returned for each metered interval (hour / day / month) with, as content :
+        <ul>
+          <li> <code>.metered_From</code> <em>[string (date-time)]</em> the effective date since which this data interval was collected on the meter</li>
+          <li> <code>.metered_To</code> <em>[string (date-time)]</em> the effective date up to which this data interval was collected on the meter</li>
+          <li> <code>.metered_Power</code> <em>[number]</em> the power consumption (Wh) metered during the provided date-time range</li>
+          <li> <code>.metered_Frame</code> <em>[string]</em> -technical- the OpenWebNet frame which was received form the BUS and was analyzed for this data interval</li>
+          <li> <code>.metered_CacheID</code> <em>[boolean]</em> -technical internal use for cache management- is the cache 'unique key'</li>
+          <li> <code>.metered_CacheIsStatic</code> <em>[boolean]</em> -technical internal use for cache management- indicates this data interval will not evolve anymore in the future</li>
+        </ul>
+      </li>
+      <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol</li>
+      <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol</li>
+      <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+      <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
+    </ul>
+
+  <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector.</p>
+</script>

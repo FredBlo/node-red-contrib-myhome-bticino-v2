@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, node: true */
+/*jshint esversion: 7, strict: implied, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
@@ -27,71 +27,75 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (packet) {
+    const listenerFunction = function (frame) {
       let msg = {};
-      node.processReceivedBUSCommand (msg, packet);
+      node.processReceivedBUSFrames (msg, frame);
     };
     runningMonitor.addMonitoredEvent ('OWN_LIGHTS', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    this.processReceivedBUSCommand = function (msg, packet) {
+    this.processReceivedBUSFrames = function (msg, frame) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
       // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
-      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      // In this case, even if no frame is found to update something, node is refreshed and msg are sent
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured light point
-      let processedPackets = 0;
-      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
-        let packetMatch;
+      let processedFrames = 0;
+      for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
+        let frameMatch;
         // Checks 1 : Light point/group update [*1*<status>|<dimmerLevel10>*where##]
         //    - <status> [0-1] : 0 = OFF / 1 = ON
         //    - <dimmerLevel10> [2-10] : 2 = 20% / 3 = 30% / ... / 9 = 90% / 10 = 100%
         // Note : the RegEx must only keep 2 characters when <status> begins with 1 to skip 30 or 31 since these are dimming UP / DOWN
-        packetMatch = curPacket.match ('^\\*1\\*(\\d|1\\d)\\*(' + node.lightgroupid + '|0)##');
-        if (packetMatch !== null) {
-          if ((packetMatch[1] === '0') || (packetMatch[1] === '1')) {
-            payloadInfo.state = (packetMatch[1] === '1') ? 'ON' : 'OFF';
+        frameMatch = curFrame.match ('^\\*1\\*(\\d|1\\d)\\*(' + node.lightgroupid + '|0)##');
+        if (frameMatch !== null) {
+          if ((frameMatch[1] === '0') || (frameMatch[1] === '1')) {
+            payloadInfo.state = (frameMatch[1] === '1') ? 'ON' : 'OFF';
+            // When light is turned off, it it had a brightness level gathered before, reset it to 0
+            if (typeof(payloadInfo.brightness) !== 'undefined') {
+              payloadInfo.brightness = 0;
+            }
           } else {
             payloadInfo.state = 'ON';
-            payloadInfo.brightness = (parseInt(packetMatch[1]) * 10);
+            payloadInfo.brightness = (parseInt(frameMatch[1]) * 10);
           }
         }
         // Checks 2 : Light point/group dimmer info update [*#1*<where>*1*<dimmerLevel100>*<dimmerSpeed>##]
         //    - <dimmerLevel100> [100-200] : 100 = off / 200 = Max
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
-          if (packetMatch !== null) {
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*#1\\*' + node.lightgroupid + '\\*1\\*(\\d+)\\*\\d+##');
+          if (frameMatch !== null) {
             payloadInfo.state = 'ON';
-            payloadInfo.brightness = (parseInt(packetMatch[1]) - 100);
+            payloadInfo.brightness = (parseInt(frameMatch[1]) - 100);
           }
         }
         // If we reached here with a non null match, it means command was useful for node
-        if (packetMatch !== null) {
-          processedPackets++;
+        if (frameMatch !== null) {
+          processedFrames++;
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
-      if (processedPackets === 0 && !forceRefreshAndMsg) {
+      if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
       // Update Node displayed status
       if (payloadInfo.state === 'OFF') {
         // turned OFF is the same for all lights (dimmed or not)
-        node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'Off'});
+        node.status ({fill: 'grey', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-light.node.status-isgroup') : '') + 'Off'});
       } else if (payloadInfo.state === 'ON') {
         if (payloadInfo.brightness) {
           // Dimmed light, include brightness in state
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On (' + payloadInfo.brightness +'%)'});
+          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-light.node.status-isgroup') : '') + 'On (' + payloadInfo.brightness +'%)'});
         } else {
           // No brightness provided : is a simple 'ON' state
-          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? 'group info: ' : '') + 'On'});
+          node.status ({fill: 'yellow', shape: (config.isgroup) ? 'ring' : 'dot', text: ((config.isgroup) ? RED._('mh-light.node.status-isgroup') : '') + 'On'});
         }
       }
 
@@ -102,8 +106,8 @@ module.exports = function (RED) {
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
-          if (!Array.isArray(packet)) {
-            payload.command_received = packet;
+          if (!Array.isArray(frame)) {
+            payload.command_received = frame;
           }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
@@ -114,7 +118,7 @@ module.exports = function (RED) {
           msg.topic = 'state/' + config.topic;
 
           // MSG2 : Build secondary payload
-          let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', 'ON', 'OFF');
+          let msg2 = mhutils.buildSecondaryOutput (RED.util.cloneMessage (msg), payloadInfo, config, 'On', 'ON', 'OFF');
 
           // Store last sent payload info & send both msg to output1 and output2
           node.lastPayloadInfo = newPayloadinfo;
@@ -168,29 +172,50 @@ module.exports = function (RED) {
       if (!isReadOnly) {
         // Working in update mode: build the status change request
         let cmd_what = '';
-        if (payload.state === 'OFF') {
-          // turning OFF is the same for all lights (dimmed or not)
-          cmd_what = '0';
-        } else if (payload.state === 'ON') {
-          if(payload.brightness) {
-            // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
-            let requested_brightness = Math.round(parseInt(payload.brightness)/10);
-            if (requested_brightness < 2) {
-              requested_brightness = 2;
-            } else if (requested_brightness > 10) {
-              requested_brightness = 10;
+        switch (payload.state) {
+          case 'ON':
+          case 'OFF':
+            // Working in ON (potentially with a dimmed level) and OFF mode
+            // SmartFiltering on this outgoing call ? (i.e. if last state is already the one which would result of this command being sent, BREAK to stop the flow)
+            if (config.smartfilter_out && payload.state === payloadInfo.state) {
+              if (payload.state === 'OFF') {
+                // Was OFF and remains OFF (brightness is unchecked, it will always be 0 afterwards. If a value was provided it could 'cheat' the filter)
+                break;
+              } else if (typeof(payload.brightness) === 'undefined' || payload.brightness == payloadInfo.brightness) {
+                // New state is ON, but brightness is unspecified or the same (i.e. same value (text / number/ never been defined))
+                break;
+              }
             }
-            cmd_what = requested_brightness.toString();
-          } else {
-            // No brightness provided : is a simple 'ON' call
-            cmd_what = '1';
-          }
-        } else if (payload.state === 'UP') {
-          // Working in dimmer : dimming UP
-          cmd_what = '30';
-        } else if (payload.state === 'DOWN') {
-          // Working in dimmer : dimming DOWN
-          cmd_what = '31';
+            if (payload.state === 'OFF') {
+              // turning OFF is the same for all lights (dimmed or not)
+              cmd_what = '0';
+            } else if (payload.state === 'ON') {
+                if(payload.brightness) {
+                  // Brightness is provided in %, convert it to WHAT command (from min 2 (20%) to max 10 (100%))
+                  let requested_brightness = Math.round(parseInt(payload.brightness)/10);
+                  if (requested_brightness < 2) {
+                    requested_brightness = 2;
+                  } else if (requested_brightness > 10) {
+                    requested_brightness = 10;
+                  }
+                  cmd_what = requested_brightness.toString();
+                } else {
+                  // No brightness provided : is a simple 'ON' call
+                  cmd_what = '1';
+                }
+            }
+            break;
+          case 'UP':
+            // Working in dimmer : dimming UP
+            cmd_what = '30';
+            break;
+          case 'DOWN':
+            // Working in dimmer : dimming DOWN
+            cmd_what = '31';
+            break;
+          case 'TOGGLE':
+            cmd_what = (payloadInfo.state === 'ON') ? '0' : '1';
+            break;
         }
         if (cmd_what) {
           commands.push ('*1*' + cmd_what + '*' + node.lightgroupid + '##');
@@ -200,9 +225,7 @@ module.exports = function (RED) {
         // In Read-Only mode : build a status enquiry request (no status update sent)
         // In Write mode : Since the gateway does not 'respond' when changing point state, we also add a second call to ask for point status after update.
         // Note : This does not work for groups
-        if (!config.isgroup) {
-          commands.push ('*#1*' + node.lightgroupid + '##');
-        }
+        commands.push ('*#1*' + node.lightgroupid + '##');
       }
       if (commands.length === 0) {
         return;
@@ -220,7 +243,7 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          node.processReceivedBUSCommand (msg, cmd_responses);
+          node.processReceivedBUSFrames (msg, cmd_responses);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

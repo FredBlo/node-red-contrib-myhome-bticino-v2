@@ -1,11 +1,13 @@
-[{
+[
+    {
         "id": "0e5cb8beb26f7093",
         "type": "tab",
         "label": "Thermo Central (example)",
         "disabled": false,
         "info": "",
         "env": []
-    }, {
+    },
+    {
         "id": "ea5f320f18c12458",
         "type": "group",
         "z": "0e5cb8beb26f7093",
@@ -17,12 +19,18 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["fa54b4517bbef1cc", "1f6403e29a55ff25", "5bc83f65554a2823", "c697cd7070e46705"],
+        "nodes": [
+            "fa54b4517bbef1cc",
+            "1f6403e29a55ff25",
+            "5bc83f65554a2823",
+            "c697cd7070e46705"
+        ],
         "x": 14,
         "y": 23,
         "w": 1158,
         "h": 1004
-    }, {
+    },
+    {
         "id": "5bc83f65554a2823",
         "type": "group",
         "z": "0e5cb8beb26f7093",
@@ -35,12 +43,29 @@
             "label": true,
             "color": "#7E909D"
         },
-        "nodes": ["7eb076059c1c2e2f", "8744c7239c36448f", "9a01b649e6676b4c", "ead93621f93537ef", "06665a552d1d624d", "85d97d78b9d453e4", "61021c2cae7ea40e", "9e147872d730d349", "db67f74bf273be0c", "c9c1d43ff0683d79", "4d0b7e8e89d67764", "ac71dce0290ea911", "633355e1054e7f40", "66a7ecb8b2d073fa", "1353aa69fb5bde16"],
+        "nodes": [
+            "7eb076059c1c2e2f",
+            "8744c7239c36448f",
+            "9a01b649e6676b4c",
+            "ead93621f93537ef",
+            "06665a552d1d624d",
+            "85d97d78b9d453e4",
+            "61021c2cae7ea40e",
+            "9e147872d730d349",
+            "db67f74bf273be0c",
+            "c9c1d43ff0683d79",
+            "4d0b7e8e89d67764",
+            "ac71dce0290ea911",
+            "633355e1054e7f40",
+            "66a7ecb8b2d073fa",
+            "1353aa69fb5bde16"
+        ],
         "x": 54,
         "y": 279,
         "w": 372,
         "h": 722
-    }, {
+    },
+    {
         "id": "c697cd7070e46705",
         "type": "group",
         "z": "0e5cb8beb26f7093",
@@ -53,22 +78,28 @@
             "label": true,
             "color": "#6A7E64"
         },
-        "nodes": ["55eb8382f11ef1fe", "b710cadda78b38bd", "ef4c7d71f37ba554"],
+        "nodes": [
+            "55eb8382f11ef1fe",
+            "b710cadda78b38bd",
+            "ef4c7d71f37ba554"
+        ],
         "x": 694,
         "y": 279,
         "w": 452,
         "h": 342
-    }, {
+    },
+    {
         "id": "fa54b4517bbef1cc",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
         "g": "ea5f320f18c12458",
-        "name": "!! Before you begin, do not forget to configure your gateway (open 'Home' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n You can use this node to command and monitor the installation about : \\n - which Program/Scenario is enabled \\n - manually defining a temperature \\n - completely turning heating / cooling off \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<thermo_node_topic>>' to allow state change",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'Home' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n You can use this node to command and monitor the installation about : \\n - which Program/Scenario is enabled \\n - manually defining a temperature \\n - completely turning heating / cooling off \\n - switching to protection mode (antifreeze / thermal protection / generic) \\n \\n Do NOT forget you also have to include a .topic which is 'cmd/<<thermo_node_topic>>' to allow state change",
         "info": "",
         "x": 550,
         "y": 160,
         "wires": []
-    }, {
+    },
+    {
         "id": "7eb076059c1c2e2f",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
@@ -78,15 +109,18 @@
         "x": 250,
         "y": 600,
         "wires": []
-    }, {
+    },
+    {
         "id": "8744c7239c36448f",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Enable Program 'Heating #2'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -100,9 +134,14 @@
         "payloadType": "str",
         "x": 280,
         "y": 360,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "node-red/serial.svg"
-    }, {
+    },
+    {
         "id": "1f6403e29a55ff25",
         "type": "myhome-thermo-central",
         "z": "0e5cb8beb26f7093",
@@ -117,16 +156,26 @@
         "output2_type": "operationMode",
         "x": 570,
         "y": 480,
-        "wires": [["ef4c7d71f37ba554"], ["55eb8382f11ef1fe"]]
-    }, {
+        "wires": [
+            [
+                "ef4c7d71f37ba554"
+            ],
+            [
+                "55eb8382f11ef1fe"
+            ]
+        ]
+    },
+    {
         "id": "9a01b649e6676b4c",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Set central to Antifreeze",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -140,17 +189,24 @@
         "payloadType": "str",
         "x": 290,
         "y": 820,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-snowflake-o"
-    }, {
+    },
+    {
         "id": "ead93621f93537ef",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Turn central off",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -164,17 +220,24 @@
         "payloadType": "str",
         "x": 320,
         "y": 860,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-power-off"
-    }, {
+    },
+    {
         "id": "06665a552d1d624d",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Enable 'Scenario #12'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -188,17 +251,24 @@
         "payloadType": "str",
         "x": 300,
         "y": 540,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-retweet"
-    }, {
+    },
+    {
         "id": "85d97d78b9d453e4",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Enable Program 'Generic #1'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -212,17 +282,24 @@
         "payloadType": "str",
         "x": 280,
         "y": 400,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "node-red/serial.svg"
-    }, {
+    },
+    {
         "id": "61021c2cae7ea40e",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Set in manual mode 20°C (simple)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -236,15 +313,21 @@
         "payloadType": "str",
         "x": 260,
         "y": 640,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-hand-pointer-o"
-    }, {
+    },
+    {
         "id": "9e147872d730d349",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Refresh current home sate",
-        "props": [{
+        "props": [
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -256,9 +339,14 @@
         "topic": "state/home",
         "x": 290,
         "y": 960,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-question-circle-o"
-    }, {
+    },
+    {
         "id": "ef4c7d71f37ba554",
         "type": "debug",
         "z": "0e5cb8beb26f7093",
@@ -275,7 +363,8 @@
         "x": 820,
         "y": 320,
         "wires": []
-    }, {
+    },
+    {
         "id": "55eb8382f11ef1fe",
         "type": "debug",
         "z": "0e5cb8beb26f7093",
@@ -292,7 +381,8 @@
         "x": 860,
         "y": 580,
         "wires": []
-    }, {
+    },
+    {
         "id": "b710cadda78b38bd",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
@@ -302,15 +392,18 @@
         "x": 920,
         "y": 500,
         "wires": []
-    }, {
+    },
+    {
         "id": "db67f74bf273be0c",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Set in manual mode 20.5°C (advanced)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -324,9 +417,14 @@
         "payloadType": "str",
         "x": 250,
         "y": 680,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-hand-pointer-o"
-    }, {
+    },
+    {
         "id": "c9c1d43ff0683d79",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
@@ -336,7 +434,8 @@
         "x": 300,
         "y": 320,
         "wires": []
-    }, {
+    },
+    {
         "id": "4d0b7e8e89d67764",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
@@ -346,15 +445,18 @@
         "x": 300,
         "y": 460,
         "wires": []
-    }, {
+    },
+    {
         "id": "ac71dce0290ea911",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Set Central to Thermal Protection",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -368,9 +470,14 @@
         "payloadType": "str",
         "x": 260,
         "y": 780,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-sun-o"
-    }, {
+    },
+    {
         "id": "633355e1054e7f40",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
@@ -380,15 +487,18 @@
         "x": 290,
         "y": 740,
         "wires": []
-    }, {
+    },
+    {
         "id": "66a7ecb8b2d073fa",
         "type": "inject",
         "z": "0e5cb8beb26f7093",
         "g": "5bc83f65554a2823",
         "name": "Enable 'Scenario #1'",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -402,9 +512,14 @@
         "payloadType": "str",
         "x": 310,
         "y": 500,
-        "wires": [["1f6403e29a55ff25"]],
+        "wires": [
+            [
+                "1f6403e29a55ff25"
+            ]
+        ],
         "icon": "font-awesome/fa-retweet"
-    }, {
+    },
+    {
         "id": "1353aa69fb5bde16",
         "type": "comment",
         "z": "0e5cb8beb26f7093",
@@ -414,7 +529,8 @@
         "x": 260,
         "y": 920,
         "wires": []
-    }, {
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -422,6 +538,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,

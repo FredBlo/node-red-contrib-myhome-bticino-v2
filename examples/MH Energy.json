@@ -1,0 +1,942 @@
+[
+    {
+        "id": "125a7426.3ccc94",
+        "type": "tab",
+        "label": "Energy - example",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "1c23086ee80c3ea8",
+        "type": "group",
+        "z": "125a7426.3ccc94",
+        "name": "Energy - All modes explained",
+        "style": {
+            "label": true,
+            "fill": "#ffffbf",
+            "stroke-opacity": "0.6",
+            "fill-opacity": "0.6",
+            "color": "#3f3f3f"
+        },
+        "nodes": [
+            "cdd52f6fcc5ae34c",
+            "e318eed46b6ff29c",
+            "f73325471f10283b",
+            "56bb5821afa1eaad",
+            "0a77e99cfb1e745a",
+            "0155f92f594f3e9d",
+            "15d6b37fee3d40c7",
+            "93eb0a9a02ba9dc1",
+            "c69ec9937877eeee",
+            "4535d7f01ba70b90"
+        ],
+        "x": 14,
+        "y": 19,
+        "w": 1238,
+        "h": 1128
+    },
+    {
+        "id": "c69ec9937877eeee",
+        "type": "group",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Send a request for a configured meter",
+        "style": {
+            "stroke-opacity": "0.6",
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "label": true,
+            "color": "#7E909D"
+        },
+        "nodes": [
+            "6db6c82d04d321d0",
+            "1253dfcdf8616b40",
+            "bfd2e5b78831b337",
+            "b93f0817a97d86e4",
+            "bbcab13ab9390236",
+            "176e686121cbcfed",
+            "7b134127a31e8d79",
+            "b170eeef190b0b37",
+            "33bb01dae6bf8036",
+            "74233bb2bfde41ab",
+            "efcf747172d76d14",
+            "f521d81dd995a488"
+        ],
+        "x": 54,
+        "y": 221,
+        "w": 373,
+        "h": 900
+    },
+    {
+        "id": "4535d7f01ba70b90",
+        "type": "group",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Monitor changes made on energy meter",
+        "style": {
+            "stroke-opacity": "0.6",
+            "label": true,
+            "fill": "#d1d1d1",
+            "fill-opacity": "0.6",
+            "color": "#6A7E64"
+        },
+        "nodes": [
+            "616748750a2d01c6",
+            "c8fc9d6d3cc04009",
+            "6d489150.4f01d8",
+            "3edcf3531e0eef59",
+            "f5e57c4fc13d48db",
+            "33a3ade5e82c4f6d",
+            "0d273364fd4610a2",
+            "b75ca9b20304f03a",
+            "9c971b6d2fcc889a",
+            "a90af2b38057bd35",
+            "9a91d4241535f009",
+            "bf909e4de03392f1",
+            "992aa190879d42f8",
+            "8ca9d7e893cb0ee9",
+            "05f69af3db39ac38",
+            "36f6c03b35c31238"
+        ],
+        "x": 754,
+        "y": 219,
+        "w": 472,
+        "h": 902
+    },
+    {
+        "id": "6d489150.4f01d8",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "cdd52f6fcc5ae34c",
+        "type": "comment",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'energy' node config and select + edit the 'gateway' defined to set the IP and password)  \\n  \\n Within the 'energy' node, you have to set its number (1-255) \\n You can further see examples included to see how node reacts to different types of calls... \\n   \\n Do NOT forget you also have to include a .topic which is 'state/<<energy_node_topic>>' or 'cmd/<<energy_node_topic>>' to allow node to react",
+        "info": "",
+        "x": 560,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "616748750a2d01c6",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Simplified output (kWh)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "6db6c82d04d321d0",
+        "type": "comment",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "Other modes work based on a provided \\n time-range : \\n  - payload.metered_From \\n  - payload.metered_To",
+        "info": "",
+        "x": 250,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "c8fc9d6d3cc04009",
+        "type": "comment",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Simplified output can be configured in node based on \\n what you need in your flow later on. This avoids having \\n to insert additional 'function' or 'switch' nodes. \\n See node config for more info",
+        "info": "",
+        "x": 980,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "e318eed46b6ff29c",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - Instant",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "instant",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "",
+        "output2_type": "metered_Power_asText",
+        "x": 570,
+        "y": 400,
+        "wires": [
+            [
+                "6d489150.4f01d8"
+            ],
+            [
+                "616748750a2d01c6"
+            ]
+        ]
+    },
+    {
+        "id": "1253dfcdf8616b40",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "Refresh",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "payload": "",
+        "payloadType": "str",
+        "x": 350,
+        "y": 400,
+        "wires": [
+            [
+                "e318eed46b6ff29c"
+            ]
+        ],
+        "icon": "font-awesome/fa-refresh"
+    },
+    {
+        "id": "f73325471f10283b",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - Today",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "day_uptonow",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "On",
+        "output2_type": "metered_Power",
+        "x": 570,
+        "y": 480,
+        "wires": [
+            [
+                "3edcf3531e0eef59"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "0155f92f594f3e9d",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - Hourly",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "hour",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "",
+        "output2_type": "metered_Info",
+        "x": 570,
+        "y": 860,
+        "wires": [
+            [
+                "0d273364fd4610a2"
+            ],
+            [
+                "9a91d4241535f009"
+            ]
+        ]
+    },
+    {
+        "id": "7b134127a31e8d79",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "31/12/2021 @8:00",
+        "props": [
+            {
+                "p": "payload.metered_From",
+                "v": "12/31/2021 8:00",
+                "vt": "str"
+            },
+            {
+                "p": "payload.metered_To",
+                "v": "12/31/2021 8:00",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "x": 310,
+        "y": 840,
+        "wires": [
+            [
+                "0155f92f594f3e9d"
+            ]
+        ],
+        "icon": "thingzi-logic-timers/timer.png"
+    },
+    {
+        "id": "b170eeef190b0b37",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "01/10/2022 @10:00 -> 08/10 @08:00",
+        "props": [
+            {
+                "p": "payload.metered_From",
+                "v": "10/1/2022 10:00",
+                "vt": "str"
+            },
+            {
+                "p": "payload.metered_To",
+                "v": "10/8/2022 08:00",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "x": 250,
+        "y": 880,
+        "wires": [
+            [
+                "0155f92f594f3e9d"
+            ]
+        ],
+        "icon": "thingzi-logic-timers/timer.png"
+    },
+    {
+        "id": "15d6b37fee3d40c7",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - Daily",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "day",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "",
+        "output2_type": "metered_Info",
+        "x": 570,
+        "y": 960,
+        "wires": [
+            [
+                "b75ca9b20304f03a"
+            ],
+            [
+                "992aa190879d42f8"
+            ]
+        ]
+    },
+    {
+        "id": "74233bb2bfde41ab",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "15/08/2022 -> 14/10/2022",
+        "props": [
+            {
+                "p": "payload.metered_From",
+                "v": "8/15/2022",
+                "vt": "str"
+            },
+            {
+                "p": "payload.metered_To",
+                "v": "10/14/2022",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "x": 290,
+        "y": 980,
+        "wires": [
+            [
+                "15d6b37fee3d40c7"
+            ]
+        ],
+        "icon": "font-awesome/fa-calendar"
+    },
+    {
+        "id": "33bb01dae6bf8036",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "10/10/2022",
+        "props": [
+            {
+                "p": "payload.metered_From",
+                "v": "10/10/2022",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "x": 330,
+        "y": 940,
+        "wires": [
+            [
+                "15d6b37fee3d40c7"
+            ]
+        ],
+        "icon": "font-awesome/fa-calendar"
+    },
+    {
+        "id": "93eb0a9a02ba9dc1",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - Monthly",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "month",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "",
+        "output2_type": "metered_Info",
+        "x": 580,
+        "y": 1060,
+        "wires": [
+            [
+                "9c971b6d2fcc889a"
+            ],
+            [
+                "05f69af3db39ac38"
+            ]
+        ]
+    },
+    {
+        "id": "efcf747172d76d14",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "03/2022 -> 09/2022",
+        "props": [
+            {
+                "p": "payload.metered_From",
+                "v": "3/1/2022",
+                "vt": "str"
+            },
+            {
+                "p": "payload.metered_To",
+                "v": "9/25/2022",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "x": 310,
+        "y": 1080,
+        "wires": [
+            [
+                "93eb0a9a02ba9dc1"
+            ]
+        ],
+        "icon": "font-awesome/fa-calendar-plus-o"
+    },
+    {
+        "id": "f521d81dd995a488",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "09/2022",
+        "props": [
+            {
+                "p": "payload.metered_From",
+                "v": "9/1/2022",
+                "vt": "str"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "x": 340,
+        "y": 1040,
+        "wires": [
+            [
+                "93eb0a9a02ba9dc1"
+            ]
+        ],
+        "icon": "font-awesome/fa-calendar-plus-o"
+    },
+    {
+        "id": "3edcf3531e0eef59",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "bfd2e5b78831b337",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "Refresh",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "payload": "",
+        "payloadType": "str",
+        "x": 350,
+        "y": 480,
+        "wires": [
+            [
+                "f73325471f10283b"
+            ]
+        ],
+        "icon": "font-awesome/fa-refresh"
+    },
+    {
+        "id": "b93f0817a97d86e4",
+        "type": "comment",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "When working in 'instant', 'today', \\n  'current month' or 'since begin' modes, \\n  the node starts on any payload. \\n  Do not forget .Topic set to \\n   'state/<<energy_node_topic>>'.",
+        "info": "",
+        "x": 251,
+        "y": 310,
+        "wires": []
+    },
+    {
+        "id": "56bb5821afa1eaad",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - Curr. month",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "month_uptonow",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "",
+        "output2_type": "metered_Power_asText",
+        "x": 590,
+        "y": 540,
+        "wires": [
+            [
+                "f5e57c4fc13d48db"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "f5e57c4fc13d48db",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "33a3ade5e82c4f6d",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "0d273364fd4610a2",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "0a77e99cfb1e745a",
+        "type": "myhome-energy",
+        "z": "125a7426.3ccc94",
+        "g": "1c23086ee80c3ea8",
+        "name": "Energy meter #1 - From begin",
+        "meterid": "1",
+        "metertype": "meter",
+        "meterscope": "sincebegin",
+        "topic": "energy",
+        "gateway": "a4e23617.d0c288",
+        "skipevents": true,
+        "enablecache": true,
+        "output2_name": "On",
+        "output2_type": "metered_Power_asText",
+        "x": 590,
+        "y": 600,
+        "wires": [
+            [
+                "33a3ade5e82c4f6d"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "bbcab13ab9390236",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "Refresh",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "payload": "",
+        "payloadType": "str",
+        "x": 350,
+        "y": 540,
+        "wires": [
+            [
+                "56bb5821afa1eaad"
+            ]
+        ],
+        "icon": "font-awesome/fa-refresh"
+    },
+    {
+        "id": "176e686121cbcfed",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "Refresh",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "state/energy",
+        "payload": "",
+        "payloadType": "str",
+        "x": 350,
+        "y": 600,
+        "wires": [
+            [
+                "0a77e99cfb1e745a"
+            ]
+        ],
+        "icon": "font-awesome/fa-refresh"
+    },
+    {
+        "id": "b75ca9b20304f03a",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "9c971b6d2fcc889a",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Full message output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "9a91d4241535f009",
+        "type": "split",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 830,
+        "y": 880,
+        "wires": [
+            [
+                "bf909e4de03392f1"
+            ]
+        ]
+    },
+    {
+        "id": "bf909e4de03392f1",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "hourly details (1 msg per hour)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "a90af2b38057bd35",
+        "type": "comment",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "Node reads ranges (of mutiple hours, days or months)  \\n -> Main output is the full object (which summarizes  \\n range and totals and has range details in '.metered_Info')  \\n -> Secondary output can be configured to only  \\n include the details ('.metered_Info\") which  \\n can then easily be split to manage a flow per range",
+        "info": "",
+        "x": 990,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "992aa190879d42f8",
+        "type": "split",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 830,
+        "y": 980,
+        "wires": [
+            [
+                "8ca9d7e893cb0ee9"
+            ]
+        ]
+    },
+    {
+        "id": "8ca9d7e893cb0ee9",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "hourly details (1 msg per day)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "05f69af3db39ac38",
+        "type": "split",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 830,
+        "y": 1080,
+        "wires": [
+            [
+                "36f6c03b35c31238"
+            ]
+        ]
+    },
+    {
+        "id": "36f6c03b35c31238",
+        "type": "debug",
+        "z": "125a7426.3ccc94",
+        "g": "4535d7f01ba70b90",
+        "name": "hourly details (1 msg per day)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 1080,
+        "wires": []
+    },
+    {
+        "id": "a4e23617.d0c288",
+        "type": "myhome-gateway",
+        "name": "F-455",
+        "host": "192.168.0.210",
+        "port": "20000",
+        "pass": "12345",
+        "timeout": "600",
+        "lights_onconnect_refreshloads": true,
+        "log_in_lights": false,
+        "log_in_shutters": false,
+        "log_in_temperature": false,
+        "log_in_scenario": false,
+        "log_in_energy": false,
+        "log_in_others": false,
+        "log_out_cmd": false
+    }
+]

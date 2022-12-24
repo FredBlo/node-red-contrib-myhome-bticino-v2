@@ -15,7 +15,7 @@
     },
     inputs: 1,
     inputLabels: function () {
-      let inputLabel = "simple mode ('payload' or 'payload.state'):";
+      let inputLabel = this._("common.input-label-simple") + ":";
       inputLabel += "\n - 'xx.x' : manual mode to xx.x °C      ";
       inputLabel += "\n - 'OFF'                                                  ";
       inputLabel += "\n - 'AUTO'                                               ";
@@ -33,7 +33,7 @@
         if (this.output2_type === 'text_state') {
           outputTypeDescr = '°C';
         } else {
-          outputTypeDescr = 'string';
+          outputTypeDescr = '.' + this.output2_type;
         }
         return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
       }
@@ -44,11 +44,25 @@
       return this.name || 'MH Thermo Zone';
     },
     oneditprepare: function() {
-      $(document).on('change', '#node-input-topic', function() {
-        let infoVar = $('#node-input-topic').val();
-        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
-        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
-        $('#node-info-topic').prop('title' , infoMsg);
+      let scope = this;
+      $('#node-input-topic').on('change', function() {
+        let topicName = $(this).val();
+        let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
+        $('#node-info-topic').prop('title' , topicInfo);
+      });
+
+      function checkboxEditable (checkBoxID , isEditable, readonlyValue) {
+        // Function to turn checkbox uneditable (=greyed out box & label, disabled access and value forced), or back editable
+        $('#' + checkBoxID)
+          .prop('checked', (isEditable) ? $('#' + checkBoxID).prop('checked') : readonlyValue)
+          .prop('disabled', !isEditable)
+          .change()
+          .next().css('color', (isEditable) ? '' : 'LightGrey');
+      }
+      $('#node-input-skipevents').on('change', function() {
+        // All gateway events are to be ignored. SmartFilter has nothig to filter (so assume is always 'forced on')
+        let isEditable = !($(this).prop('checked'));
+        checkboxEditable ('node-input-smartfilter' , isEditable, true);
       });
     }
   });
@@ -56,218 +70,71 @@
 
 <script type="text/x-red" data-template-name="myhome-thermo-zone">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Zone identifier" />
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-thzone.config.name-placeholder"/>
   </div>
   <div class="form-row">
-      <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> Zone</label>
-      <input type="text" id="node-input-zoneid" placeholder="1-99" />
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-thzone.config.topic-placeholder"/>
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
   </div>
   <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway"/>
   </div>
+
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
+  <div class="form-row">
+      <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> <span data-i18n="mh-thzone.config.zoneid"></span></label>
+      <input type="text" id="node-input-zoneid" placeholder="1-99"/>
+  </div>
+  <div class="form-row">
+    <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> <span data-i18n="common.option-readonly"></span></label>
+    <label for="node-input-isstatusrequest" style="width:70%">
+      <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-readonly-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-readonly-info"></i>
+    </label>
+  </div>
+  <div class="form-row">
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
+  </div>
+  <div class="form-row">
+    <label for="node-input-smartfilter"><i class="fa fa-filter"></i> <span data-i18n="common.option-smartfilter"></span></label>
+    <label for="node-input-smartfilter" style="width:70%">
+      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-smartfilter-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-smartfilter-info"></i>
+    </label>
+  </div>
+
+  <div class="form-tips form-row" style="max-width:none; background:#EFEFEF">
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
+    <br>
+    <p style="max-width:450px" data-i18n="common.secondary-output-intro"></p>
     <div class="form-row">
-        <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-        <input type="text" id="node-input-gateway" />
-    </div>
-    <div class="form-row">
-      <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
-      <label for="node-input-smartfilter" style="width:70%">
-        <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
-        &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
-This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
-&#13;
-Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+      <label for="node-input-output2_name" style="width:130px; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
+      <input type="text" id="node-input-output2_name" data-i18n="[placeholder]common.secondary-output-name-placeholder" style="width:55%"/>
+      <label for="node-input-output2_name" style="width:15px">
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.secondary-output-name-info"></i>
       </label>
     </div>
     <div class="form-row">
-        <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
-        <label for="node-input-skipevents" style="width:70%">
-          <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
-          &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-        </label>
+      <label for="node-input-output2_type" style="width:130px; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
+      <select id="node-input-output2_type" style="width:55%">
+        <option value="text_state" data-i18n="mh-thzone.config.secondary-output-content-textstate">[.state (number: °C)]</option>
+        <option value="setTemperature" data-i18n="mh-thzone.config.secondary-output-content-settemp">[.setTemperature (number: °C)]</option>
+        <option value="operationType_ownValue" data-i18n="mh-thzone.config.secondary-output-content-optype-ownvalue">[.operationType_ownValue (string: see doc)]</option>
+        <option value="operationType" data-i18n="mh-thzone.config.secondary-output-content-optype">[.operationType (string: see doc)]</option>
+        <option value="operationMode_ownValue" data-i18n="mh-thzone.config.secondary-output-content-opmode-ownvalue">[.operationMode_ownValue (string: see doc)]</option>
+        <option value="operationMode" data-i18n="mh-thzone.config.secondary-output-content-opmode">[.operationMode (string: see doc)]</option>
+        <option value="localOffset_ownValue" data-i18n="mh-thzone.config.secondary-output-content-offset-ownvalue">[.localOffset_ownValue (string: see doc)]</option>
+        <option value="localOffset" data-i18n="mh-thzone.config.secondary-output-content-offset">[.localOffset (string/number: see doc)]</option>
+        <option value="actuatorStates.On" data-i18n="mh-thzone.config.secondary-output-content-actuatorstates-on">[.actuatorStates.On (boolean: true / false)]</option>
+      </select>
     </div>
-    <div class="form-row">
-        <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
-        <label for="node-input-isstatusrequest" style="width:70%">
-          <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current zone status
-          &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (whatever it contains) is ignored and a status request is sent to gather current zone state without applying any change."></i>
-        </label>
-    </div>
-    <div class="form-tips form-row" style="background:#EFEFEF">
-      <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
-      <br>
-      You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
-      <br>
-      <div class="form-row">
-        <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
-        <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
-        <label for="node-input-output2_name" style="width:15px">
-          &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
-        </label>
-      </div>
-      <div class="form-row">
-        <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
-        <select id="node-input-output2_type" style="width:55%">
-          <option value="text_state">.state (number: °C)</option>
-          <option value="setTemperature">.setTemperature (number: °C)</option>
-          <option value="operationType_ownValue">.operationType_ownValue (string: see doc)</option>
-          <option value="operationType">.operationType (string: see doc)</option>
-          <option value="operationMode_ownValue">.operationMode_ownValue (string: see doc)</option>
-          <option value="operationMode">.operationMode (string: see doc)</option>
-          <option value="localOffset_ownValue">.localOffset_ownValue (string: see doc)</option>
-          <option value="localOffset">.localOffset (string/number: see doc)</option>
-          <option value="actuatorStates.On">.actuatorStates.On (boolean: true / false)</option>
-        </select>
-      </div>
-    </div>
-</script>
-
-<script type="text/x-red" data-help-name="myhome-thermo-zone">
-  <style>
-    #mh-tableinfo {width: 300px;font-size: small;}
-    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
-    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
-    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
-  </style>
-  <p>Adds a MyHome Thermo Zone Node to monitor & apply changes on a thermo-controlled zone.</p>
-  <ul>
-    <li><strong>Name</strong> (mandatory) is the name of the node</li>
-    <li><strong>Zone</strong> is the address of the zone in MyHome system (1-99)</li>
-    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
-    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
-    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, a new msg (output) is only generated when a status CHANGE was detected. Not applicable in read-only (status refresh request) mode.</li>
-    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
-    <li><strong>Read-only</strong> : when enabled, the received payload (being '20', 'AUTO', 'OFF', or whatever) is ignored and a status request is sent to gather current zone state without applying any change.</li>
-  </ul>
-
-<h3>Inputs</h3>
-  <p><code>msg.payload</code> can be of 2 types</p>
-    <ul>
-      <li>A simple value <em>[string]</em> is a valid zone command</li>
-      <li>An Object where <code>payload.state</code> is a valid zone command</li>
-      <p>A valid thermo-controlled <strong>zone command</strong> is :</p>
-      <ul>
-        <li>a <strong>number</strong> ('20', '21.5',..) : the zone will be switched to manual mode and specified temperature will be applied (min 2°C, max 43°C).</li>
-        <li><strong>OFF</strong> : zone will be switched off.</li>
-        <li><strong>AUTO</strong> : zone will be switched to automatic mode.</li>
-        <li><strong>PROTECT</strong> : zone will be switched to generic protection mode.</li>
-        <li><strong>THERMAL_PROTECT</strong> : zone will be switched to thermal protection mode (when in conditioning).</li>
-        <li><strong>ANTIFREEZE</strong> : zone will be switched to antifreeze mode (when in heating).</li>
-      </ul>
-    </ul>
-  <p><code>msg.topic</code> is required on the received <code>msg</code> to trigger the node action: </p>
-    <ul>
-      <li>
-        in <strong>Write mode</strong> : <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.
-        <br>
-        Note : if the node is configured as being read-only, the content of the msg.payload is ignored and a refresh status will be processed.
-      </li>
-      <li>
-        in <strong>Read-only mode</strong> : <code>msg.topic</code> must be set to <code>state/xxxx</code> where xxxx is the value defined as Topic in node configuration.</li>
-        <br>
-        Note : even if the node is NOT configured as being read-only, the content of the msg.payload is ignored and a refresh status will be processed.
-    </ul>
-<h3>Outputs</h3>
-  <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
-    <ul>
-      <li> <code>payload.state</code> <em>[number]</em> value is 'ON' or 'OFF'</li>
-      <li> <code>payload.setTemperature</code> <em>[number]</em> the current temperature defined as set-point</li>
-      <li> <code>payload.operationType_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the operation type)</li>
-      <li> <code>payload.operationType</code> <em>[string]</em> the current zone operation type
-        <table id="mh-tableinfo">
-          <tr>  <th>ownValue</th> 	<th>operationType</th>	 	  </tr>
-          <tr>  <td>0</td> 		 		  <td>Conditioning</td>       </tr>
-          <tr>  <td>1</td> 		   	  <td>Heating</td>            </tr>
-          <tr>  <td>102</td> 	      <td>Antifreeze</td>    	    </tr>
-          <tr>  <td>202</td> 	  		<td>Thermal Protection</td> </tr>
-          <tr>  <td>303</td> 	     	<td>Generic OFF</td>   	    </tr>
-        </table>
-      </li>
-      <li> <code>payload.operationMode_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the operation mode)</li>
-      <li> <code>payload.operationMode</code> <em>[string]</em> the current zone operation mode
-        <table id="mh-tableinfo">
-          <tr>  <th>ownValue</th> 	<th>operationMode</th>	 	       </tr>
-          <tr>  <td>110</td> 		 		<td>Manual Heating</td>          </tr>
-          <tr>  <td>210</td> 		   	<td>Manual Conditioning</td>     </tr>
-          <tr>  <td>111</td> 	      <td>Automatic Heating</td>    	 </tr>
-          <tr>  <td>211</td> 	  		<td>Automatic Conditioning</td>  </tr>
-          <tr>  <td>103</td> 	     	<td>Off Heating</td>   	         </tr>
-          <tr>  <td>203</td> 	   		<td>Off Conditioning</td> 	     </tr>
-          <tr>  <td>102</td> 	  		<td>Antifreeze</td>              </tr>
-          <tr>  <td>202</td> 		 		<td>Thermal Protection</td>      </tr>
-        </table>
-      </li>
-      <li> <code>payload.localOffset_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the offset)</li>
-      <li> <code>payload.localOffset</code> <em>[string]</em> value is 'ON' or 'OFF'
-        <table id="mh-tableinfo">
-          <tr>  <th>ownValue</th> 	<th>localOffset</th>	 	  </tr>
-          <tr>  <td>00</td> 		 		<td>0 (no offset)</td>    </tr>
-          <tr>  <td>01</td> 		   	<td>1 (+1°C)</td>         </tr>
-          <tr>  <td>02</td> 	      <td>2 (+2°C)</td>    	    </tr>
-          <tr>  <td>03</td> 	  		<td>3 (+3°C)</td>    	    </tr>
-          <tr>  <td>11</td> 	     	<td>-1 (-1°C)</td>   	    </tr>
-          <tr>  <td>12</td> 	   		<td>-2 (-2°C)</td> 	      </tr>
-          <tr>  <td>13</td> 	  		<td>-3 (-3°C)</td>        </tr>
-          <tr>  <td>04</td> 		 		<td>Local OFF</td>        </tr>
-          <tr>  <td>05</td> 	   		<td>Local protection</td>	</tr>
-        </table>
-      </li>
-      <li> <code>payload.actuatorStates</code> <em>[JSON object]</em> containing all the states of actuators binded to current zone:
-        <ul>
-          <li><code>actuatorStates.On</code> <em>[boolean]</em> is 'true' when the last actuator for which info was received is 'ON'</li>
-          <li><code>actuatorStates.actuator_x</code> <em>[JSON object]</em> (where 'x' is '1-9', i.e. 1 object per binded actuator)
-            <ul>
-              <li><code>actuator_x.state_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the actuator's state)</li>
-              <li><code>actuator_x.state</code> <em>[string]</em> contains the detailed state of the actuator</li>
-              <li><code>actuator_x.On</code> <em>[boolean]</em> contains 'true' when actuator is considered as 'active'</li>
-              <table id="mh-tableinfo">
-                <tr>  <th>ownValue</th>	  <th>state</th>            <th>.On state</th> 	</tr>
-                <tr>  <td>0</td> 			 	  <td>OFF</td>          	  <td>false</td>      </tr>
-                <tr>  <td>1</td> 		  	 	<td>ON</td>           	 	<td>true</td>       </tr>
-                <tr>  <td>2</td> 	    	  <td>Opened</td>       		<td>true</td>       </tr>
-                <tr>  <td>3</td> 	    	  <td>Closed</td>       		<td>false</td>      </tr>
-                <tr>  <td>4</td> 	    	  <td>Stop</td>         		<td>false</td>      </tr>
-                <tr>  <td>5</td> 	    	  <td>OFF Fan Coil</td> 		<td>false</td>      </tr>
-                <tr>  <td>6</td> 	    	  <td>ON Vel 1</td>     		<td>true</td>       </tr>
-                <tr>  <td>7</td> 		  	  <td>ON Vel 2</td>     	  <td>true</td>       </tr>
-                <tr>  <td>8</td> 	    	  <td>ON Vel 3</td>     		<td>true</td>       </tr>
-                <tr>  <td>9</td> 		  	  <td>ON Fan Coil</td>  	  <td>true</td>       </tr>
-              </table>
-            </ul>
-          </li>
-        </ul>
-      <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*#4*2*#14*0225*3##'</em> to switch zone '2' to Manual mode @22.5°C)</li>
-      <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: <em>'*4*1*2'</em> means zone '2' operation mode is 'Heating')</li>
-      <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
-      <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
-    </ul>
-
-  <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector
-    <br>
-    <u>Samples:</u>
-  </p>
-    <ul>
-      <li><strong>HUEMagic</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being a boolean (true/false)</li>
-          <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
-        </ul>
-      </li>
-      <li><strong>Homekit-bridge</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
-        </ul>
-        <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
-      </li>
-      <li><strong>MyHome</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
-          <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
-          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
-        </ul>
-      </li>
-    </ul>
+  </div>
 </script>

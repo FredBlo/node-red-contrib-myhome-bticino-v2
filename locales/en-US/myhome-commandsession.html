@@ -1,0 +1,25 @@
+<script type="text/x-red" data-help-name="myhome-commandsession">
+  <p>MyHome Inject Node to send any supported OpenWebNet command to the MyHome system.</p>
+    <ul>
+      <li><strong>Name</strong> (mandatory) is the name of the node</li>
+      <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+      <li><strong>Delay (ms)</strong> is the custom delay to wait before sending a new command to the gateway.
+        <br>
+        This delay may be overridden when incoming mesage contains a value (in ms) in <code>msg.rate</code>
+      </li>
+    </ul>
+
+  <h3>Inputs</h3>
+    <p><code>msg.payload</code> must contain the command(s) to be sent, in OpenWebNet format (i.e. '*WHO*WHAT*WHERE##'). When multiple
+commands have to be sent, this can be made by either using a string with commands set one after the other, or either using an array of strings).</p>
+    <p><code>msg.rate</code> can contain a numerical value (either number or string which can be converted to a number). If node allows override in its config (see above), it will be used as delay (in ms) which is applied before sending a new command to the BUS.</p>
+
+  <h3>Output</h3>
+    <p>The <strong>output</strong> is a JSON object <code>msg.payload</code> with</p>
+      <ul>
+        <li> <code>payload.command_sent</code> <em>[array of string]</em> contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
+        <li> <code>payload.command_responses</code> <em>[array of strings]</em> will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
+        <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
+      </ul>
+    <p>Note: It will return an error when ALL commands have failed. As soon as at least 1 command was successful, no error is returned. </p>
+</script>

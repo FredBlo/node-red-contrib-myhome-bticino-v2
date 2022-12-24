@@ -1,10 +1,12 @@
-[{
+[
+    {
         "id": "125a7426.3ccc94",
         "type": "tab",
         "label": "Light (point) - example",
         "disabled": false,
         "info": ""
-    }, {
+    },
+    {
         "id": "1c23086ee80c3ea8",
         "type": "group",
         "z": "125a7426.3ccc94",
@@ -16,12 +18,18 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["cbb9c48b.d8aa98", "cdd52f6fcc5ae34c", "4535d7f01ba70b90", "c69ec9937877eeee"],
+        "nodes": [
+            "cbb9c48b.d8aa98",
+            "cdd52f6fcc5ae34c",
+            "4535d7f01ba70b90",
+            "c69ec9937877eeee"
+        ],
         "x": 14,
         "y": 7,
         "w": 1212,
-        "h": 780
-    }, {
+        "h": 820
+    },
+    {
         "id": "4535d7f01ba70b90",
         "type": "group",
         "z": "125a7426.3ccc94",
@@ -34,12 +42,17 @@
             "fill-opacity": "0.6",
             "color": "#6A7E64"
         },
-        "nodes": ["616748750a2d01c6", "c8fc9d6d3cc04009", "6d489150.4f01d8"],
+        "nodes": [
+            "616748750a2d01c6",
+            "c8fc9d6d3cc04009",
+            "6d489150.4f01d8"
+        ],
         "x": 714,
         "y": 219,
         "w": 452,
         "h": 322
-    }, {
+    },
+    {
         "id": "c69ec9937877eeee",
         "type": "group",
         "z": "125a7426.3ccc94",
@@ -52,12 +65,25 @@
             "label": true,
             "color": "#7E909D"
         },
-        "nodes": ["e7e754e768277b3c", "e1b77b8f65ae0770", "66a84f3e4d7aed65", "ecae4965a980c9fa", "52bf649eb62a6b65", "d8d81f004a3ef575", "6db6c82d04d321d0", "e968bdf13ecd7bf9", "b56ff635cd10d7f8", "e5ac70457cdc35b8"],
+        "nodes": [
+            "e7e754e768277b3c",
+            "e1b77b8f65ae0770",
+            "66a84f3e4d7aed65",
+            "ecae4965a980c9fa",
+            "52bf649eb62a6b65",
+            "d8d81f004a3ef575",
+            "6db6c82d04d321d0",
+            "e968bdf13ecd7bf9",
+            "b56ff635cd10d7f8",
+            "e5ac70457cdc35b8",
+            "d4cf4422fd9f8a13"
+        ],
         "x": 54,
         "y": 219,
         "w": 372,
-        "h": 542
-    }, {
+        "h": 582
+    },
+    {
         "id": "cbb9c48b.d8aa98",
         "type": "myhome-light",
         "z": "125a7426.3ccc94",
@@ -69,14 +95,23 @@
         "topic": "light",
         "gateway": "a4e23617.d0c288",
         "smartfilter": true,
+        "smartfilter_out": true,
         "skipevents": false,
         "isstatusrequest": false,
         "output2_name": "",
         "output2_type": "boolean",
         "x": 570,
         "y": 380,
-        "wires": [["6d489150.4f01d8"], ["616748750a2d01c6"]]
-    }, {
+        "wires": [
+            [
+                "6d489150.4f01d8"
+            ],
+            [
+                "616748750a2d01c6"
+            ]
+        ]
+    },
+    {
         "id": "6d489150.4f01d8",
         "type": "debug",
         "z": "125a7426.3ccc94",
@@ -93,25 +128,29 @@
         "x": 840,
         "y": 260,
         "wires": []
-    }, {
+    },
+    {
         "id": "cdd52f6fcc5ae34c",
         "type": "comment",
         "z": "125a7426.3ccc94",
         "g": "1c23086ee80c3ea8",
-        "name": "!! Before you begin, do not forget to configure your gateway (open 'light' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'light' node, you have to set its number (A=1 PL=5 becomes 15, when A>9 or PL>9, the format is 4 digits; e.g. A=11 PL=5 becomes 1105, A=1 PL=15 becomes 0115) \\n - To turn lamp on or off, simply send True/False as payload \\n - To dim it, send the percentage (20 - 100%) as payload \\n \\n Do NOT forget you also have to include a .topic which 'cmd/<<light_node_topic>>' to allow state change",
+        "name": "!! Before you begin, do not forget to configure your gateway (open 'light' node config and select + edit the 'gateway' defined to set the IP and password) \\n \\n Within the 'light' node, you have to set its number (A=1 PL=5 becomes 15, when A>9 or PL>9, the format is 4 digits; e.g. A=11 PL=5 becomes 1105, A=1 PL=15 becomes 0115) \\n - To turn lamp on or off, simply send True/False as payload \\n - To dim it, send the percentage (20 - 100%) as payload \\n \\n Do NOT forget you also have to include a .topic which is 'cmd/<<light_node_topic>>' to allow state change",
         "info": "",
         "x": 620,
         "y": 120,
         "wires": []
-    }, {
+    },
+    {
         "id": "e7e754e768277b3c",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Turn on",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -125,17 +164,24 @@
         "payloadType": "bool",
         "x": 350,
         "y": 260,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-toggle-on"
-    }, {
+    },
+    {
         "id": "e1b77b8f65ae0770",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Turn off",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -149,9 +195,14 @@
         "payloadType": "bool",
         "x": 350,
         "y": 300,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-toggle-off"
-    }, {
+    },
+    {
         "id": "616748750a2d01c6",
         "type": "debug",
         "z": "125a7426.3ccc94",
@@ -168,15 +219,18 @@
         "x": 890,
         "y": 500,
         "wires": []
-    }, {
+    },
+    {
         "id": "66a84f3e4d7aed65",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Dim to 20%",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -189,18 +243,25 @@
         "payload": "20",
         "payloadType": "num",
         "x": 330,
-        "y": 360,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "y": 400,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-star-half-empty"
-    }, {
+    },
+    {
         "id": "ecae4965a980c9fa",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Dim to 100%",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -213,18 +274,25 @@
         "payload": "100",
         "payloadType": "num",
         "x": 330,
-        "y": 400,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "y": 440,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-star"
-    }, {
+    },
+    {
         "id": "52bf649eb62a6b65",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Advanced mode : msg (ON @50%)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -237,16 +305,22 @@
         "payload": "{\"state\":\"ON\",\"brightness\":50}",
         "payloadType": "json",
         "x": 260,
-        "y": 720,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "y": 760,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "node-red/parser-json.svg"
-    }, {
+    },
+    {
         "id": "d8d81f004a3ef575",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Ask for current state",
-        "props": [{
+        "props": [
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -257,10 +331,15 @@
         "onceDelay": 0.1,
         "topic": "state/light",
         "x": 310,
-        "y": 620,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "y": 660,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-question-circle-o"
-    }, {
+    },
+    {
         "id": "6db6c82d04d321d0",
         "type": "comment",
         "z": "125a7426.3ccc94",
@@ -268,9 +347,10 @@
         "name": "To ask for light current state, simply set \\n a Topic 'state/<<light_node_topic>>' ",
         "info": "",
         "x": 250,
-        "y": 560,
+        "y": 600,
         "wires": []
-    }, {
+    },
+    {
         "id": "e968bdf13ecd7bf9",
         "type": "comment",
         "z": "125a7426.3ccc94",
@@ -278,9 +358,10 @@
         "name": "Build your own advanced msg if needed",
         "info": "",
         "x": 240,
-        "y": 680,
+        "y": 720,
         "wires": []
-    }, {
+    },
+    {
         "id": "c8fc9d6d3cc04009",
         "type": "comment",
         "z": "125a7426.3ccc94",
@@ -290,15 +371,18 @@
         "x": 940,
         "y": 420,
         "wires": []
-    }, {
+    },
+    {
         "id": "b56ff635cd10d7f8",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Dim up",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -311,18 +395,25 @@
         "payload": "UP",
         "payloadType": "str",
         "x": 350,
-        "y": 440,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "y": 480,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-angle-double-up"
-    }, {
+    },
+    {
         "id": "e5ac70457cdc35b8",
         "type": "inject",
         "z": "125a7426.3ccc94",
         "g": "c69ec9937877eeee",
         "name": "Dim down",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
-            }, {
+            },
+            {
                 "p": "topic",
                 "vt": "str"
             }
@@ -335,10 +426,46 @@
         "payload": "DOWN",
         "payloadType": "str",
         "x": 340,
-        "y": 480,
-        "wires": [["cbb9c48b.d8aa98"]],
+        "y": 520,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
         "icon": "font-awesome/fa-angle-double-down"
-    }, {
+    },
+    {
+        "id": "d4cf4422fd9f8a13",
+        "type": "inject",
+        "z": "125a7426.3ccc94",
+        "g": "c69ec9937877eeee",
+        "name": "Toggle",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "cmd/light",
+        "payload": "TOGGLE",
+        "payloadType": "str",
+        "x": 350,
+        "y": 340,
+        "wires": [
+            [
+                "cbb9c48b.d8aa98"
+            ]
+        ],
+        "icon": "font-awesome/fa-exchange"
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -346,6 +473,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,

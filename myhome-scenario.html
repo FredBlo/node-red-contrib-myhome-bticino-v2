@@ -23,9 +23,9 @@
     },
     inputs: 1,
     inputLabels: function () {
-      let inputLabel = "simple mode ('payload' or 'payload.state') 'xx(:yyyy)':";
-      inputLabel += "\n - 'xx' buttonID (0-31)                                              ";
-      inputLabel += "\n - 'yyyy' -optional- duration in ms                         ";
+      let inputLabel = this._("common.input-label-simple") + ": 'xx(:yyyy)':";
+      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-simple-xx');
+      inputLabel += "\n " + this._('mh-scenario.config.inputlabel-simple-yyyy');
       return inputLabel;
     },
     outputs: 1,
@@ -34,28 +34,32 @@
       let label = '';
       if (rule) {
         if (rule.buttonFrom == rule.buttonTo) {
-          label = 'button #' + rule.buttonFrom;
+          label = this._('mh-scenario.config.outputlabel-btn-from' , {'from' : rule.buttonFrom});
         } else {
-          label = 'buttons #' + rule.buttonFrom + ' to #' + rule.buttonTo;
+          label = this._('mh-scenario.config.outputlabel-btn-from-to' , {'from' : rule.buttonFrom, 'to' : rule.buttonTo});
         }
         let onEvents = [];
         if (rule.onStartPress) {
-          onEvents.push (' - Start press');
+          if (rule.scenariotype === 'CEN') {
+            onEvents.push (' - ' + this._('mh-scenario.config.add-outputs-startpress-any'));
+          } else {
+            onEvents.push (' - ' + this._('mh-scenario.config.add-outputs-startpress-long'));
+          }
         }
         if (rule.onEndShortPress) {
-          onEvents.push (' - Short press');
+          onEvents.push (' - ' + this._('mh-scenario.config.outputlabel-btn-shortpress'));
         }
         if (rule.onEndLongPress) {
-          onEvents.push (' - Long press (>' + (rule.minLongPressDuration/1000).toFixed(1).toString() + 's)');
+          onEvents.push (' - ' + this._('mh-scenario.config.outputlabel-btn-longpress' , {'duration' : (rule.minLongPressDuration/1000).toFixed(1).toString()}) );
         }
         if (rule.onDuringLongPress) {
-          onEvents.push (' - Long press (while pressed)');
+          onEvents.push (' - ' + this._('mh-scenario.config.outputlabel-btn-longpresswhile') );
         }
         if (onEvents.length) {
-          label += ' on :' + '\n' + onEvents.join ('\n');
+          label += ' ' + this._('mh-scenario.config.outputlabel-btn-on') + '\n' + onEvents.join ('\n');
         }
       } else {
-        label = 'Main payload';
+        label = this._('mh-scenario.config.outputlabel-main');
       }
       return label;
     },
@@ -69,47 +73,77 @@
       return this.name || 'MH Scenario';
     },
     oneditprepare: function() {
-      $(document).on('change', '#node-input-topic', function() {
-        let infoVar = $('#node-input-topic').val();
-        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
-        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message.";
-        $('#node-info-topic').prop('title' , infoMsg);
+      let scope = this;
+      $('#node-input-topic').on('change', function() {
+        let topicName = $(this).val();
+        let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
+        $('#node-info-topic').prop('title' , topicInfo);
       });
 
       // When scenario type is changed from CEN <> CEN+, update labels for 'Start press'
-      $(document).on('change', '#node-input-scenariotype', function() {
+      $('#node-input-scenariotype').on('change', function() {
         let onStartLabel = '';
-        if ($("#node-input-scenariotype").val() === "CEN") {
-          onStartLabel = 'Start short/long press';
+        if ($('#node-input-scenariotype').val() === "CEN") {
+          onStartLabel = scope._('mh-scenario.config.add-outputs-startpress-any');
         } else {
-          onStartLabel = 'Start long press';
+          onStartLabel = scope._('mh-scenario.config.add-outputs-startpress-long');
         }
-        let rules = $("#node-input-rule-container").editableList('items');
+        let rules = $('#node-input-rule-container').editableList('items');
         rules.each (function (i) {
-            let rule = $(this);
-            rule.find("label[for='node-input-onStartPress_" + i + "']").text(onStartLabel);
+          let rule = $(this);
+          rule.find("label[for^='node-input-onStartPress_']").text(onStartLabel);
         });
       });
 
-      // Styles used in rules container
-      $("style").append("#node-input-rule-container .mhrule-fromtolabel {display:inline-block; width:100px; margin-left: 20px;}");
-      $("style").append("#node-input-rule-container .mhrule-checkbox {display:inline-block; width:22px; margin-left:0px; vertical-align:baseline;}");
-      $("style").append("#node-input-rule-container .mhrule-select {width:60px; height: 23px; padding: 2px 2px; margin-left: 25px; margin-right: 35px; text-align: center;}");
-      $("style").append("#node-input-rule-container .mhrule-checkbox-label {width: auto; margin-bottom: 2px;}");
+      // Styles used in button range container
+      $("style").append("#node-input-rule-container .buttonrule-fromtolabel {display:inline-block; width:100px; margin-left: 20px;}");
+      $("style").append("#node-input-rule-container .buttonrule-checkbox {display:inline-block; width:22px; margin-left:0px; vertical-align:baseline;}");
+      $("style").append("#node-input-rule-container .buttonrule-select {width:60px; height: 23px; padding: 2px 2px; margin-left: 25px; margin-right: 35px; text-align: center;}");
+      $("style").append("#node-input-rule-container .buttonrule-checkbox-label {width: auto; margin-bottom: 2px;}");
 
-      $("#node-input-rule-container").css('min-height','300px').css('min-width','450px').editableList({
-        addButton: 'add new buttons range',
+      // Output order can be updated to keep linked junctions correctly connected. To do so, a reserved item must contains
+      //    outputs re-directions (if outputs are a,b,c,d, after configuring, new outputs are z,a,c, then 'node-input-outputs'
+      //    must now be {"0":"1", "1":"-1", "2":"2", "3":"-1", "someRandomNo":"0"}.
+      var outputOrderIndexOnOpen = {};
+      function rebuildOutputIndexes (rulesUI) {
+        // Build new outputs : assume all which were defined before are 'deleted' (if not, they will be re-assigned right after)
+        let orderedRulesIndex = {'0':'0'}; // first output is always static, afterwards always index using i+1 therefore
+        Object.entries(outputOrderIndexOnOpen).forEach ((ruleIndex) => {orderedRulesIndex[ruleIndex[1]+1] = -1;});
+        // Parse each rule : if it existed before, build index transfer (Initial ->  To), if new just indicate new index 'usage'
+        rulesUI.each(function(i) {
+          let ruleUI = $(this);
+          let curRowID = ruleUI.find("[id^=node-input-buttonFrom_]").attr('id').split("_").pop(); // row id is appended to each item, so gather it after the '_'
+          if (outputOrderIndexOnOpen.hasOwnProperty(curRowID)) {
+            // This rule existed on open, build index .initial -> .toCurrent
+            orderedRulesIndex[outputOrderIndexOnOpen[curRowID]+1] = i+1;
+          } else {
+            // This is a new rule : just add its final index using its rowID
+            orderedRulesIndex[curRowID] = i+1;
+          }
+          // Re-number them in UI (output number)
+          ruleUI.find(".node-input-rule-index").html(i+2);
+        });
+        $("#node-input-outputs").val(JSON.stringify(orderedRulesIndex));
+      }
+
+      $("#node-input-rule-container").css('min-height','350px').css('min-width','450px').editableList({
+        addButton: scope._('mh-scenario.config.add-outputs-btn-addnew'),
         header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
-            +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>Buttons range...</div>"
-            +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>Trigger a new flow on...</div>"
-            +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>Output n°</div>"
-            +"</div>"),
+          +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-range') + "</div>"
+          +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-newflow') + "</div>"
+          +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-nr') + "</div>"
+          +"</div>"),
 
         addItem: function (container, i, rules) {
+          let uniqueRowID = Math.floor((0x99999-0x10000)*Math.random()).toString()
           if (!rules.hasOwnProperty('rule')) {
             rules.rule = {};
+          } else {
+            // Rule existed before (=on load, keep its initial index)
+            outputOrderIndexOnOpen[uniqueRowID] = i;
           }
           var rule = rules.rule;
+
           // When object is new, apply default values
           if (!rule.hasOwnProperty('buttonFrom')) {
             rule.buttonFrom = '0';
@@ -126,34 +160,33 @@
           if (!rule.hasOwnProperty('minLongPressDuration')) {
             rule.minLongPressDuration = 1000;
           }
-          let uniqueRowID = Math.floor(10000000*Math.random()).toString();
-          // ROW 1
+          // ROW 1 : 'From label' & checkbox 'Start press'
           let row1 = $('<div/>').appendTo(container);
-          row1.append('<span class="mhrule-fromtolabel">From...</span>');
-          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"mhrule-checkbox"}).appendTo(row1);
-          row1.append('<label class="mhrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">Start press</label>');
+          row1.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-from') + '</span>');
+          let field_onStartPress = $('<input/>',{id:"node-input-onStartPress_" + uniqueRowID,type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row1);
+          row1.append('<label class="buttonrule-checkbox-label" for="node-input-onStartPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-startpress') + '</label>');
           // ROW1 : output info (rightest part)
           let finalspan = $('<span/>',{style:"float: right;margin-top: 6px;"}).appendTo(row1);
           finalspan.append('<i class="fa fa-sign-out"></i><span class="node-input-rule-index">'+(i+2)+'</span>');
-          // ROW 2
+          // ROW 2 : 'From list' & checkbox 'End short press'
           let row2 = $('<div/>').appendTo(container);
-          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"mhrule-select"}).appendTo(row2);
-          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row2);
-          row2.append('<label class="mhrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">Short press ended (<0.5s)</label>');
-          // ROW 3
+          let field_buttonFrom = $('<select/>',{id:"node-input-buttonFrom_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row2);
+          let field_onEndShortPress = $('<input/>',{id:"node-input-onEndShortPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row2);
+          row2.append('<label class="buttonrule-checkbox-label" for="node-input-onEndShortPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-shortpress') + '</label>');
+          // ROW 3 : 'To label' & checkbox 'End long press after [xx] seconds'
           let row3 = $('<div/>').appendTo(container);
-          row3.append('<span class="mhrule-fromtolabel">To...</span>');
-          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-onEndLongPress_' + uniqueRowID + '" style="width:unset";>Long press ended when >&nbsp</label>');
+          row3.append('<span class="buttonrule-fromtolabel">' + scope._('mh-scenario.config.add-outputs-btn-to') + '</span>');
+          let field_onEndLongPress = $('<input/>',{id:"node-input-onEndLongPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row3);
+          row3.append('<label class="buttonrule-checkbox-label" for="node-input-onEndLongPress_' + uniqueRowID + '" style="width:unset";>' + scope._('mh-scenario.config.add-outputs-longpress') + '&nbsp</label>');
           let field_minLongPressDuration = $('<input/>',{id:"node-input-minLongPressDuration_" + uniqueRowID, type:"text",style:"height:23px; width:55px; padding: 2px 2px;"}).appendTo(row3);
-          row3.append('<label class="mhrule-checkbox-label" for="node-input-minLongPressDuration_' + uniqueRowID + '">&nbsp ms</label>');
-          // ROW 4
+          row3.append('<label class="buttonrule-checkbox-label" for="node-input-minLongPressDuration_' + uniqueRowID + '">&nbsp ms</label>');
+          // ROW 4 : 'To list' & checkbox 'During long press'
           let row4 = $('<div/>').appendTo(container);
-          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + uniqueRowID, class:"mhrule-select"}).appendTo(row4);
-          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + uniqueRowID, type:"checkbox", class:"mhrule-checkbox"}).appendTo(row4);
-          row4.append('<label class="mhrule-checkbox-label" for="node-input-onDuringLongPress_' + uniqueRowID + '">Long press (while pressed)</label>');
+          let field_buttonTo = $('<select/>',{id:"node-input-buttonTo_" + uniqueRowID, class:"buttonrule-select"}).appendTo(row4);
+          let field_onDuringLongPress = $('<input/>',{id:"node-input-onDuringLongPress_" + uniqueRowID, type:"checkbox", class:"buttonrule-checkbox"}).appendTo(row4);
+          row4.append('<label class="buttonrule-checkbox-label" for="node-input-onDuringLongPress_' + uniqueRowID + '">' + scope._('mh-scenario.config.add-outputs-longpresswhile') + '</label>');
 
-          // Build all 0-31 choices to both fields inputs
+          // Build all 0-10 choices to both fields inputs
           for (let i = 0; i <= 31; i++) {
             field_buttonFrom.append($("<option></option>").val(i.toString()).text(i.toString()));
             field_buttonTo.append($("<option></option>").val(i.toString()).text(i.toString()));
@@ -180,46 +213,36 @@
           field_onEndShortPress.prop ('checked', rule.onEndShortPress);
           field_onEndLongPress.prop ('checked', rule.onEndLongPress);
           field_onDuringLongPress.prop ('checked', rule.onDuringLongPress);
-          // Update total number of outputs (Primary is 1 + 1 per rule defined)
-          $("#node-input-outputs").val(i+2);
+          // Update outputs (number of outputs and how the changed since onLoad)
+          rebuildOutputIndexes ($("#node-input-rule-container").editableList('items'));
         },
         removeItem: function (rule) {
-          // Re-parse all remaining rules to re-number them in UI
-          let rules = $("#node-input-rule-container").editableList('items');
-          rules.each(function(i) {
-            $(this).find(".node-input-rule-index").html(i+2);
-          });
-          // Update total number of outputs (Primary is 1 + 1 per rule defined)
-          $("#node-input-outputs").val(rules.length+1);
+          // Update outputs (number of outputs and how the changed since onLoad)
+          rebuildOutputIndexes ($("#node-input-rule-container").editableList('items'));
         },
         sortItems: function (rules) {
-          // Re-parse all remaining rules to re-number them in UI
-          rules.each(function(i) {
-            $(this).find(".node-input-rule-index").html(i+2);
-          });
+          // Update outputs (number of outputs and how the changed since onLoad)
+          rebuildOutputIndexes (rules);
         },
         sortable: true,
         removable: true
       });
-
       // Add all previously saved rules back to UI List
       for (let i = 0 ; i < this.rules.length ; i++) {
         $("#node-input-rule-container").editableList('addItem',{rule:this.rules[i], i:i});
       }
     },
-
     oneditresize: function(size) {
-        let rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
-        let height = size.height;
-        for (let i = 0 ; i<rows.length ; i++) {
-            height -= $(rows[i]).outerHeight(true);
-        }
-        let editorRow = $("#dialog-form>div.node-input-rule-container-row");
-        height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
-        height += 16;
-        $("#node-input-rule-container").editableList('height',height);
+      let rows = $("#dialog-form>div:not(.node-input-rule-container-row)");
+      let height = size.height;
+      for (let i = 0 ; i<rows.length ; i++) {
+          height -= $(rows[i]).outerHeight(true);
+      }
+      let editorRow = $("#dialog-form>div.node-input-rule-container-row");
+      height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+      height += 30;
+      $("#node-input-rule-container").editableList('height',height);
     },
-
     oneditsave: function() {
       let rules = $("#node-input-rule-container").editableList('items');
       let node = this;
@@ -235,164 +258,73 @@
         savedRule.onDuringLongPress = rule.find("[id^=node-input-onDuringLongPress_]").prop("checked");
         savedRule.minLongPressDuration = parseInt(rule.find("[id^=node-input-minLongPressDuration_]").val());
         node.rules.push (savedRule);
-      });
-    }
-  });
+        });
+      },
+    });
 </script>
 
 <script type="text/x-red" data-template-name="myhome-scenario">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Scenario name" />
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-scenario.config.name-placeholder"/>
   </div>
   <div class="form-row">
-    <label for="node-input-scenarioid"><i class="fa fa-magic"></i> Scenario</label>
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-scenario.config.topic-placeholder"/>
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+  </div>
+  <div class="form-row">
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway"/>
+  </div>
+
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
+  <div class="form-row">
+    <label for="node-input-scenarioid"><i class="fa fa-magic"></i> <span data-i18n="mh-scenario.config.scenarioid"></span></label>
     <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
       <select id="node-input-buslevel" style="width:110px">
-        <option value="private_riser">Private riser</option>
-        <option value="01">Local bus 1</option>
-        <option value="02">Local bus 2</option>
-        <option value="03">Local bus 3</option>
-        <option value="04">Local bus 4</option>
-        <option value="05">Local bus 5</option>
-        <option value="06">Local bus 6</option>
-        <option value="07">Local bus 7</option>
-        <option value="08">Local bus 8</option>
-        <option value="09">Local bus 9</option>
-        <option value="10">Local bus 10</option>
-        <option value="11">Local bus 11</option>
-        <option value="12">Local bus 12</option>
-        <option value="13">Local bus 13</option>
-        <option value="14">Local bus 14</option>
-        <option value="15">Local bus 15</option>
+        <option value="private_riser" data-i18n="common.riser-private"></option>
+        <option value="01" data-i18n="common.riser-localbus-01">[Local bus 1]</option>
+        <option value="02" data-i18n="common.riser-localbus-02">[Local bus 2]</option>
+        <option value="03" data-i18n="common.riser-localbus-03">[Local bus 3]</option>
+        <option value="04" data-i18n="common.riser-localbus-04">[Local bus 4]</option>
+        <option value="05" data-i18n="common.riser-localbus-05">[Local bus 5]</option>
+        <option value="06" data-i18n="common.riser-localbus-06">[Local bus 6]</option>
+        <option value="07" data-i18n="common.riser-localbus-07">[Local bus 7]</option>
+        <option value="08" data-i18n="common.riser-localbus-08">[Local bus 8]</option>
+        <option value="09" data-i18n="common.riser-localbus-09">[Local bus 9]</option>
+        <option value="10" data-i18n="common.riser-localbus-10">[Local bus 10]</option>
+        <option value="11" data-i18n="common.riser-localbus-11">[Local bus 11]</option>
+        <option value="12" data-i18n="common.riser-localbus-12">[Local bus 12]</option>
+        <option value="13" data-i18n="common.riser-localbus-13">[Local bus 13]</option>
+        <option value="14" data-i18n="common.riser-localbus-14">[Local bus 14]</option>
+        <option value="15" data-i18n="common.riser-localbus-15">[Local bus 15]</option>
       </select>
       <select id="node-input-scenariotype" style="width:65px">
         <option value="CEN">CEN</option>
         <option value="CEN+">CEN+</option>
       </select>
       <div style="position: absolute; left: 183px; right: 0px; top:0px;">
-        <input type="text" id="node-input-scenarioid" style="width:100%" placeholder="32 (for CEN 3.2) or 126 (for CEN+ 126)" />
+        <input type="text" id="node-input-scenarioid" style="width:100%" data-i18n="[placeholder]mh-scenario.config.scenarioid-placeholder"/>
       </div>
     </div>
   </div>
-  <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+
   </div>
   <div class="form-row">
-      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-      <input type="text" id="node-input-gateway" />
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
   </div>
+
   <div class="form-row">
-      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
-      <label for="node-input-skipevents" style="width:70%">
-        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
-        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-      </label>
-  </div>
-  <div class="form-row">
-    <i class="fa fa-sign-out"></i> <b>Additional outputs...</b>
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="mh-scenario.config.additional-output-title"></b>
   </div>
   <div class="form-row node-input-rule-container-row" style="width:100%">
     <input type="hidden" id="node-input-outputs"/>
     <ol id="node-input-rule-container"></ol>
   </div>
-</script>
-
-
-
-name: { value: '', required: true },
-scenarioid: { value: '', required: true, validate: RED.validators.number() },
-scenariotype: { value: 'CEN+', required: true },
-topic: { value: '', required: true},
-gateway: { type: 'myhome-gateway', required: true },
-skipevents: { value: false, required: false },
-rules: {value:[{
-  buttonFrom: 0,
-  buttonTo: 31,
-  onStartPress:false,
-  onEndShortPress:true,
-  onEndLongPress:true,
-  onDuringLongPress:false,
-  minLongPressDuration:1000
-}]},
-
-<script type="text/x-red" data-help-name="myhome-scenario">
-  <p>Adds a MyHome Scenario Node to your flow.</p>
-  <ul>
-    <li><strong>Name</strong> (mandatory) is the name of the node</li>
-    <li><strong>Scenario</strong> defines the ID of the scenario, based on its type :
-      <ul>
-        <li><strong>CEN</strong> : A/PL number ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
-        <li><strong>CEN+</strong> : scenario number (0-2047)</li>
-      </ul>
-    </li>
-    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
-    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
-    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
-    <li><strong>Rules</strong> : you can define different rules based on your needs. Each rule will output to a separate additional output.
-      <ul>
-        <li><strong>Buttons range</strong> : Defines which button(s) must be monitored to trigger a new flow. Defaults to 0-31, meaning the largest possible buttons range. </li>
-        <li><strong>Action type</strong> : Defines on which type of button press a flow must be started :
-          <ul>
-            <li><i>On start press</i> : when button is initially pressed. Note that the behaviour is a bit different based on scenario type. For CEN, this event is always triggered, even for a short press, while for CEN+, this event only occurs when a long press is started.</li>
-            <li><i>On short press end</i> : when button was pressed for less than <strong>0.5s</strong>.</li>
-            <li><i>On long press end (after xx ms)</i> : when button was pressed for at least <strong>0.5s</strong>. You can also define your own minimal duration before flow must be triggered.</li>
-            <li><i>On long press (while pressed)</i> : as long as button remains pressed, the BUS will emit such an event approximatively every 500ms</li>
-          </ul>
-        </li>
-        <p>Note : if an event occurs (i.e. button press) which matches multiple rules you defined, multiple flows will be started too.</p>
-      </ul>
-    </li>
-  </ul>
-
-<h3>Inputs</h3>
-<p><code>msg.payload</code> can be of 2 types</p>
-  <ul>
-    <li>A simple <em>string</em> value : <code>xx(:yyyy)</code>
-      <ul>
-        <li><code>xx</code> : the button number (0-31) to virtually press</li>
-        <li><code>yyyy</code> : the duration (ms) button must remain virtually pressed. Is optional, defaults to 0 if omitted, meaning a short press</li>
-      </ul>
-    </li>
-    <li>An <em>Object</em> with properties :
-      <ul>
-        <li> <code>payload.buttonID</code> <em>[string/number]</em> the button number (0-31) to virtually press</li>
-        <li> <code>payload.actionDuration</code> <em>[string/number]</em> the duration (ms) button must remain virtually pressed. Is optional, defaults to 0 if omitted, meaning a short press
-        </li>
-        <li> <code>payload.state</code> <em>[string]</em> (optional) when both <code>.buttonID</code> and <code>.actionDuration</code> are omitted, is tested for string content 'xx(:yyyy)' as described above for a simple input</li>
-      </ul>
-    </li>
-    <i>Note : Technically, for long press, repeat commands are sent every 400 ms to virtually keep button 'pressed'. This means a deviation can (and will) occur when comparing the requested time to the effective applied duration (e.g. when applying a duration of 900ms to node, it will make 3x 400, meaning 1200ms).</i>
-  </ul>
-<p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
-
-<h3>Outputs</h3>
-<p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
-  <ul>
-    <li> <code>payload.buttonsLastState_xx</code> <em>[object]</em> where xx is the button ID (0-31), meaning returned payload will contain one object per button for which at least one command was received since Node-RED was started. Each object will contain :
-      <ul>
-        <li> <code>.buttonID</code> <em>[number]</em> the button number (0-31)</li>
-        <li> <code>.state</code> <em>[string]</em> summarizes the information about button last state in a simplified form <code>xx:mmmm(:yyyy)</code> where :
-          <ul>
-            <li><code>xx</code> : button number (0-31)</li>
-            <li><code>mmmm</code> : action type, can be 'PRESS_START' / 'LONG_START' / 'LONG_ONGOING' / 'SHORT' / 'LONG'</li>
-            <li><code>yyyy</code> : -only in long pressed mode- duration (ms) button remained (virtually) pressed</li>
-          </ul>
-        </li>
-        <li> <code>.actionStart</code> <em>[date-time]</em> the date-time when button when last pressed (start of press)</li>
-        <li> <code>.actionEnd</code> <em>[date-time]</em> the date-time when button when last pressed (end of press)</li>
-        <li> <code>.actionDuration</code> <em>[number]</em> the duration (ms) button was pressed</li>
-        <li> <code>.countExtPressures</code> <em>[number]</em> (only in long press mode) the number of repeat commands received on the bus while button was pressed</li>
-        <li> <code>payload.state</code> <em>[string]</em> (optional) when both <code>.buttonID</code> and <code>.actionDuration</code> are omitted, is tested for string content 'xx(:yyyy)' as described above for a simple input</li>
-      </ul>
-      <i>Note : all properties of <strong>last pressed button</strong> are also directly included as direct properties of payload itself, allowing direct access to those without having to parse the button sub-object.</i>
-    </li>
-    <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*25*21#8*2100##'</em> to short press button 8 of scenarion CEN+ 100)</li>
-    <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured scenario), contains the command which was read in OpenWebNet protocol (ex: <em>'*25*24#14*287##'</em> means button 14 of scenario 87 finalized a long press)</li>
-    <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
-    <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
-  </ul>
-  <p>Any <strong>additional output</strong> defined is also a JSON object <code>msg.payload</code> having the same (direct) properties as a <code>payload.buttonsLastState_xx</code> object described above.</p>
 </script>

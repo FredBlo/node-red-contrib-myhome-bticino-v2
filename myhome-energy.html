@@ -1,0 +1,161 @@
+<script type="text/javascript">
+  RED.nodes.registerType('myhome-energy',{
+    category: 'Bticino MyHome',
+    color: '#a6bbcf',
+    defaults: {
+      name: { value: '', required: true },
+      meterid: { value: '', required: true, validate: RED.validators.number() },
+      metertype: { value: 'meter', required: true},
+      meterscope: { value: 'instant', required: true},
+      topic: { value: '', required: true},
+      gateway: { type: 'myhome-gateway', required: true },
+      skipevents: { value: true, required: false},
+      enablecache: { value: true, required: false},
+      output2_name: { value: '', required: false},
+      output2_type: { value: 'metered_Power', required: false}
+    },
+    inputs: 1,
+    inputLabels: function () {
+      let metertype_isDateRange = (['hour','day','month'].indexOf(this.meterscope) >= 0);
+      return this._((metertype_isDateRange) ? 'mh-energy.config.inputlabel-daterange' : 'mh-energy.config.inputlabel-any');
+    },
+    outputs: 2,
+    outputLabels: function (index) {
+      if (index === 0) {
+        return 'payload';
+      } else if (index === 1) {
+        let outputTypeDescr;
+        let powerUnit = (this.meterscope === 'instant') ? '' : 'h';
+        if (this.output2_type === 'metered_Power') {
+          outputTypeDescr = this._('mh-energy.config.secondary-output-content-pwr', {'h':powerUnit});
+        } else if (this.output2_type === 'metered_Power_asText') {
+          outputTypeDescr = this._('mh-energy.config.secondary-output-content-pwr-txt', {'h':powerUnit});
+        } else if (this.output2_type === 'metered_Info') {
+          outputTypeDescr = this._('mh-energy.config.secondary-output-content-pwr-info');
+        }
+        return 'payload' + ((this.output2_name === '') ? '' : ('.' + this.output2_name)) + " = " + outputTypeDescr;
+      }
+    },
+    icon: 'font-awesome/fa-bolt',
+    paletteLabel: 'MH Energy',
+    label: function() {
+      // Return the label itself
+      return this.name || 'MH Energy';
+    },
+    oneditprepare: function() {
+      let scope = this;
+      $('#node-input-topic').on('change', function() {
+        let topicName = $(this).val();
+        let topicInfo = scope._('mh-energy.config.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
+        $('#node-info-topic').prop('title' , topicInfo);
+      });
+      $('#node-input-meterscope').on('change', function() {
+        let curScope = $('#node-input-meterscope').val();
+        let powerUnit = (curScope === 'instant') ? '' : 'h';
+        $('#node-input-output2_type option[value="metered_Power"]').text(scope._('mh-energy.config.secondary-output-content-pwr', {'h':powerUnit}));
+        $('#node-input-output2_type option[value="metered_Power_asText"]').text(scope._('mh-energy.config.secondary-output-content-pwr-txt', {'h':powerUnit}));
+      });
+      $('#node-myhome_energy-outputcache-button').on('click', function() {
+        function doInject(node, customMsg) {
+          $.ajax({
+              url: "inject/" + node.id,
+              type: "POST",
+              data: JSON.stringify(customMsg||{}),
+              contentType: "application/json; charset=utf-8",
+              success: function (resp) {
+                RED.notify(node._('mh-energy.config.enablecache-outputlog-ok'), {type: 'success'});
+              },
+              error: function (jqXHR, textStatus, errorThrown) {
+                RED.notify(node._('mh-energy.config.enablecache-outputlog-error') + ' ['+ errorThrown +'] ' + textStatus, {type: 'warning'});
+              }
+          });
+        }
+        let msg = {'__user_inject_props__':'DEBUG_SENDCACHE'};
+        doInject(scope , msg)
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="myhome-energy">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-energy.config.name-placeholder"/>
+  </div>
+  <div class="form-row">
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-energy.config.topic-placeholder"/>
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+  </div>
+  <div class="form-row">
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway"/>
+  </div>
+
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
+  <div class="form-row">
+    <label for="node-input-meterid"><i class="fa fa-bolt"></i>&nbsp;&nbsp;<span data-i18n="mh-energy.config.meterid"></span></label>
+    <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+      <select id="node-input-metertype" style="width:220px">
+        <option value="meter" data-i18n="mh-energy.config.meter-type-meter">[Power management meter]</option>
+        <option value="actuator" data-i18n="mh-energy.config.meter-type-actuator">[Power management actuator]</option>
+      </select>
+      <div style="position: absolute; left: 228px; right: 0px; top:0px;">
+        <input type="text" id="node-input-meterid" style="width:100%" placeholder="ID [1-255]"/>
+      </div>
+    </div>
+    &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-energy.config.meter-type-info"></i>
+  </div>
+  <div class="form-row">
+      <label for="node-input-meterscope"><i class="fa fa-tachometer"></i> <span data-i18n="mh-energy.config.meterscope"></span></label>
+      <select id="node-input-meterscope" style="width:70%">
+        <option value="instant" data-i18n="mh-energy.config.meterscope-instant">[Current power]</option>
+        <option value="day_uptonow" data-i18n="mh-energy.config.meterscope-dayuptonow">[Daily consumption (today)]</option>
+        <option value="day" data-i18n="mh-energy.config.meterscope-day">[Daily consumption (time range)]</option>
+        <option value="hour" data-i18n="mh-energy.config.meterscope-hour">[Hourly consumption (time range)]</option>
+        <option value="month_uptonow" data-i18n="mh-energy.config.meterscope-monthuptonow">[Monthly consumption (current month)]</option>
+        <option value="month" data-i18n="mh-energy.config.meterscope-month">[Monthly consumption (time range)]</option>
+        <option value="sincebegin" data-i18n="mh-energy.config.meterscope-sincebegin">[Full consumption since begin]</option>
+      </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
+  </div>
+  <div class="form-row">
+      <label for="node-input-enablecache"><i class="fa fa-retweet"></i> <span data-i18n="mh-energy.config.enablecache"></span></label>
+      <label for="node-input-enablecache" style="width:70%">
+        <input type="checkbox" id="node-input-enablecache" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-energy.config.enablecache-checkbox"></span>
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-energy.config.enablecache-info"></i>
+        <button type="button" class="red-ui-button red-ui-button-small" style="margin-top: 0px; margin-right: unset; float: right;" id="node-myhome_energy-outputcache-button">
+          <span data-i18n="mh-energy.config.enablecache-outputlog"></span>
+        </button>
+      </label>
+  </div>
+
+  <div class="form-tips form-row" style="max-width:none; background:#EFEFEF">
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
+    <br>
+    <p style="max-width:450px" data-i18n="common.secondary-output-intro"></p>
+    <div class="form-row">
+      <label for="node-input-output2_name" style="width:130px; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
+      <input type="text" id="node-input-output2_name" data-i18n="[placeholder]common.secondary-output-name-placeholder" style="width:55%"/>
+      <label for="node-input-output2_name" style="width:15px">
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.secondary-output-name-info"></i>
+      </label>
+    </div>
+    <div class="form-row">
+      <label for="node-input-output2_type" style="width:130px; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
+      <select id="node-input-output2_type" style="width:60%">
+        <!-- Select values are set in onEditPrepare because part of them are dynamix and i18n-options does not work  -->
+        <option value="metered_Power">[.metered_Power (number in W)]</option>
+        <option value="metered_Power_asText">[.metered_Power (text in kW)]</option>
+        <option value="metered_Info" data-i18n="mh-energy.config.secondary-output-content-pwr-info">[.metered_Info (array of metered details)]</option>
+      </select>
+    </div>
+  </div>
+</script>

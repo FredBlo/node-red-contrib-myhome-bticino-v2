@@ -4,7 +4,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 
 ## 1. Available nodes
 - **MH Light**
-	- ON / OFF
+	- ON / OFF / UP / DOWN / TOGGLE
 	- Dimming (percentage based)
 - **MH Shutter**
 	- OPEN / CLOSE /STOP
@@ -14,6 +14,8 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 	- MANUAL:xx.x°C / PROGRAM:x / SCENARIO:xx / OFF / ANTIFREEZE / THERMAL_PROTECT
 - **MH Temperature Zone**
 	- (MANUAL:)xx.x°C / AUTO / OFF / ANTIFREEZE / THERMAL_PROTECT
+- **MH Energy**
+	- Read energy meters power consumption measurements
 - **MH Monitoring**
 	- Listen for any message on the bus and sends it as payload
 - **MH Inject**
@@ -22,9 +24,40 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-**v2.2.4**
+### v2.3.0 (latest available) - 12/2022
+- **General**
+  - ***Improvement*** : quite many code clean-up, doc content updated and fine-tuned,...
+  - ***Improvement*** : many nodes UI were reviewed to be more consistent / easier to understand (options re-ordering, greying out options which have become inapplicable because of other options,...)
+  - ***Improvement*** : technical revamp to support **internationalization** (if someone wants to translate to other languages, let me know :-) )
+  - ***Improvement*** : nodes which have a secondary output will now include all info from initial received 'msg' (i.e. received 'msg' is cloned and only 'msg.payload' is simplified)
 - **MH Light**
-  - ***Improvement*** : light node can now handle brightness increase / decrease when controlling dimmed lights. This can be done by sending a payload which contains 'UP' or 'DOWN'.
+  - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled by default for new installs.
+  - ***Improvement*** : support for a new 'simple' command 'TOGGLE' which will, based on last light state, switch from 'ON' -> 'OFF' or 'OFF' -> 'ON'. When last state is unknown, it is considered as 'OFF' and will be turned 'ON'.
+  - ***Improvement*** : SmartFilter can now also be enabled to avoid **sending** unnecessary commands to the gateway. The node will define whether a command is useful based on the last known state of the node (e.g. when a light is known to be 'on', it is not necessary to send another command to turn it on again). When the received message (msg.payload) is judged 'useless', the node stops the flow (i.e. no message is sent to an output).
+  Note that, if used for groups, the node will only rely on the last calls it made itself, since groups have no status as such on the MyHome system.
+  - ***Bug fix*** : when asking for light status of a dimmed light, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brightness known before light was turned off.
+- **MH Scenario**
+  - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve existing flow wiring configuration.
+  - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)
+  - ***Bug fix*** : label of 'Short press' was not updated correctly based on 'CEN/CEN+' node type defined
+- **MH Temperature Central Unit** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+- **MH Temperature Zone** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+- **MH Inject** :
+  - ***Improvement*** : added an option to allow overriding specified delay (in ms) which is applied before sending a new command to the BUS. Incoming message 'msg.rate' -when available- is then used as new delay.
+- **MH Energy** : ***New node type***
+  Added support for Energy Management.
+  Main included functionalities :
+  - node can be configured to **acquire** (when info is read on the BUS, or based on flow-triggered calls) meter information :
+    - Current power, in Watts
+    - Daily consumption (today), in Wh
+    - Daily consumption (based on a provided time range), in Wh
+    - Hourly consumption (based on a provided time range), in Wh
+    - Monthly consumption (current month), in Wh
+    - Monthly consumption (based on a provided time range), in Wh
+    - Full consumption since begin, in Wh
+  - *(See node documentation for full detailed information.)*
 
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
@@ -44,8 +77,9 @@ The **complete version history** is available in `CHANGELOG.md` file included in
 
 ## 4. Usage
 ### 4.1 First touch
-In order to easy starting to test the nodes, best way is to import an example provided with installed content (using node-red menu **'Import'** and selecting one listed uner 'node-red-contrib-myhome-bticino-v2'in the **'examples'** tab).
+In order to easy starting to test the nodes, best way is to import an example provided with installed content (using node-red menu **'Import'** and selecting one listed under 'node-red-contrib-myhome-bticino-v2'in the **'examples'** tab).
 Examples are available for :
+- MH Energy
 - MH Light (simple point)
 - MH Light (group of lights)
 - MH Shutter
@@ -55,6 +89,8 @@ Examples are available for :
 - MH Inject
 - MH Monitoring (discover lights)
 
+<img src="https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/.resources/HowTo_Import_Example.gif" attr="MH Nodes Examples" width="60%">
+
 You can also directly copy this basic flow in Node-RED selecting **Import** in the node-red menu, pasting the provided JSON (do not forget to change the **IP address in the Gateway** configuration and of course the light number in switch node) :
 
 ```
@@ -62,7 +98,7 @@ You can also directly copy this basic flow in Node-RED selecting **Import** in t
 ```
 
 ### 4.2 SCS BUS addresses
-When adding nodes, you have to provide the BUS address (known as 'A/PL' in myHome). The references used in nodes are to be set as a single value : `A=1 PL=5` becomes `15`, also be aware that, when A>9 or PL>9, the format becomes 4 digits, e.g. `A=11 PL=5` becomes `1105`, `A=1 PL=15` becomes `0115`.
+When adding nodes, you have to provide the BUS address (known as 'A/PL' in MyHome). The references used in nodes are to be set as a single value : `A=1 PL=5` becomes `15`, also be aware that, when A>9 or PL>9, the format becomes 4 digits, e.g. `A=11 PL=5` becomes `1105`, `A=1 PL=15` becomes `0115`.
 
 ### 4.3 Tips : How to discover device A/PL
 Import the provided example node 'MH Monitoring (discover lights)' and follow info and comments :-)
@@ -71,13 +107,13 @@ Import the provided example node 'MH Monitoring (discover lights)' and follow in
 BTicino is using a proprietary protocol (SCS) to communicate from/to the devices in MyHome network system. There are a many gateways able to convert SCS protocol to OpenWebNet protocol that is well documented (follow this [link](https://developer.legrand.com/documentation/open-web-net-for-myhome/) for more details) and quite easy to use.
 Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it supports :
 
-| Gateway             | Authentication (tested)           | Lights        | Shutters      | Scenario      | Temperature   |
-| ------------------- | --------------------------------- | ------------- | ------------- | ------------- | ------------- |
-| ***MH201*** \*      | IP, OPEN pwd                      | OK [1]        | OK            | ?             | ?             |
-| ***MH202***         | OPEN pwd                          | OK            | OK            | OK            | OK [3][4]     |
-| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [2]| OK            | OK            | OK            | OK [4]        |
-| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK            | OK            | OK            | OK            |
-| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK            | OK            | OK            | OK [5]        |
+| Gateway             | Authentication (tested)           | Lights    | Shutters  | Scenario   | Temperature  | Energy   |
+| ------------------- | --------------------------------- | --------- | --------- | ---------- | ------------ | -------- |
+| ***MH201*** \*      | IP, OPEN pwd                      | OK [1]    | OK        | ?          | ?            | ?        |
+| ***MH202***         | OPEN pwd                          | OK        | OK        | OK         | OK [3][4]    | OK       |
+| ***F455***          | IP, OPEN pwd, HMAC (SHA-1) pwd [2]| OK        | OK        | OK         | OK [4]       | OK [6]   |
+| ***F459***          | IP, OPEN pwd, HMAC (SHA-2) pwd    | OK        | OK        | OK         | OK           | OK       |
+| ***myHOMEServer1*** | HMAC (SHA-2) pwd                  | OK        | OK        | OK         | OK [5]       | OK       |
 
 \*based on *Fabio Bui* feedback
 \
@@ -90,6 +126,9 @@ Based on previous authors comments and my own experience when testing/extending 
 [4] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)
 \
 [5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)
+\
+[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Nodes caching must be enabled to correct most of them when nodes are running for a while...
+
 
 ## 6. Contact me
 If you have questions, remarks, issues,... please add your input using GitHub for this project (either [issues](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues) or [discussions](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/discussions))

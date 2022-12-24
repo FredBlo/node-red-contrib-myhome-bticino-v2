@@ -1,9 +1,9 @@
-/*jshint esversion: 6, strict: implied, node: true */
+/*jshint esversion: 7, strict: implied, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
 
-  function MyHomeTemperatureNode (config) {
+  function MyHomeThermoCentralNode (config) {
     RED.nodes.createNode (this, config);
     var node = this;
     let gateway = RED.nodes.getNode (config.gateway);
@@ -25,58 +25,59 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (packet) {
+    const listenerFunction = function (frame) {
       let msg = {};
-      node.processReceivedBUSCommand (msg, packet);
+      node.processReceivedBUSFrames (msg, frame);
     };
     runningMonitor.addMonitoredEvent ('OWN_TEMPERATURE', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function which returns all operation modes params / key info (used in both 'processReceivedBUSCommand' and 'processInput' functions)
+    // Function which returns all operation modes params / key info (used in both 'processReceivedBUSFrames' and 'processInput' functions)
     function operationModesParams () {
-      let operationMode_List = [];
-      operationMode_List.push ({state:'ANTIFREEZE',                 own:'102',    mode:'Antifreeze',                 icon:['yellow','ring']});
-      operationMode_List.push ({state:'OFF_HEATING',                own:'103',    mode:'Off Heating',                icon:['grey','dot']});
-      operationMode_List.push ({state:'MANUAL_HEATING:(....)',      own:'110',    mode:'Manual Heating',             icon:['yellow','dot'], addField:'setTemperature'});
-      operationMode_List.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', mode:'Auto Heating Program',       icon:['yellow','dot'], addField:'curProgram'});
-      operationMode_List.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:'Auto Heating Scenario',      icon:['yellow','dot'], addField:'curScenario'});
-      operationMode_List.push ({state:'THERMAL_PROTECT',            own:'202',    mode:'Thermal Protection',         icon:['blue','ring']});
-      operationMode_List.push ({state:'OFF_CONDITIONING',           own:'203',    mode:'Off Conditioning',           icon:['grey','dot']});
-      operationMode_List.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:'Manual Conditioning',        icon:['blue','dot'],   addField:'setTemperature'});
-      operationMode_List.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:'Auto Conditioning Program',  icon:['blue','dot'],   addField:'curProgram'});
-      operationMode_List.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:'Auto Conditioning Scenario', icon:['blue','dot'],   addField:'curScenario'});
-      operationMode_List.push ({state:'OFF',                        own:'303',    mode:'Off Generic',                icon:['grey','dot']});
-      operationMode_List.push ({state:'MANUAL:(....)',              own:'310',    mode:'Manual Generic',             icon:['yellow','dot'], addField:'setTemperature'});
-      operationMode_List.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:'Auto Generic Program',       icon:['yellow','dot'], addField:'curProgram'});
-      operationMode_List.push ({state:'SCENARIO:(..)',              own:'32(..)', mode:'Auto Generic Scenario',      icon:['yellow','dot'], addField:'curScenario'});
-      return operationMode_List;
+      let operationMode_Params = [];
+      operationMode_Params.push ({state:'ANTIFREEZE',                 own:'102',    mode:RED._('mh-thcentral.node.status-opmode-antifreeze'),           icon:['yellow','ring']});
+      operationMode_Params.push ({state:'OFF_HEATING',                own:'103',    mode:RED._('mh-thcentral.node.status-opmode-off-heating'),          icon:['grey','dot']});
+      operationMode_Params.push ({state:'MANUAL_HEATING:(....)',      own:'110',    mode:RED._('mh-thcentral.node.status-opmode-manual-heating'),       icon:['yellow','dot'], addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-heating'),         icon:['yellow','dot'], addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-heating'),         icon:['yellow','dot'], addField:'curScenario'});
+      operationMode_Params.push ({state:'THERMAL_PROTECT',            own:'202',    mode:RED._('mh-thcentral.node.status-opmode-thermal-protect'),      icon:['blue','ring']});
+      operationMode_Params.push ({state:'OFF_CONDITIONING',           own:'203',    mode:RED._('mh-thcentral.node.status-opmode-off-conditioning'),     icon:['grey','dot']});
+      operationMode_Params.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:RED._('mh-thcentral.node.status-opmode-manual-conditioning'),  icon:['blue','dot'],   addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-conditioning'),    icon:['blue','dot'],   addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-conditioning'),    icon:['blue','dot'],   addField:'curScenario'});
+      operationMode_Params.push ({state:'OFF',                        own:'303',    mode:RED._('mh-thcentral.node.status-opmode-off-generic'),          icon:['grey','dot']});
+      operationMode_Params.push ({state:'MANUAL:(....)',              own:'310',    mode:RED._('mh-thcentral.node.status-opmode-manual-generic'),       icon:['yellow','dot'], addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-generic'),         icon:['yellow','dot'], addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO:(..)',              own:'32(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-generic'),         icon:['yellow','dot'], addField:'curScenario'});
+      return operationMode_Params;
     }
+    let operationModes_Params = operationModesParams ();
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    this.processReceivedBUSCommand = function (msg, packet) {
+    this.processReceivedBUSFrames = function (msg, frame) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
       // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
-      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      // In this case, even if no frame is found to update something, node is refreshed and msg are sent
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured Zone
-      let processedPackets = 0;
-      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
-        let packetMatch;
+      let processedFrames = 0;
+      for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
+        let frameMatch;
         // Checks 1 : current central unit status info frames (OpenWebNet doc) : reading '*4*what*#0##' with what in 2 digits mode
         // what: 20 = Remote control disabled / 21 = Remote control enabled / 22 = At least one probe OFF /
         //       23 = At least one probe in protection / 24 = At least one probe in manual / 30 = Failure discovered / 31 = Central Unit battery KO
         // TechNote : we only manage the remote control status
-        packetMatch = curPacket.match ('^\\*4\\*(20|21)\\*#0##');
-        if (packetMatch !== null) {
-          if (packetMatch[1] === '20') {
+        frameMatch = curFrame.match ('^\\*4\\*(20|21)\\*#0##');
+        if (frameMatch !== null) {
+          if (frameMatch[1] === '20') {
             payloadInfo.remoteControl = false;
-          } else if (packetMatch[1] === '21') {
+          } else if (frameMatch[1] === '21') {
             payloadInfo.remoteControl = true;
           }
         }
@@ -89,42 +90,41 @@ module.exports = function (RED) {
         //       [13001-13255] = Holiday days in Heating mode / [23001-23255] = Holiday days in Conditioning mode
         //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
         //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-        if (packetMatch === null) {
-          packetMatch = curPacket.match ('^\\*4\\*(\\d{3,5})((#(\\d+))|)\\*#0##');
+        if (frameMatch === null) {
+          frameMatch = curFrame.match ('^\\*4\\*(\\d{3,5})((#(\\d+))|)\\*#0##');
           // RegEx results using groups -> array :
           // [1] = what : first 3 to max 5 digits (before a possible #)
           // [2] = -not used-
           // [3] = -not used-, only there if there was a #
           // [4] = what : all digits after the #, if there was a #
-          if (packetMatch !== null) {
-            payloadInfo.operationMode_ownValue = packetMatch[1];
-            let operationMode_List = operationModesParams ();
+          if (frameMatch !== null) {
+            payloadInfo.operationMode_ownValue = frameMatch[1];
 
             // First remove all associated 'sub info'
             delete payloadInfo.operationMode_setTemperature;
             delete payloadInfo.operationMode_curProgram;
             delete payloadInfo.operationMode_curScenario;
             // Add main & associated sub info if any
-            for (let i = 0; i < operationMode_List.length; i++) {
+            for (let i = 0; i < operationModes_Params.length; i++) {
               // Use a regex to see if the current 'what' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
-              let ownMatch = payloadInfo.operationMode_ownValue.match('^' + operationMode_List[i].own + '$');
+              let ownMatch = payloadInfo.operationMode_ownValue.match('^' + operationModes_Params[i].own + '$');
               if (ownMatch !== null) {
-                payloadInfo.operationMode = operationMode_List[i].mode;
-                node.status_icon = operationMode_List[i].icon;
+                payloadInfo.operationMode = operationModes_Params[i].mode;
+                node.status_icon = operationModes_Params[i].icon;
                 let addFieldInfo = '';
-                if (operationMode_List[i].addField !== undefined) {
+                if (operationModes_Params[i].addField !== undefined) {
                   // A sub value is defined for this mode, add it to payload
                   if (ownMatch[1] !== undefined) {
                     // Additional field info is a part of the WHAT command
                     addFieldInfo = ownMatch[1];
                   } else {
                     // The value is not to be found in OWN WHAT command itself. In this case, it means it is TEMPERATURE info from after the WHAT#
-                    addFieldInfo = parseInt((packetMatch[4] || '').slice(-3))/10;
+                    addFieldInfo = parseInt((frameMatch[4] || '').slice(-3))/10;
                   }
-                  payloadInfo['operationMode_' + operationMode_List[i].addField] = addFieldInfo;
+                  payloadInfo['operationMode_' + operationModes_Params[i].addField] = addFieldInfo;
                 }
                 // Build the summary state part of payload
-                payloadInfo.state = operationMode_List[i].state;
+                payloadInfo.state = operationModes_Params[i].state;
                 let countPoints = payloadInfo.state.split('.').length-1;
                 if (countPoints) {
                   let whatSource = '(' + '.'.repeat(countPoints) + ')';
@@ -136,12 +136,12 @@ module.exports = function (RED) {
           }
         }
         // If we reached here with a non null match, it means command was useful for node
-        if (packetMatch !== null) {
-          processedPackets++;
+        if (frameMatch !== null) {
+          processedFrames++;
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
-      if (processedPackets === 0 && !forceRefreshAndMsg) {
+      if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
@@ -163,8 +163,8 @@ module.exports = function (RED) {
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
-          if (!Array.isArray(packet)) {
-            payload.command_received = packet;
+          if (!Array.isArray(frame)) {
+            payload.command_received = frame;
           }
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
@@ -185,7 +185,7 @@ module.exports = function (RED) {
           msg.topic = 'state/' + config.topic;
 
           // MSG2 : Build secondary payload
-          let msg2 = mhutils.buildSecondaryOutput (payloadInfo, config, 'On', '', '');
+          let msg2 = mhutils.buildSecondaryOutput (RED.util.cloneMessage (msg), payloadInfo, config, 'On', '', '');
 
           // Store last sent payload info & send both msg to output1 and output2
           node.lastPayloadInfo = newPayloadinfo;
@@ -226,17 +226,16 @@ module.exports = function (RED) {
         // Running in Write mode
         let cmd_what = '';
         let isManualTemp = 0;
-        let operationMode_List = operationModesParams ();
         // Add main & associated sub info if any
-        for (let i = 0; i < operationMode_List.length; i++) {
+        for (let i = 0; i < operationModes_Params.length; i++) {
           // Use a regex to see if the current 'state' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
-          let stateMatch = payload.state.match('^' + operationMode_List[i].state + '$');
-          if (stateMatch !== null || payload.operationMode === operationMode_List[i].mode) {
-            cmd_what = operationMode_List[i].own;
+          let stateMatch = payload.state.match('^' + operationModes_Params[i].state + '$');
+          if (stateMatch !== null || payload.operationMode === operationModes_Params[i].mode) {
+            cmd_what = operationModes_Params[i].own;
             // If this command as a dynamic part in it (i.e. '(.)' or '(..)'), process this
             let cmd_whatParam = '';
             if (stateMatch === null) {
-              cmd_whatParam = payload['operationMode_' + operationMode_List[i].addField];
+              cmd_whatParam = payload['operationMode_' + operationModes_Params[i].addField];
             } else {
               cmd_whatParam = stateMatch[1];
             }
@@ -246,7 +245,7 @@ module.exports = function (RED) {
               let whatReplacer = ('0' + cmd_whatParam).slice(-countPoints);
               cmd_what = cmd_what.replace(whatSource , whatReplacer);
             }
-            isManualTemp = (operationMode_List[i].state.includes('MANUAL')) ? cmd_whatParam : 0;
+            isManualTemp = (operationModes_Params[i].state.includes('MANUAL')) ? cmd_whatParam : 0;
             break;
           }
         }
@@ -296,7 +295,7 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          node.processReceivedBUSCommand (msg, cmd_responses);
+          node.processReceivedBUSFrames (msg, cmd_responses);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});
@@ -310,5 +309,5 @@ module.exports = function (RED) {
         done();
       });
     }
-    RED.nodes.registerType ('myhome-thermo-central', MyHomeTemperatureNode);
+    RED.nodes.registerType ('myhome-thermo-central', MyHomeThermoCentralNode);
   };

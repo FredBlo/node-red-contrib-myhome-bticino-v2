@@ -8,6 +8,7 @@
       port: { value: '20000', required: true },
       pass: { value: '12345', required: false },
       timeout: { value: '600', required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
+      lights_onconnect_refreshloads: { value: true, required: false},
       log_in_lights: { value: false, required: false},
       log_in_shutters: { value: false, required: false},
       log_in_temperature: { value: false, required: false},
@@ -16,6 +17,7 @@
       log_in_others: { value: false, required: false},
       log_out_cmd: { value: false, required: false}
     },
+    icon: 'font-awesome/fa-server',
     label: function() {
       return this.name;
     }
@@ -24,117 +26,86 @@
 
 <script type="text/x-red" data-template-name="myhome-gateway">
   <div class="form-row">
-    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
     <input type="text" id="node-config-input-name" placeholder="F-455">
   </div>
   <div class="form-row">
-    <label for="node-config-input-host"><i class="fa fa-server"></i> IP address</label>
+    <label for="node-config-input-host"><i class="fa fa-server"></i> <span data-i18n="mh-gateway.config.host"></span></label>
     <input type="text" id="node-config-input-host" placeholder="192.168.1.110">
   </div>
   <div class="form-row">
-    <label for="node-config-input-port"><i class="fa fa-server"></i> Port</label>
+    <label for="node-config-input-port"><i class="fa fa-server"></i> <span data-i18n="mh-gateway.config.port"></span></label>
     <input type="text" id="node-config-input-port" placeholder="20000">
   </div>
   <div class="form-row">
-    <label for="node-config-input-pass"><i class="fa fa-unlock-alt"></i> Password</label>
+    <label for="node-config-input-pass"><i class="fa fa-unlock-alt"></i> <span data-i18n="mh-gateway.config.password"></span></label>
     <input type="text" id="node-config-input-pass" placeholder="12345">
   </div>
   <div class="form-row">
-      <label for="node-config-input-timeout" title="Interval in seconds between time requests to ensure connection is kept alive (minimum is 15s, leave to 0 to disable 'keep alive' mechanism)"><i class="fa fa-repeat"></i> Keep alive</label>
-      <input type="text" id="node-config-input-timeout" placeholder="Send a 'keep alive' message to BUS every ... seconds">
+    <label for="node-config-input-timeout"><i class="fa fa-repeat"></i> <span data-i18n="mh-gateway.config.keepalive"></span></label>
+    <input type="text" id="node-config-input-timeout" data-i18n="[placeholder]mh-gateway.config.keepalive-placeholder"/>
+    &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.keepalive-info"></i>
   </div>
+  <div class="form-row">
+    <label for="node-config-input-lights_onconnect_refreshloads">
+      <img src="resources/node-red-contrib-myhome-bticino-v2/manylights.png" width="16" height="16">
+      <span data-i18n="mh-gateway.config.lights-onconnect-refreshloads"></span>
+    </label>
+    <label for="node-config-input-lights_onconnect_refreshloads" style="width:70%">
+      <input type="checkbox" id="node-config-input-lights_onconnect_refreshloads" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-gateway.config.lights-onconnect-refreshloads-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.lights-onconnect-refreshloads-info"></i>
+    </label>
+  </div>
+
   <div class="form-tips form-row" style="background:#EFEFEF">
-      <i class="fa fa-window-restore"></i> <b>Advanced BUS tracking logging options</b>
+      <i class="fa fa-window-restore"></i> <b><span data-i18n="mh-gateway.config.advBusTracking"></span></b>
       <br>
-      By default, all the OpenWebNet commands received through the MyHome BUS are not logged.
-      If needed for test/tracking reasons, you can enable some of them. Be aware number of logged lines can grow quite fast, mainly when
-      energy management elements are enabled on the BUS.
-      <br>
-      When enabled, logging level of such output is set to 'info'.
-      <h4>Incoming commands</h4>
+      <span data-i18n="mh-gateway.config.advBusTracking-intro"></span>
+
+      <h4><span data-i18n="mh-gateway.config.advBusTracking-incoming"></span></h4>
       <div class="form-row">
-          <label for="node-config-input-log_in_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> Lights</label>
+          <label for="node-config-input-log_in_lights">&nbsp;<i class="fa fa-lightbulb-o"></i> <span data-i18n="mh-gateway.config.type-lights"></span></label>
           <label for="node-config-input-log_in_lights" style="width:70%" title="OpenWebNet WHO=1">
-            <input type="checkbox" id="node-config-input-log_in_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All lights events
+            <input type="checkbox" id="node-config-input-log_in_lights" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-lights-checkbox"></span>
           </label>
       </div>
       <div class="form-row">
-          <label for="node-config-input-log_in_shutters">&nbsp;<i class="fa fa-align-justify"></i> Shutters</label>
+          <label for="node-config-input-log_in_shutters">&nbsp;<i class="fa fa-align-justify"></i> <span data-i18n="mh-gateway.config.type-shutters"></span></label>
           <label for="node-config-input-log_in_shutters" style="width:70%" title="OpenWebNet WHO=2">
-            <input type="checkbox" id="node-config-input-log_in_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All shutters events
+            <input type="checkbox" id="node-config-input-log_in_shutters" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-shutters-checkbox"></span>
           </label>
       </div>
       <div class="form-row">
-          <label for="node-config-input-log_in_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> Temperature</label>
+          <label for="node-config-input-log_in_temperature">&nbsp;<i class="fa fa-thermometer-half"></i> <span data-i18n="mh-gateway.config.type-temperature"></span></label>
           <label for="node-config-input-log_in_temperature" style="width:70%" title="OpenWebNet WHO=4">
-            <input type="checkbox" id="node-config-input-log_in_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All temperature control events
+            <input type="checkbox" id="node-config-input-log_in_temperature" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-temperature-checkbox"></span>
           </label>
       </div>
       <div class="form-row">
-          <label for="node-config-input-log_in_scenario">&nbsp;<i class="fa fa-magic"></i> Scenario</label>
+          <label for="node-config-input-log_in_scenario">&nbsp;<i class="fa fa-magic"></i> <span data-i18n="mh-gateway.config.type-scenario"></span></label>
           <label for="node-config-input-log_in_scenario" style="width:70%" title="OpenWebNet WHO=15 & 25">
-            <input type="checkbox" id="node-config-input-log_in_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All scenario (CEN/CEN+) events
+            <input type="checkbox" id="node-config-input-log_in_scenario" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-scenario-checkbox"></span>
           </label>
       </div>
       <div class="form-row">
-          <label for="node-config-input-log_in_energy">&nbsp;<i class="fa fa-bolt"></i> Energy</label>
+          <label for="node-config-input-log_in_energy">&nbsp;<i class="fa fa-bolt"></i> <span data-i18n="mh-gateway.config.type-energy"></span></label>
           <label for="node-config-input-log_in_energy" style="width:70%" title="OpenWebNet WHO=18">
-            <input type="checkbox" id="node-config-input-log_in_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All energy management events
+            <input type="checkbox" id="node-config-input-log_in_energy" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-energy-checkbox"></span>
           </label>
       </div>
       <div class="form-row">
-          <label for="node-config-input-log_in_others">&nbsp;<i class="fa fa-download"></i> Others</label>
+          <label for="node-config-input-log_in_others">&nbsp;<i class="fa fa-download"></i> <span data-i18n="mh-gateway.config.type-others"></span></label>
           <label for="node-config-input-log_in_others" style="width:70%">
-            <input type="checkbox" id="node-config-input-log_in_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All OTHER events
+            <input type="checkbox" id="node-config-input-log_in_others" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-others-checkbox"></span>
           </label>
       </div>
-      <h4>Outgoing commands</h4>
+
+      <h4><span data-i18n="mh-gateway.config.advBusTracking-outgoing"></span></h4>
       <div class="form-row">
-          <label for="node-config-input-log_out_cmd">&nbsp;<i class="fa fa-upload"></i> Sent</label>
+          <label for="node-config-input-log_out_cmd">&nbsp;<i class="fa fa-upload"></i> <span data-i18n="mh-gateway.config.type-sent"></label>
           <label for="node-config-input-log_out_cmd" style="width:70%" tit>
-            <input type="checkbox" id="node-config-input-log_out_cmd" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" /> All commands sent by flows
+            <input type="checkbox" id="node-config-input-log_out_cmd" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-sent-checkbox">
           </label>
       </div>
   </div>
-</script>
-
-<script type="text/x-red" data-help-name="myhome-gateway">
-  <style>
-    #mh-tableinfo {width: 95%;font-size: small;}
-    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
-    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
-    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
-  </style>
-  <p>The Gateway configuration Node</p>
-  <ul>
-    <li><strong>Name, IP Address, Port</strong> ... quite self explanatory :-)</li>
-    <li><strong>Password</strong> can be set :
-      <ul>
-        <li><em>empty</em> : password is not necessary when the Node-RED server is running on an IP address configured as 'local address' on the gateway</li>
-        <li><em>numerical</em> : for basic authentication (OpenWebNet passwords)</li>
-        <li><em>alphanumeric</em> : for advanced authentication (HMAC-1 (SHA-1) or HMAC-2 (SHA-2 / 256)</li>
-      </ul>
-    </li>
-    <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
-    <br><i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
-  </ul>
-  <br>
-  Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :
-  <table id="mh-tableinfo">
-    <tr>  <th>Gateway</th>                         <th>Authentication (tested)</th>             <th>Lights</th> <th>Shutters</th> <th>Scenario</th> <th>Temperature</th>	</tr>
-    <tr>  <td><strong>MH201 *</strong></td>        <td>IP, OPEN pwd</td>                        <td>OK</td>     <td>OK</td>       <td>?</td>        <td>?</td>            </tr>
-    <tr>  <td><strong>MH202</strong></td>          <td>OPEN pwd</td>                            <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [2][3]</td>    </tr>
-    <tr>  <td><strong>F455</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-1) pwd [1]</td>  <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [3]</td>       </tr>
-    <tr>  <td><strong>F459</strong></td>           <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>      <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK</td>           </tr>
-    <tr>  <td><strong>myHOMEServer1</strong></td>  <td>HMAC (SHA-2) pwd</td>                    <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [4]</td>       </tr>
-  </table>
-  <i>* based on *Fabio Bui* feedback</i>
-  <br> <i>[1] F455 gateway closes the monitoring connection after 1 hour of inactivity. The connector will auto-reconnect but it is best to use 'keep alive' enabled every 10-15 minutes to avoid connection drops.</i>
-  <br> <i>[2] MH202 gateway returns the temperature set-point without taking the local offset into account</i>
-  <br> <i>[3] MH202 & F455 gateways will only send status of first zone's actuator (asking for all fails)</i>
-  <br> <i>[4] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
-
-  <h3>BUS logging options</h3>
-    <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>
-    <p>When outgoing commands are logged, the full connection stack is logged too, for every command sent.</p>
 </script>

@@ -1,11 +1,13 @@
-[{
+[
+    {
         "id": "beafc52d435f41c3",
         "type": "tab",
         "label": "Inject (example)",
         "disabled": false,
         "info": "",
         "env": []
-    }, {
+    },
+    {
         "id": "b90dd9234a017ae7",
         "type": "group",
         "z": "beafc52d435f41c3",
@@ -17,12 +19,26 @@
             "fill-opacity": "0.6",
             "color": "#3f3f3f"
         },
-        "nodes": ["71710b3740fc4328", "4e632adb147c27ca", "a04ddd85b343649c", "74d3c2ae875f8cc9", "4cbaa05bb375f479", "f80cfe24c0121682", "64d85e1579e61262", "6858cb61672b5c0c", "87c99da979c3996c", "4f8907fa4487242c", "8cecfe996a5d487b", "19ee7afa6699640f"],
+        "nodes": [
+            "71710b3740fc4328",
+            "4e632adb147c27ca",
+            "a04ddd85b343649c",
+            "74d3c2ae875f8cc9",
+            "4cbaa05bb375f479",
+            "f80cfe24c0121682",
+            "64d85e1579e61262",
+            "6858cb61672b5c0c",
+            "87c99da979c3996c",
+            "4f8907fa4487242c",
+            "8cecfe996a5d487b",
+            "19ee7afa6699640f"
+        ],
         "x": 34,
         "y": 11,
         "w": 1112,
         "h": 710
-    }, {
+    },
+    {
         "id": "71710b3740fc4328",
         "type": "comment",
         "z": "beafc52d435f41c3",
@@ -32,7 +48,8 @@
         "x": 590,
         "y": 160,
         "wires": []
-    }, {
+    },
+    {
         "id": "4e632adb147c27ca",
         "type": "myhome-commandsession",
         "z": "beafc52d435f41c3",
@@ -42,14 +59,20 @@
         "intercommandsdelay": "",
         "x": 660,
         "y": 480,
-        "wires": [["a04ddd85b343649c"]]
-    }, {
+        "wires": [
+            [
+                "a04ddd85b343649c"
+            ]
+        ]
+    },
+    {
         "id": "f80cfe24c0121682",
         "type": "inject",
         "z": "beafc52d435f41c3",
         "g": "b90dd9234a017ae7",
         "name": "Turn on group of lights '23' (*1*1*#23##)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
             }
         ],
@@ -62,15 +85,21 @@
         "payloadType": "str",
         "x": 280,
         "y": 440,
-        "wires": [["4e632adb147c27ca"]],
+        "wires": [
+            [
+                "4e632adb147c27ca"
+            ]
+        ],
         "icon": "node-red-contrib-myhome-bticino-v2/mh-lightbulb-group.svg"
-    }, {
+    },
+    {
         "id": "74d3c2ae875f8cc9",
         "type": "inject",
         "z": "beafc52d435f41c3",
         "g": "b90dd9234a017ae7",
         "name": "Ask Light A=2 / PL=2 status (*#1*22##)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
             }
         ],
@@ -83,15 +112,21 @@
         "payloadType": "str",
         "x": 290,
         "y": 360,
-        "wires": [["4e632adb147c27ca"]],
+        "wires": [
+            [
+                "4e632adb147c27ca"
+            ]
+        ],
         "icon": "font-awesome/fa-lightbulb-o"
-    }, {
+    },
+    {
         "id": "64d85e1579e61262",
         "type": "inject",
         "z": "beafc52d435f41c3",
         "g": "b90dd9234a017ae7",
         "name": "Ask state of all lights",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
             }
         ],
@@ -104,15 +139,21 @@
         "payloadType": "str",
         "x": 350,
         "y": 680,
-        "wires": [["4e632adb147c27ca"]],
+        "wires": [
+            [
+                "4e632adb147c27ca"
+            ]
+        ],
         "icon": "font-awesome/fa-question-circle-o"
-    }, {
+    },
+    {
         "id": "4cbaa05bb375f479",
         "type": "inject",
         "z": "beafc52d435f41c3",
         "g": "b90dd9234a017ae7",
         "name": "Turn off Light A=2 / PL=2 status (*1*0*22##)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
             }
         ],
@@ -125,15 +166,21 @@
         "payloadType": "str",
         "x": 270,
         "y": 400,
-        "wires": [["4e632adb147c27ca"]],
+        "wires": [
+            [
+                "4e632adb147c27ca"
+            ]
+        ],
         "icon": "font-awesome/fa-lightbulb-o"
-    }, {
+    },
+    {
         "id": "6858cb61672b5c0c",
         "type": "inject",
         "z": "beafc52d435f41c3",
         "g": "b90dd9234a017ae7",
         "name": "Open shutter A=3 / PL=2 (*2*1*32##)",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
             }
         ],
@@ -146,8 +193,13 @@
         "payloadType": "str",
         "x": 290,
         "y": 580,
-        "wires": [["4e632adb147c27ca"]]
-    }, {
+        "wires": [
+            [
+                "4e632adb147c27ca"
+            ]
+        ]
+    },
+    {
         "id": "a04ddd85b343649c",
         "type": "debug",
         "z": "beafc52d435f41c3",
@@ -164,7 +216,8 @@
         "x": 980,
         "y": 480,
         "wires": []
-    }, {
+    },
+    {
         "id": "87c99da979c3996c",
         "type": "comment",
         "z": "beafc52d435f41c3",
@@ -174,7 +227,8 @@
         "x": 360,
         "y": 320,
         "wires": []
-    }, {
+    },
+    {
         "id": "4f8907fa4487242c",
         "type": "comment",
         "z": "beafc52d435f41c3",
@@ -184,13 +238,15 @@
         "x": 350,
         "y": 540,
         "wires": []
-    }, {
+    },
+    {
         "id": "8cecfe996a5d487b",
         "type": "inject",
         "z": "beafc52d435f41c3",
         "g": "b90dd9234a017ae7",
         "name": "Turn on lights 1.1 + 1.2 + 1.3",
-        "props": [{
+        "props": [
+            {
                 "p": "payload"
             }
         ],
@@ -203,9 +259,14 @@
         "payloadType": "str",
         "x": 320,
         "y": 480,
-        "wires": [["4e632adb147c27ca"]],
+        "wires": [
+            [
+                "4e632adb147c27ca"
+            ]
+        ],
         "icon": "node-red-contrib-myhome-bticino-v2/mh-lightbulb-group.svg"
-    }, {
+    },
+    {
         "id": "19ee7afa6699640f",
         "type": "comment",
         "z": "beafc52d435f41c3",
@@ -215,7 +276,8 @@
         "x": 360,
         "y": 640,
         "wires": []
-    }, {
+    },
+    {
         "id": "a4e23617.d0c288",
         "type": "myhome-gateway",
         "name": "F-455",
@@ -223,6 +285,7 @@
         "port": "20000",
         "pass": "12345",
         "timeout": "600",
+        "lights_onconnect_refreshloads": true,
         "log_in_lights": false,
         "log_in_shutters": false,
         "log_in_temperature": false,

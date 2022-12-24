@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, loopfunc: true, node: true */
+/*jshint esversion: 7, strict: implied, loopfunc: true, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
@@ -27,43 +27,43 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (packet) {
+    const listenerFunction = function (frame) {
       let msg = {};
-      node.processReceivedBUSCommand (msg, packet);
+      node.processReceivedBUSFrames (msg, frame);
     };
     runningMonitor.addMonitoredEvent ('OWN_SCENARIO', listenerFunction);
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Function called when a MyHome BUS command is received /////////////////////////////////////////////////////////////
+    // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    this.processReceivedBUSCommand = function (msg, packet) {
+    this.processReceivedBUSFrames = function (msg, frame) {
       if (typeof (msg.payload) === 'undefined') {
         msg.payload = {};
       }
       let payload = msg.payload;
       // When the msg contains a topic with specified 'state/', it means function was called internally (from 'processInput') to refresh values.
-      // In this case, even if no packet is found to update something, node is refreshed and msg are sent
+      // In this case, even if no frame is found to update something, node is refreshed and msg are sent
       let forceRefreshAndMsg = (msg.topic === 'state/' + config.topic);
 
       // Check whether received command is linked to current configured light point
       let multiOutput = [];
-      let processedPackets = 0;
-      for (let curPacket of (typeof(packet) === 'string') ? [packet] : packet) {
+      let processedFrames = 0;
+      for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
         let curButtonID = '';
         let curActionType = '';
         let nodeStatusIcon = ['grey','ring'];
         let nodeStatusText = '';
-        let packetMatch;
+        let frameMatch;
         let curButtonLastState;
         // Checks 1 : Basic scenario (CEN) [*15*WHAT(#<ACTION_TYPE>)*WHERE##]
         //    - WHAT = push button N value [00-31]
         //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
     		//    - WHERE = push button virtual address (A/PL)
         if (config.scenariotype === 'CEN') {
-          packetMatch = curPacket.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + node.scenarioid + '##');
-          if (packetMatch !== null) {
-            curButtonID = packetMatch[1];
-            switch (packetMatch[2]) {
+          frameMatch = curFrame.match ('^\\*15\\*(\\d+)#{0,1}(\\d|)\\*' + node.scenarioid + '##');
+          if (frameMatch !== null) {
+            curButtonID = frameMatch[1];
+            switch (frameMatch[2]) {
               case '1':
                 // Release after short pressure (<0.5s)
                 curActionType = 'SHORT';
@@ -87,14 +87,14 @@ module.exports = function (RED) {
         //    - WHAT = push button N value [0-31]
         //    - WHERE = 2 [0-2047] Virtual Address
         if (config.scenariotype === 'CEN+') {
-          packetMatch = curPacket.match ('^\\*25\\*(\\d\\d)#(\\d+)\\*2' + node.scenarioid + '##');
-          if (packetMatch !== null) {
-            curButtonID = packetMatch[2];
-            switch (packetMatch[1]) {
+          frameMatch = curFrame.match ('^\\*25\\*(\\d{2})#(\\d+)\\*2' + node.scenarioid + '##');
+          if (frameMatch !== null) {
+            curButtonID = frameMatch[2];
+            switch (frameMatch[1]) {
               case '21':
                 // Short pressure (<0.5s)
                 curActionType = 'SHORT';
-              break;
+                break;
               case '22':
                 // Start of extended pressure (>= 0.5s)
                 curActionType = 'LONG_START';
@@ -111,8 +111,8 @@ module.exports = function (RED) {
           }
         }
         // If we reached here with a non null match, it means command was useful for node
-        if (packetMatch !== null) {
-          processedPackets++;
+        if (frameMatch !== null) {
+          processedFrames++;
           // Define action info based on type
           curButtonLastState = payloadInfo['buttonsLastState_' + curButtonID] || {};
           switch (curActionType) {
@@ -120,31 +120,31 @@ module.exports = function (RED) {
               // Start of (short or extended) pressure
               curButtonLastState = {};
               curButtonLastState.actionStart = Date.now();
-              nodeStatusText = 'short/long pressed started';
+              nodeStatusText = RED._('mh-scenario.node.status-action-startpress');
+              break;
+            case 'LONG_START':
+              // Start of extended pressure (>= 0.5s)
+              curButtonLastState = {};
+              curButtonLastState.actionStart = Date.now();
+              nodeStatusText = RED._('mh-scenario.node.status-action-startpress-long');
+              break;
+            case 'LONG_ONGOING':
+              // Extended pressure (sent every 0.5s as long as button is pressed)
+              curButtonLastState.actionEnd = Date.now();
+              curButtonLastState.countExtPressures = (curButtonLastState.countExtPressures||0) + 1;
+              nodeStatusText = RED._('mh-scenario.node.status-action-longpress-ongoing');
               break;
             case 'SHORT':
               // Short pressure (<0.5s)
               curButtonLastState = {};
               curButtonLastState.actionStart = Date.now();
               curButtonLastState.actionEnd = Date.now();
-              nodeStatusText = 'short pressed (<0.5s)';
-              break;
-            case 'LONG_START':
-              // Start of extended pressure (>= 0.5s)
-              curButtonLastState = {};
-              curButtonLastState.actionStart = Date.now();
-              nodeStatusText = 'long pressed (>0.5s) started';
-              break;
-            case 'LONG_ONGOING':
-              // Extended pressure (sent every 0.5s as long as button is pressed)
-              curButtonLastState.actionEnd = Date.now();
-              curButtonLastState.countExtPressures = (curButtonLastState.countExtPressures||0) + 1;
-              nodeStatusText = 'long pressed going on';
+              nodeStatusText = RED._('mh-scenario.node.status-action-endpress-short');
               break;
             case 'LONG':
               // Release after an extended pressure
               curButtonLastState.actionEnd = Date.now();
-              nodeStatusText = 'long pressed';
+              nodeStatusText = RED._('mh-scenario.node.status-action-endpress-long');
               break;
           }
           // Append info which are common to all states
@@ -152,11 +152,11 @@ module.exports = function (RED) {
           curButtonLastState.actionType = curActionType;
           curButtonLastState.actionDuration = (curButtonLastState.actionEnd - curButtonLastState.actionStart) || 0;
           curButtonLastState.state = curButtonID + ':' + curButtonLastState.actionType + ((curButtonLastState.actionDuration > 0) ? ':' + curButtonLastState.actionDuration.toString() : '');
-          nodeStatusText = 'Button #' + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
+          nodeStatusText = RED._('mh-scenario.node.status-action-button') + curButtonLastState.buttonID + ': '+ nodeStatusText + ((curButtonLastState.actionDuration > 0) ? ' (' + (curButtonLastState.actionDuration/1000).toFixed(1).toString() + 's)': '');
           payloadInfo['buttonsLastState_' + curButtonID] = curButtonLastState;
 
           // Transfer all current button info to main payload (as direct properties of it)
-          Object.getOwnPropertyNames(curButtonLastState).forEach (function(objectName , i) {
+          Object.getOwnPropertyNames(curButtonLastState).forEach (function(objectName) {
             payload[objectName] = curButtonLastState[objectName];
           });
 
@@ -181,7 +181,7 @@ module.exports = function (RED) {
                 toMonitor = true;
               }
             }
-            // Reached here : monitored action, build payload (which is actually simply th current button state with all collected info)
+            // Reached here : monitored action, build payload (which is actually simply the current button state with all collected info)
             if (toMonitor) {
               let curMsg = multiOutput[i+1] = {};
               curMsg.payload = curButtonLastState;
@@ -193,7 +193,7 @@ module.exports = function (RED) {
         }
       }
       // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
-      if (processedPackets === 0 && !forceRefreshAndMsg) {
+      if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
@@ -204,11 +204,11 @@ module.exports = function (RED) {
         if (!config.smartfilter || newPayloadinfo !== node.lastPayloadInfo || forceRefreshAndMsg) {
           // MSG1 : Build primary msg
           // MSG1 : Received command info : only include source command when was provided as string (when is an array, it comes from .processInput redirected here)
-          if (!Array.isArray(packet)) {
-            payload.command_received = packet;
+          if (!Array.isArray(frame)) {
+            payload.command_received = frame;
           }
           // MSG1 : Add all current node stored values to payload
-          Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName , i) {
+          Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName) {
           	if (objectName.match('buttonsLastState_\\d+')) {
               payload[objectName] = payloadInfo[objectName];
           	}
@@ -324,7 +324,7 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh (using 'state/') and msg outputs
           msg.topic = 'state/' + config.topic;
-          node.processReceivedBUSCommand (msg, cmd_responses);
+          node.processReceivedBUSFrames (msg, cmd_responses);
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

@@ -1,4 +1,4 @@
-/*jshint esversion: 6, strict: implied, node: true */
+/*jshint esversion: 7, strict: implied, node: true */
 
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
@@ -12,8 +12,8 @@ module.exports = function (RED) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add all listerners on gateway based on types we have to monitor
     // Define the function which is to be called on any triggered command received from the gateway
-    const listenerFunction = function (packet) {
-      node.send ({payload: packet});
+    const listenerFunction = function (frame) {
+      node.send ({payload: frame});
     };
 
     // LIGHTS

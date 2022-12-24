@@ -1,0 +1,83 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Gateway",
+		"riser-private": "Private riser",
+		"riser-localbus-01": "Local bus 1",
+		"riser-localbus-02": "Local bus 2",
+		"riser-localbus-03": "Local bus 3",
+		"riser-localbus-04": "Local bus 4",
+		"riser-localbus-05": "Local bus 5",
+		"riser-localbus-06": "Local bus 6",
+		"riser-localbus-07": "Local bus 7",
+		"riser-localbus-08": "Local bus 8",
+		"riser-localbus-09": "Local bus 9",
+		"riser-localbus-10": "Local bus 10",
+		"riser-localbus-11": "Local bus 11",
+		"riser-localbus-12": "Local bus 12",
+		"riser-localbus-13": "Local bus 13",
+		"riser-localbus-14": "Local bus 14",
+		"riser-localbus-15": "Local bus 15",
+		"input-label-simple": "simple mode ('payload' or 'payload.state')",
+		"name": "Name",
+		"topic": "Topic",
+		"topic-info": "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/__topicName__' (when used in read-only mode) or 'cmd/__topicName__' (when used in write mode), otherwise node will skip incoming message.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Filter incoming gateway events",
+		"option-smartfilter-info": "SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.\nThis is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...) \n\nNote: SmartFilter is never applied when node is running in read-only (status update request) mode.",
+		"option-smartfilter-out-checkbox": "Filter outgoing commands sent to gateway",
+		"option-skipevents": "Skip events",
+		"option-skipevents-checkbox": "Skip ALL incoming gateway events",
+		"option-skipevents-info": "If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed.",
+		"option-readonly": "Read-only",
+		"option-readonly-checkbox": "Only ask for current load status",
+		"option-readonly-info": "When enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current state without applying any change.",
+		"secondary-output-title": "Secondary output options",
+		"secondary-output-intro": "You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).",
+		"secondary-output-name": "Property name",
+		"secondary-output-name-placeholder": "e.g. On / state / ... / (empty)",
+		"secondary-output-name-info": "Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)",
+		"secondary-output-content": "Data type"
+	},
+
+
+
+	"mh-gateway":
+	{
+		"config":
+		{
+			"host": "IP address",
+			"port": "Port",
+			"password":"Password",
+			"keepalive": "Keep alive",
+			"keepalive-placeholder": "Send a 'keep alive' message to BUS every ... seconds",
+			"keepalive-info": "Interval in seconds between time requests to ensure connection is kept alive (minimum is 15s, set to 0 to disable 'keep alive' mechanism)",
+			"lights-onconnect-refreshloads":"Reload",
+			"lights-onconnect-refreshloads-checkbox":"Ask for all lights state on (re)connect",
+			"lights-onconnect-refreshloads-info":"When the gateway connects successfully, the state of all loads connected on the BUS will be gathered. All deployed nodes will also get updated accordingly, and flows will be started.",
+			"advBusTracking": "Advanced BUS tracking logging options",
+			"advBusTracking-intro": "By default, all the OpenWebNet commands received through the MyHome BUS are not logged.\nIf needed for test/tracking reasons, you can enable some of them. Be aware number of logged lines can grow quite fast, mainly when energy management elements are enabled on the BUS.\n\nWhen enabled, logging level of such output is set to 'info'.",
+			"advBusTracking-incoming": "Incoming commands",
+			"type-lights": "Lights",
+			"type-lights-checkbox": "All lights events",
+			"type-shutters": "Shutters",
+			"type-shutters-checkbox": "All shutters events",
+			"type-temperature": "Temperature",
+			"type-temperature-checkbox": "All temperature control events",
+			"type-scenario": "Scenario",
+			"type-scenario-checkbox": "All scenario (CEN/CEN+) events",
+			"type-energy": "Energy",
+			"type-energy-checkbox": "All energy management events",
+			"type-others": "Others",
+			"type-others-checkbox": "All OTHER events",
+			"advBusTracking-outgoing": "Outgoing commands",
+			"type-sent": "Sent",
+			"type-sent-checkbox": "All commands sent by flows"
+		},
+		"node":
+		{
+
+		}
+	}
+}

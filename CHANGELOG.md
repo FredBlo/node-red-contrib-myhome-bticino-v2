@@ -1,8 +1,44 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.2.4 (latest available) - 10/2022
+### v2.3.0 (latest available) - 12/2022
+- **General**
+  - ***Improvement*** : quite many code clean-up, doc content updated and fine-tuned,...
+  - ***Improvement*** : many nodes UI were reviewed to be more consistent / easier to understand (options re-ordering, greying out options which have become inapplicable because of other options,...)
+  - ***Improvement*** : technical revamp to support **internationalization** (if someone wants to translate to other languages, let me know :-) )
+  - ***Improvement*** : nodes which have a secondary output will now include all info from initial received 'msg' (i.e. received 'msg' is cloned and only 'msg.payload' is simplified)
+- **MH Light**
+  - ***Improvement*** : a new option was added to gather state of all BUS connected lights on initial gateway connection. This can be configured in the gateway, and is enabled by default for new installs.
+  - ***Improvement*** : support for a new 'simple' command 'TOGGLE' which will, based on last light state, switch from 'ON' -> 'OFF' or 'OFF' -> 'ON'. When last state is unknown, it is considered as 'OFF' and will be turned 'ON'.
+  - ***Improvement*** : SmartFilter can now also be enabled to avoid **sending** unnecessary commands to the gateway. The node will define whether a command is useful based on the last known state of the node (e.g. when a light is known to be 'on', it is not necessary to send another command to turn it on again). When the received message (msg.payload) is judged 'useless', the node stops the flow (i.e. no message is sent to an output).
+  Note that, if used for groups, the node will only rely on the last calls it made itself, since groups have no status as such on the MyHome system.
+  - ***Bug fix*** : when asking for light status of a dimmed light, if light is turned off, brightness will always be 0. Prior to this fix, brightness returned was the last brightness known before light was turned off.
+- **MH Scenario**
+  - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve existing flow wiring configuration.
+  - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)
+  - ***Bug fix*** : label of 'Short press' was not updated correctly based on 'CEN/CEN+' node type defined
+- **MH Temperature Central Unit** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+- **MH Temperature Zone** :
+  - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
+- **MH Inject** :
+  - ***Improvement*** : added an option to allow overriding specified delay (in ms) which is applied before sending a new command to the BUS. Incoming message 'msg.rate' -when available- is then used as new delay.
+- **MH Energy** : ***New node type***
+  Added support for Energy Management.
+  Main included functionalities :
+  - node can be configured to **acquire** (when info is read on the BUS, or based on flow-triggered calls) meter information :
+    - Current power, in Watts
+    - Daily consumption (today), in Wh
+    - Daily consumption (based on a provided time range), in Wh
+    - Hourly consumption (based on a provided time range), in Wh
+    - Monthly consumption (current month), in Wh
+    - Monthly consumption (based on a provided time range), in Wh
+    - Full consumption since begin, in Wh
+  - *(See node documentation for full detailed information.)*
+
+### v2.2.4 - 10/2022
 - **MH Light**
   - ***Improvement*** : light node can now handle brightness increase / decrease when controlling dimmed lights. This can be done by sending a payload which contains 'UP' or 'DOWN'.
+
 ### v2.2.3(-2) - 09/2022
 - **General**
   - ***Examples flows*** are now available to be imported directly using standard 'Import' menu from node-red for :
@@ -15,6 +51,7 @@
     - MH Inject
     - MH Monitoring
   - small ***typo corrections*** here and there :-)
+
 ### v2.2.2 - 01/2022
 - **MH Light**
   - ***Improvement*** : light node now accepts a simple 'numerical' value (0 - 100) as payload value when used with dimmers (i.e. sending 80 will dim light to 80% as if a full request was sent with `payload.state=ON` and `payload.brightness=80`)

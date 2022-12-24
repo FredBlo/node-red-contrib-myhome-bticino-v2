@@ -10,13 +10,16 @@
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
       smartfilter: { value: true, required: false},
+      smartfilter_out: { value: true, required: false},
       skipevents: { value: false, required: false},
       isstatusrequest: { value: false, required: false},
       output2_name: { value: 'On', required: false},
       output2_type: { value: 'boolean', required: false}
     },
     inputs: 1,
-    inputLabels: "simple mode: 'ON / OFF'",
+    inputLabels: function () {
+      return this._("common.input-label-simple") + ": 'ON / OFF / TOGGLE / UP / DOWN'";
+    },
     outputs: 2,
     outputLabels: function (index) {
       if (index === 0) {
@@ -52,181 +55,137 @@
       return this.name || 'MH Light';
     },
     oneditprepare: function() {
-      $(document).on('change', '#node-input-topic', function() {
-        let infoVar = $('#node-input-topic').val();
-        let infoMsg = "to trigger the action on this node, do not forget the incoming 'msg' MUST contain a 'msg.topic' which is either 'state/" + infoVar + "' (when used in read-only mode) "
-        + "or 'cmd/" + infoVar + "' (when used in write mode), otherwise node will skip incoming message."
-        $('#node-info-topic').prop('title' , infoMsg);
+      let scope = this;
+      $('#node-input-topic').on('change', function() {
+        let topicName = $(this).val();
+        let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
+        $('#node-info-topic').prop('title' , topicInfo);
       });
+
+      function checkboxEditable (checkBoxID , isEditable, readonlyValue) {
+    		// Function to turn checkbox uneditable (=greyed out box & label, disabled access and value forced), or back editable
+  			$('#' + checkBoxID)
+  				.prop('checked', (isEditable) ? $('#' + checkBoxID).prop('checked') : readonlyValue)
+  				.prop('disabled', !isEditable)
+          .change()
+  				.next().css('color', (isEditable) ? '' : 'LightGrey');
+    	}
+      $('#node-input-isgroup').on('change', function() {
+        // When group mode is enabled, read-only mode (status request) is not allowed
+        let isEditable = !($(this).prop('checked'));
+        checkboxEditable ('node-input-isstatusrequest' , isEditable, false);
+      });
+      $('#node-input-isstatusrequest').on('change', function() {
+        // When in read-only mode, outgoing commands are status request only and cannot be filtered
+        let isEditable = !($(this).prop('checked'));
+        checkboxEditable ('node-input-smartfilter_out' , isEditable, false);
+      });
+      $('#node-input-skipevents').on('change', function() {
+        // All gateway events are to be ignored. SmartFilter has nothig to filter (so assume is always 'forced on')
+    		let isEditable = !($(this).prop('checked'));
+    		checkboxEditable ('node-input-smartfilter' , isEditable, true);
+    	});
     }
   });
 </script>
 
 <script type="text/x-red" data-template-name="myhome-light">
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Light name" />
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]mh-light.config.name-placeholder"/>
   </div>
   <div class="form-row">
-      <label for="node-input-lightid"><i class="fa fa-lightbulb-o"></i> Light</label>
-      <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-        <select id="node-input-buslevel" style="width:110px">
-          <option value="private_riser">Private riser</option>
-          <option value="01">Local bus 1</option>
-          <option value="02">Local bus 2</option>
-          <option value="03">Local bus 3</option>
-          <option value="04">Local bus 4</option>
-          <option value="05">Local bus 5</option>
-          <option value="06">Local bus 6</option>
-          <option value="07">Local bus 7</option>
-          <option value="08">Local bus 8</option>
-          <option value="09">Local bus 9</option>
-          <option value="10">Local bus 10</option>
-          <option value="11">Local bus 11</option>
-          <option value="12">Local bus 12</option>
-          <option value="13">Local bus 13</option>
-          <option value="14">Local bus 14</option>
-          <option value="15">Local bus 15</option>
-        </select>
-        <div style="position: absolute; left: 114px; right: 0px; top:0px;">
-          <input type="text" id="node-input-lightid" style="width:100%" placeholder="32 (for light 3.2 or group 32)" />
-        </div>
+    <label for="node-input-topic"><i class="fa fa-terminal"></i> <span data-i18n="common.topic"></span></label>
+    <input type="text" id="node-input-topic" data-i18n="[placeholder]mh-light.config.topic-placeholder"/>
+    &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
+  </div>
+  <div class="form-row">
+    <label for="node-input-gateway"><i class="fa fa-server"></i> <span data-i18n="common.gateway"></span></label>
+    <input type="text" id="node-input-gateway"/>
+  </div>
+
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+
+  <div class="form-row">
+    <label for="node-input-lightid"><i class="fa fa-lightbulb-o"></i> <span data-i18n="mh-light.config.lightid"></span></label>
+    <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+      <select id="node-input-buslevel" style="width:110px">
+        <option value="private_riser" data-i18n="common.riser-private"></option>
+        <option value="01" data-i18n="common.riser-localbus-01">[Local bus 1]</option>
+        <option value="02" data-i18n="common.riser-localbus-02">[Local bus 2]</option>
+        <option value="03" data-i18n="common.riser-localbus-03">[Local bus 3]</option>
+        <option value="04" data-i18n="common.riser-localbus-04">[Local bus 4]</option>
+        <option value="05" data-i18n="common.riser-localbus-05">[Local bus 5]</option>
+        <option value="06" data-i18n="common.riser-localbus-06">[Local bus 6]</option>
+        <option value="07" data-i18n="common.riser-localbus-07">[Local bus 7]</option>
+        <option value="08" data-i18n="common.riser-localbus-08">[Local bus 8]</option>
+        <option value="09" data-i18n="common.riser-localbus-09">[Local bus 9]</option>
+        <option value="10" data-i18n="common.riser-localbus-10">[Local bus 10]</option>
+        <option value="11" data-i18n="common.riser-localbus-11">[Local bus 11]</option>
+        <option value="12" data-i18n="common.riser-localbus-12">[Local bus 12]</option>
+        <option value="13" data-i18n="common.riser-localbus-13">[Local bus 13]</option>
+        <option value="14" data-i18n="common.riser-localbus-14">[Local bus 14]</option>
+        <option value="15" data-i18n="common.riser-localbus-15">[Local bus 15]</option>
+      </select>
+      <div style="position: absolute; left: 114px; right: 0px; top:0px;">
+        <input type="text" id="node-input-lightid" style="width:100%" data-i18n="[placeholder]mh-light.config.lightid-placeholder"/>
       </div>
+    </div>
+    <br>
+    <div style="display: inline-block; position: relative; width: 100%; height: 20px;">
+      <div style="position: absolute; left: 210px; right: 0px; top:3px;">
+        <label for="node-input-isgroup" style="width:100%">
+          <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-light.config.light-isgroup"></span>
+        </label>
+      </div>
+    </div>
   </div>
   <div class="form-row">
-      <label><i class="fa"></i></label>
-      <label for="node-input-isgroup" style="width:70%">
-        <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;" />This is a group reference
-      </label>
-  </div>
-  <div class="form-row">
-      <label for="node-input-topic"><i class="fa fa-terminal"></i> Topic</label>
-      <input type="text" id="node-input-topic" placeholder="e.g. firstfloor-office" />
-      &nbsp;<i id="node-info-topic" class="fa fa-info-circle" title=""></i>
-  </div>
-  <div class="form-row">
-      <label for="node-input-gateway"><i class="fa fa-server"></i> Gateway</label>
-      <input type="text" id="node-input-gateway" />
-  </div>
-  <div class="form-row">
-    <label for="node-input-smartfilter"><i class="fa fa-filter"></i> SmartFilter</label>
-    <label for="node-input-smartfilter" style="width:70%">
-      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Enable 'Smart filtering' of gateway events
-      &nbsp;<i class="fa fa-info-circle" title="SmartFilter is enabled by default, making the node only triggering a new flow (aka output) when a state CHANGED after a MyHome BUS message was received.
-This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)
-&#13;
-Note: SmartFilter is never applied when node is running in read-only (status update request) mode."></i>
+    <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> <span data-i18n="common.option-readonly"></span></label>
+    <label for="node-input-isstatusrequest" style="width:70%">
+      <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-readonly-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-readonly-info"></i>
     </label>
   </div>
   <div class="form-row">
-      <label for="node-input-skipevents"><i class="fa fa-ban"></i> Skip events</label>
-      <label for="node-input-skipevents" style="width:70%">
-        <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Skip incoming events from gateway
-        &nbsp;<i class="fa fa-info-circle" title="If necessary, all MyHome status updates received from the gateway about this node can be ignored, which means only Node-RED received payloads will be processed."></i>
-      </label>
+    <label for="node-input-skipevents"><i class="fa fa-ban"></i> <span data-i18n="common.option-skipevents"></span></label>
+    <label for="node-input-skipevents" style="width:70%">
+      <input type="checkbox" id="node-input-skipevents" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-skipevents-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-skipevents-info"></i>
+    </label>
   </div>
   <div class="form-row">
-      <label for="node-input-isstatusrequest"><i class="fa fa-refresh"></i> Read-only</label>
-      <label for="node-input-isstatusrequest" style="width:70%">
-        <input type="checkbox" id="node-input-isstatusrequest" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;" />Only ask for current load status
-        &nbsp;<i class="fa fa-info-circle" title="When enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change."></i>
-      </label>
+    <label><i class="fa fa-filter"></i> <span data-i18n="common.option-smartfilter"></span></label>
+    <label for="node-input-smartfilter" style="width:70%">
+      <input type="checkbox" id="node-input-smartfilter" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-smartfilter-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.option-smartfilter-info"></i>
+    </label>
+    <br>
+    <label></label>
+    <label for="node-input-smartfilter_out" style="width:70%">
+      <input type="checkbox" id="node-input-smartfilter_out" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="common.option-smartfilter-out-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-light.config.option-smartfilter-out-info"></i>
+    </label>
   </div>
-  <div class="form-tips form-row" style="background:#EFEFEF">
-    <i class="fa fa-sign-out"></i> <b>Secondary output options</b>
+
+  <div class="form-tips form-row" style="max-width:none; background:#EFEFEF">
+    <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
     <br>
-    You may fine-tune the secondary output to better suit your needs when integrating with other node mechanisms (see node help for more info).
-    <br>
+    <p style="max-width:450px" data-i18n="common.secondary-output-intro"></p>
     <div class="form-row">
-      <label for="node-input-output2_name" style="width:35%; margin-left:15px"><i class="fa fa-tags"></i> Property name</label>
-      <input type="text" id="node-input-output2_name" placeholder="e.g. On / state / ... / (empty)" style="width:55%" />
+      <label for="node-input-output2_name" style="width:130px; margin-left:15px"><i class="fa fa-tags"></i> <span data-i18n="common.secondary-output-name"></span></label>
+      <input type="text" id="node-input-output2_name" data-i18n="[placeholder]common.secondary-output-name-placeholder" style="width:60%"/>
       <label for="node-input-output2_name" style="width:15px">
-        &nbsp;<i class="fa fa-info-circle" title="Is the property name on the returned payload (i.e. payload.propertyname). When left empty, the payload is returned as a single value (i.e. not as an object)"></i>
+        &nbsp;<i class="fa fa-info-circle" data-i18n="[title]common.secondary-output-name-info"></i>
       </label>
     </div>
     <div class="form-row">
-      <label for="node-input-output2_type" style="width:35%; margin-left:15px"><i class="fa fa-check-square-o"></i> Data type</label>
-      <select id="node-input-output2_type" style="width:55%">
-        <option value="boolean">.state (boolean: true / false)</option>
-        <option value="text_state">.state (string: ON / OFF)</option>
-        <option value="brightness">.brightness (number: 20-100)</option>
+      <label for="node-input-output2_type" style="width:130px; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
+      <select id="node-input-output2_type" style="width:60%">
+        <option value="boolean" data-i18n="mh-light.config.secondary-output-content-state-boolean">[.state (boolean: true / false)]</option>
+        <option value="text_state" data-i18n="mh-light.config.secondary-output-content-state-txt">[.state (string: ON / OFF)]</option>
+        <option value="brightness" data-i18n="mh-light.config.secondary-output-content-brightness">[.brightness (number: 20-100)]</option>
       </select>
     </div>
   </div>
-</script>
-
-
-
-<script type="text/x-red" data-help-name="myhome-light">
-<p>Adds a MyHome Light Node to your flow.</p>
-  <ul>
-    <li><strong>Name</strong> (mandatory) is the name of the node</li>
-    <li><strong>Light</strong> is the address of the load in MyHome system ('A=1 PL=5' becomes '15', also be aware the format is 4 digits when A>9 or PL>9, e.g. 'A=11 PL=5' becomes `1105`, 'A=1 PL=15' becomes '0115')</li>
-      <ul>
-      <li><strong>This is a group reference</strong> is to be checked when the load address defined has to be used as a group-call address instead of a single load (point-to-point call)</li>
-      </ul>
-    <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
-    <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
-    <li><strong>Enable 'Smart filtering' of gateway events</strong> : when enabled, a new msg (output) is only generated when a status CHANGE was detected. Not applicable in read-only (status refresh request) mode.</li>
-    <li><strong>Skip incoming events from gateway</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
-    <li><strong>Read-only</strong> : when enabled, the received payload (being 'ON', 'OFF', or whatever) is ignored and a status request is sent to gather current load state without applying any change.</li>
-  </ul>
-
-<h3>Inputs</h3>
-  <p><code>msg.payload</code> can be of 2 types</p>
-    <ul>
-      <li>A simple value
-        <ul>
-          <li>a simple <em>string</em> being either 'ON' or 'OFF'. When controlling dimmers, current brightness level can be increased / decreased by using 'UP' or 'DOWN'.</li>
-          <li>a simple <em>boolean</em> being either 'true' or 'false'</li>
-          <li>a simple <em>numerical value</em> ranging from '0' to '100'. Only applicable for dimmed lights ('0' being off, another value will turn lamp on at specified brightness % provided, rounded to the nearest ten)</li>
-        </ul>
-      </li>
-      <li>An Object
-        <ul>
-          <li> <code>payload.state</code> <em>[string]</em> value must be 'ON' or 'OFF'. Can also be 'UP' or 'DOWN' for dimmers</li>
-          <li> <code>payload.On</code> <em>[boolean]</em> value must be 'True' or 'False'<br>
-            (is a fallback when .state is undefined)</li>
-          <li> <code>payload.brightness</code> <em>[integer]</em> (optional, for dimmers only) represents brightness percentage being applied to load, ranging from 20 to 100</li>
-        </ul>
-      </li>
-    </ul>
-  <p><code>msg.topic</code> is required to trigger the node action: received <code>msg.topic</code> must be set to <code>cmd/xxxx</code> where xxxx is the value defined as Topic in node configuration.</p>
-
-<h3>Outputs</h3>
-  <p>The <strong>primary output</strong> is a JSON object <code>msg.payload</code> with</p>
-    <ul>
-      <li> <code>payload.state</code> <em>[string]</em> value is 'ON' or 'OFF'</li>
-      <li> <code>payload.brightness</code> <em>[integer]</em> (returned for dimmers only) represents current brightness percentage of the load</li>
-      <li> <code>payload.command_sent</code> <em>[array of string]</em> when the node was triggered from Node-RED (i.e. commands were sent to the MyHome gateway), contains the commands which were sent in OpenWebNet protocol (e.g. <em>'*1*1*15##'</em> to turn on load 1.5)</li>
-      <li> <code>payload.command_received</code> <em>[string]</em> when the node was triggered from the gateway (i.e. a command was detected on the MyHome BUS for the configured load), contains the command which was read in OpenWebNet protocol (ex: <em>'*1*5*25##'</em> means load 2.5 was turned on at 50% brightness)</li>
-      <li> <code>payload.command_responses</code> <em>[array of strings]</em> when the node was triggered from Node-RED in read-only mode, will contain the returned response(s) from the MyHome BUS in OpenWebNet protocol</li>
-      <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
-    </ul>
-
-  <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector
-    <br>
-    <u>Samples:</u>
-  </p>
-    <ul>
-      <li><strong>HUEMagic</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being a boolean (true/false)</li>
-          <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
-        </ul>
-      </li>
-      <li><strong>Homekit-bridge</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
-        </ul>
-        <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
-      </li>
-      <li><strong>MyHome</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
-          <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
-          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
-        </ul>
-      </li>
-    </ul>
 </script>
