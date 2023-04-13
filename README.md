@@ -7,7 +7,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 	- ON / OFF / UP / DOWN / TOGGLE
 	- Dimming (percentage based)
 - **MH Shutter**
-	- OPEN / CLOSE /STOP
+	- OPEN / CLOSE / STOP
 - **MH Scenario**
 	- CEN and CEN+ scenario buttons management : Short and Long press (start / extended / release)
 - **MH Temperature Central Unit**
@@ -89,7 +89,7 @@ Examples are available for :
 - MH Inject
 - MH Monitoring (discover lights)
 
-<img src="https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/.resources/HowTo_Import_Example.gif" attr="MH Nodes Examples" width="60%">
+<img attr="MH Nodes Examples" src="https://raw.githubusercontent.com/FredBlo/node-red-contrib-myhome-bticino-v2/main/.resources/HowTo_Import_Example.gif" width="100%">
 
 You can also directly copy this basic flow in Node-RED selecting **Import** in the node-red menu, pasting the provided JSON (do not forget to change the **IP address in the Gateway** configuration and of course the light number in switch node) :
 
