@@ -26,7 +26,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 ## 2. Version history
 ### v2.3.1 (latest available) - 08/2023
 - **General**
-	- ***Documentation*** immproved / corrected (no technical changes)
+	- ***Documentation*** immproved / corrected (no technical change)
 ### v2.3.0 - 12/2022
 - **General**
   - ***Improvement*** : quite many code clean-up, doc content updated and fine-tuned,...
