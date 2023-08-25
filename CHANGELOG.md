@@ -1,5 +1,8 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
+### v2.3.1 (latest available) - 08/2023
+- **General**
+	- ***Documentation*** improved / corrected (no technical changes)
 ### v2.3.0 (latest available) - 12/2022
 - **General**
   - ***Improvement*** : quite many code clean-up, doc content updated and fine-tuned,...

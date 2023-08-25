@@ -4,8 +4,8 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 
 ## 1. Available nodes
 - **MH Light**
-	- ON / OFF / UP / DOWN / TOGGLE
-	- Dimming (percentage based)
+	- ON / OFF / TOGGLE
+	- Dimming : UP / DOWN / percentage based
 - **MH Shutter**
 	- OPEN / CLOSE / STOP
 - **MH Scenario**
@@ -24,7 +24,10 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-### v2.3.0 (latest available) - 12/2022
+### v2.3.1 (latest available) - 08/2023
+- **General**
+	- ***Documentation*** immproved / corrected (no technical changes)
+### v2.3.0 - 12/2022
 - **General**
   - ***Improvement*** : quite many code clean-up, doc content updated and fine-tuned,...
   - ***Improvement*** : many nodes UI were reviewed to be more consistent / easier to understand (options re-ordering, greying out options which have become inapplicable because of other options,...)
