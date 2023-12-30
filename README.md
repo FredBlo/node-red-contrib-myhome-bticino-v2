@@ -25,9 +25,11 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 
 ## 2. Version history
 ### v2.3.2 (latest available) - 12/2023
-UNDER CONSTRUCTION
+- **MH Temperature Central Unit** :
+	- ***Improvement*** : a new option was added on node to ask for current Central status when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load. It is enabled by default for new installs.
 - **MH Temperature Zone** :
-  - ***Documentation fix*** : corrected '.state' content description
+	- ***Improvement*** : a new option was added on node to ask for current Zone status when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load. It is enabled by default for new installs.
+  - ***Documentation fix*** : corrected '.state' output content description
 
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 

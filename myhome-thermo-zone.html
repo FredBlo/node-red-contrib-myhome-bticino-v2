@@ -7,9 +7,10 @@
       zoneid: { value: '', required: true, validate: RED.validators.number() },
       topic: { value: '', required: true},
       gateway: { type: 'myhome-gateway', required: true },
-      smartfilter: { value: true, required: false},
-      skipevents: { value: false, required: false},
+      thermo_onconnect_refreshstate: { value: true, required: false},
       isstatusrequest: { value: false, required: false},
+      skipevents: { value: false, required: false},
+      smartfilter: { value: true, required: false},
       output2_name: { value: 'On', required: false},
       output2_type: { value: 'text_state', required: false}
     },
@@ -88,6 +89,13 @@
   <div class="form-row">
       <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> <span data-i18n="mh-thzone.config.zoneid"></span></label>
       <input type="text" id="node-input-zoneid" placeholder="1-99"/>
+  </div>
+  <div class="form-row">
+    <label for="node-input-thermo_onconnect_refreshstate"><i class="fa fa-refresh"></i> <span data-i18n="mh-thzone.config.thermo-onconnect-refreshstate"></span></label>
+    <label for="node-input-thermo_onconnect_refreshstate" style="width:70%">
+      <input type="checkbox" id="node-input-thermo_onconnect_refreshstate" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-thzone.config.thermo-onconnect-refreshstate-checkbox"></span>
+      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-thzone.config.thermo-onconnect-refreshstate-info"></i>
+    </label>
   </div>
   <div class="form-row">
     <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> <span data-i18n="common.option-readonly"></span></label>
