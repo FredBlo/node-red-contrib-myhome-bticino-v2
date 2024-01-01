@@ -24,7 +24,7 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-### v2.3.2 (latest available) - 12/2023
+### v2.3.2 (latest available) - 01/2024
 - **MH Temperature Central Unit** :
 	- ***Improvement*** : a new option was added on node to ask for current Central status when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load. It is enabled by default for new installs.
 - **MH Temperature Zone** :

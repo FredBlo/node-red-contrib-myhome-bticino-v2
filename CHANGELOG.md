@@ -1,6 +1,6 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.3.2 (latest available) - 12/2023
+### v2.3.2 (latest available) - 01/2024
 - **MH Temperature Central Unit** :
 	- ***Improvement*** : a new option was added on node to ask for current Central status when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load. It is enabled by default for new installs.
 - **MH Temperature Zone** :
