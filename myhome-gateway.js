@@ -24,6 +24,15 @@ module.exports = function (RED) {
     node.pass = config.pass || '';
     node.lights_onconnect_refreshloads = config.lights_onconnect_refreshloads;
     node.log_out_cmd = config.log_out_cmd || false;
+    node.log_config = {
+      "log_out_cmd": config.log_out_cmd || false,
+      "log_in_lights ": config.log_in_lights || false,
+      "log_in_shutters ": config.log_in_shutters || false,
+      "log_in_temperature": config.log_in_temperature || false,
+      "log_in_scenario ": config.log_in_scenario || false,
+      "log_in_energy ": config.log_in_energy || false,
+      "log_in_others ": config.log_in_others || false
+    };
     node.timeout = (Number(config.timeout) || 0)*1000; // ms
     node.setMaxListeners (100);
 
@@ -115,31 +124,31 @@ module.exports = function (RED) {
           switch (ownFamily[1]) {
             case '1':
               // WHO = 1 : Lighting
-              loggingEnabled = config.log_in_lights;
+              loggingEnabled = node.log_config.log_in_lights;
               emitterTrigger = 'OWN_LIGHTS';
               break;
             case '2':
               // WHO = 2 : Automation (Shutters management)
-              loggingEnabled = config.log_in_shutters;
+              loggingEnabled = node.log_config.log_in_shutters;
               emitterTrigger = 'OWN_SHUTTERS';
               break;
             case '4':
               // WHO = 4 : Temperature Control/Heating
-              loggingEnabled = config.log_in_temperature;
+              loggingEnabled = node.log_config.log_in_temperature;
               emitterTrigger = 'OWN_TEMPERATURE';
               break;
             case '15' : case '25' :
               // WHO = 15 (CEN) / 25 (CEN+) : Scenario Management
-              loggingEnabled = config.log_in_scenario;
+              loggingEnabled = node.log_config.log_in_scenario;
               emitterTrigger = 'OWN_SCENARIO';
               break;
             case '18':
               // WHO = 18 : Energy Management
-              loggingEnabled = config.log_in_energy;
+              loggingEnabled = node.log_config.log_in_energy;
               emitterTrigger = 'OWN_ENERGY';
               break;
             default:
-              loggingEnabled = config.log_in_others;
+              loggingEnabled = node.log_config.log_in_others;
               emitterTrigger = 'OWN_OTHERS';
           }
         }

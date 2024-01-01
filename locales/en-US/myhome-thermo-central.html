@@ -10,6 +10,7 @@
     <li><strong>Name</strong> (mandatory) is the name of the node</li>
     <li><strong>Topic</strong> is used on received payload to trigger the action on the node (see info in inputs definition)</li>
     <li><strong>Gateway</strong> is the gateway to be configured in order to connect to MyHome system</li>
+    <li><strong>Ask for Central state refresh on connect</strong> : when enabled, current Central status is gathered when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load.
     <li><strong>Only ask for current load status</strong> : when enabled, the received payload (being 'MANUAL:20.5', '21.5', 'OFF', or whatever) is ignored and a status request is sent to gather current central unit state without applying any change.</li>
     <li><strong>Skip ALL incoming gateway events</strong> : when enabled, all MyHome status updates received from the gateway about this node will be ignored, which means only Node-RED received payloads will be processed.</li>
     <li><strong>Filter incoming gateway events</strong> : when enabled, the node only triggers a new flow (aka output) when a state CHANGED after a MyHome BUS message was received. This is made to avoid multiple flows starting for the same info/command, because MyHome sends the same message multiple times (for status request, response,...)

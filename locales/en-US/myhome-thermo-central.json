@@ -49,6 +49,9 @@
 		{
 			"name-placeholder": "Central unit identifier",
 			"topic-placeholder": "e.g. Home",
+			"thermo-onconnect-refreshstate":"Reload",
+			"thermo-onconnect-refreshstate-checkbox":"Ask for Central state refresh on connect",
+			"thermo-onconnect-refreshstate-info":"Each time the node is deployed (and thus also on node-RED start-up), ask for Central status refresh. This will will also trigger new flows accordingly.",
 			"secondary-output-content-text-state": ".state (string: see doc)",
 			"secondary-output-content-mode": ".operationMode (string: see doc)",
 			"secondary-output-content-mode-ownvalue": ".operationMode_ownValue (string: see doc)",

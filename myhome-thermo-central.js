@@ -302,6 +302,16 @@ module.exports = function (RED) {
         });
       };
 
+      // When node is enabled to refresh current state on node load, build a fake msg with necessary topic to force node to refresh itself
+      // TechNote : the command is delayed by a few seconds. During tests, without such delay, the gateway did not respond (or only partially) is if it was too busy
+      if (config.thermo_onconnect_refreshstate) {
+          mhutils.logNodeEvent (node, 'debug', gateway.log_config.log_in_temperature, "Asking for Thermo Central status refresh for '" + node.name + "' within a few seconds...");
+          setTimeout (function() {
+            mhutils.logNodeEvent (node, 'debug', gateway.log_config.log_in_temperature, "Asking for Thermo Central status refresh for '" + node.name + "' started.");
+            node.processInput ({'topic':'state/' + config.topic});
+          } , 1500);
+      }
+
       //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       node.on ('close', function (done)	{
         // If any listener was defined, removed it now otherwise node will remain active in memory and keep responding to Gateway incoming calls

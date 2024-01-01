@@ -37,6 +37,7 @@ function logNodeEvent (callingNode, logType, riseLevel, logMsg) {
   // Apply log now
   callingNode[logLevels[curLogLevel]] (logMsg);
 }
+exports.logNodeEvent = logNodeEvent;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // EXTERNAL Function : Gateway connection & log-in
