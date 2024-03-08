@@ -1,9 +1,12 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.3.2 (latest available) - 01/2024
-- **MH Temperature Central Unit** :
+### v2.3.3 (latest available) - 03/2024
+- **MH Energy**
+	- ***Improvement*** : the provided payload can now specify another scope than the one configured on node which has to be queried. Supported values on 'payload.meterscope' are 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin'.
+### v2.3.2 - 01/2024
+- **MH Temperature Central Unit**
 	- ***Improvement*** : a new option was added on node to ask for current Central status when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load. It is enabled by default for new installs.
-- **MH Temperature Zone** :
+- **MH Temperature Zone**
 	- ***Improvement*** : a new option was added on node to ask for current Zone status when node is loaded (i.e. on deploy or when Node-RED server starts). Data collection will trigger flows accordingly, which can be used to (re)set depending values in your flow on load. It is enabled by default for new installs.
   - ***Documentation fix*** : corrected '.state' output content description
 ### v2.3.1 - 08/2023
@@ -25,11 +28,11 @@
   - ***Improvement*** : when changing additional outputs (re-order / insert / delete), the linked output descriptions and wires are now automatically updated accordingly to preserve existing flow wiring configuration.
   - ***Improvement*** : improved how outputs are described (when mousing over it in Node-RED interface)
   - ***Bug fix*** : label of 'Short press' was not updated correctly based on 'CEN/CEN+' node type defined
-- **MH Temperature Central Unit** :
+- **MH Temperature Central Unit**
   - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
-- **MH Temperature Zone** :
+- **MH Temperature Zone**
   - ***Bug fix*** : corrected secondary payload info displayed (when mousing over it in Node-RED interface)
-- **MH Inject** :
+- **MH Inject**
   - ***Improvement*** : added an option to allow overriding specified delay (in ms) which is applied before sending a new command to the BUS. Incoming message 'msg.rate' -when available- is then used as new delay.
 - **MH Energy** : ***New node type***
   Added support for Energy Management.
