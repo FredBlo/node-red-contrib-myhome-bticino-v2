@@ -38,6 +38,8 @@
       </li>
       <li>An Object
         <ul>
+          <li> <code>payload.meterscope</code> <em>[string]</em> when set, overrides the configured node's scope.
+            <br>Can be : 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin'.</li>
           <li> <code>payload.metered_From</code> <em>[string]</em> value must be convertible to a valid date (+time); if not defaults to current date-time.
             <br>Defines from when meter info must be collected</li>
           <li> <code>payload.metered_To</code> <em>[string]</em> value must be convertible to a valid date (+time); if not defaults to <code>payload.metered_From</code>.

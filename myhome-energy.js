@@ -13,13 +13,12 @@ module.exports = function (RED) {
     // where N is the ID number [1-255].
     node.meterid = ((config.metertype === 'actuator') ? ('7' + config.meterid + '#0') : ('5'+ config.meterid));
     // Caching mechanism init : only for types which return complete data from the past
-    node.enableCache = (config.enablecache && (['hour','day','month'].indexOf(config.meterscope) >= 0));
+    node.enableCache = config.enablecache;
     node.cachedInfo = {};
     node.processingIncomingFrame = 0;
 
     // All current meter received values stored in memory from the moment node is loaded
     let payloadInfo = node.payloadInfo = {};
-    payloadInfo.metered_Scope = config.meterscope;
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Register node for updates
@@ -46,17 +45,20 @@ module.exports = function (RED) {
       // When the function is called with a specified list of required entries from the cache, it means function was called
       // internally (from 'processInput') to return content (for which no command was required because were already in cache)
       let forceFromCacheAndMsg = finalRequiredCachedIDs.length; // when has only 1 element, is the 'FORCED' mode. When >1, these are ID to be filtered/taken from cache
+      // The meter scope can be forced in msg (only when working in 'internal' mode, after command was sent in 'processInput' which executed commands results)
+      let metered_Scope = (payload.meterscope) ? payload.meterscope.toLowerCase() : config.meterscope;
+      payloadInfo.metered_Scope = metered_Scope;
 
-      payloadInfo.metered_Info = [];
       let processedFrames = 0;
       let curDateTime = new Date();
       let nodeStatusInfo = []; // [fill , shape , text]
 
+      payloadInfo.metered_Info = [];
       for (let curFrame of (typeof(frame) === 'string') ? [frame] : frame) {
         let frameMatch = null;
         let frameInfo = {};
 
-        switch (config.meterscope) {
+        switch (metered_Scope) {
           case 'instant':
             // Check 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113*<Val>##] with <Val> = WATT)
             frameMatch = curFrame.match ('^\\*#18\\*' + node.meterid + '\\*113\\*(\\d+)##');
@@ -98,7 +100,7 @@ module.exports = function (RED) {
               frameInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +frameMatch[1]-1 , frameMatch[2] , 23 , 59 , 59).toLocaleString();
               frameInfo.metered_Power = parseInt(frameMatch[3]);
               // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD'
-              frameInfo.metered_CacheID = config.meterscope + "_" + mhutils.dateTxtMerge (frameInfo.metered_From , 'YYYY-MM-DD');
+              frameInfo.metered_CacheID = metered_Scope + "_" + mhutils.dateTxtMerge (frameInfo.metered_From , 'YYYY-MM-DD');
               // Build node status message
               nodeStatusInfo = ['grey' , 'dot' , mhutils.dateTxtMerge(frameInfo.metered_From , 'DD-MM-YYYY') + ': ' + mhutils.numberToAbbr(frameInfo.metered_Power , 'Wh')];
             }
@@ -117,7 +119,7 @@ module.exports = function (RED) {
               frameInfo.metered_To = new Date(curDateTime.getFullYear()+yearCorrection , +frameMatch[1]-1 , frameMatch[2] , frameMatch[3]-1 , 59 , 59).toLocaleString();
               frameInfo.metered_Power = parseInt(frameMatch[4]);
               // Manage the cached content : Build ID, for monthly mode is 'hour_YYYY-MM-DD_hh'
-              frameInfo.metered_CacheID = config.meterscope + "_" + mhutils.dateTxtMerge (frameInfo.metered_From , 'YYYY-MM-DD_hh');
+              frameInfo.metered_CacheID = metered_Scope + "_" + mhutils.dateTxtMerge (frameInfo.metered_From , 'YYYY-MM-DD_hh');
               // Build node status message
               nodeStatusInfo = ['grey' , 'dot' , mhutils.dateTxtMerge(frameInfo.metered_From , 'DD-MM-YYYY hh') + 'h: ' + mhutils.numberToAbbr(frameInfo.metered_Power , 'Wh')];
             }
@@ -148,7 +150,7 @@ module.exports = function (RED) {
                 frameInfo.metered_Power = parseInt(frameMatch[3]);
               }
               // Manage the cached content : Build ID, for monthly mode is 'month_YYYY-MM'
-              frameInfo.metered_CacheID = config.meterscope + "_" + mhutils.dateTxtMerge (frameInfo.metered_From , 'YYYY-MM');
+              frameInfo.metered_CacheID = metered_Scope + "_" + mhutils.dateTxtMerge (frameInfo.metered_From , 'YYYY-MM');
               // Build node status message
               nodeStatusInfo = ['grey' , 'dot' , mhutils.dateTxtMerge(frameInfo.metered_From , 'MM-YYYY') + ': ' + mhutils.numberToAbbr(frameInfo.metered_Power , 'Wh')];
             }
@@ -173,7 +175,7 @@ module.exports = function (RED) {
           // Add info common to any call
           frameInfo.metered_Frame = curFrame;
           // Cache management : if the generated content has to be kept in memory, add it to cached content now
-          if (node.enableCache) {
+          if (node.enableCache && frameInfo.metered_CacheID) {
               // Note : we keep info when cached content is not fully in the past (meters which range is (partially) in the future are still not 100% OK and will evolve call after call)
               frameInfo.metered_CacheIsStatic = (frameInfo.metered_CacheID && (new Date(frameInfo.metered_To) < curDateTime));
               node.cachedInfo[frameInfo.metered_CacheID] = frameInfo;
@@ -255,7 +257,7 @@ module.exports = function (RED) {
       if (typeof(msg) === 'string') {
         try {msg = JSON.parse(msg);} catch(error){}
       }
-      // DEBUG MODE : ouput cache
+      // DEBUG MODE : ouput cache when button pressed by user directly in node config
       if (msg.__user_inject_props__ === 'DEBUG_SENDCACHE' || msg.payload === 'DEBUG_SENDCACHE') {
         msg.payload = {'cachedInfo' : node.cachedInfo};
         node.send(msg);
@@ -284,6 +286,8 @@ module.exports = function (RED) {
       if (!(payload.metered_To instanceof Date && !isNaN(payload.metered_To.valueOf()))) {
         payload.metered_To = payload.metered_From;
       }
+      // A specific Meter Scope can be forced in provided payload. If any use it instead of configured one
+      let metered_Scope = (payload.meterscope) ? payload.meterscope.toLowerCase() : config.meterscope;
 
       // Start processing node-RED inpout itself
       let curDateTime = new Date();
@@ -291,7 +295,7 @@ module.exports = function (RED) {
       let processed_To;
       let requiredCachedIDs = [];
       let commands = [];
-      switch (config.meterscope) {
+      switch (metered_Scope) {
         case 'instant':
           // Command 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113##]
           // Simple case : no cache, no date-time range to manage
@@ -315,13 +319,15 @@ module.exports = function (RED) {
           processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth() , payload.metered_To.getDate());
           do {
               // process : build required 'cached IDs' keys required to provide info and add BUS commands to collect not-cached-yet info
-              let requiredCachedID = config.meterscope + '_' + mhutils.dateTxtMerge (processed_From , 'YYYY-MM-DD');
+              let requiredCachedID = metered_Scope + '_' + mhutils.dateTxtMerge (processed_From , 'YYYY-MM-DD');
               if (!node.cachedInfo[requiredCachedID] || !node.cachedInfo[requiredCachedID].metered_CacheIsStatic) {
                 // There is no 'finalized' (static) cache content for this date reference, add the BUS command which will retrieve info (if possible in range gateway can provide)
                 if (processed_From >= dailyMeter_FromMin && processed_From <= dailyMeter_ToMax) {
                   let addCommand;
-                  if (node.enableCache) {
-                    // The month command sends 1 frame per day, but is only sent on the BUS, not as response. Therefore cache is required to use this mode
+                  if (node.enableCache && metered_Scope === config.meterscope) {
+                    // The month command sends 1 frame per day, but is only sent on the BUS, not as responses. Therefore cache is required to use this mode
+                    // + this can only be used when metered scope is the one configured on the node (vs. one-shot scope specified in payload) because node will not cache
+                    // incoming frames not scoped for itself
                     addCommand = mhutils.dateTxtMerge(processed_From , '*18*59#M*' + node.meterid + '##');
                   } else {
                     // Cache disabled, we must use the 'slower/longer' command which receives responses as a frame per hour + 1 for day total
@@ -347,7 +353,7 @@ module.exports = function (RED) {
           processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth() , payload.metered_To.getDate() , payload.metered_To.getHours());
           do {
               // process : build required 'cached IDs' keys required to provide info and add BUS commands to collect not-cached-yet info
-              let requiredCachedID = config.meterscope + '_' + mhutils.dateTxtMerge (processed_From , 'YYYY-MM-DD_hh');
+              let requiredCachedID = metered_Scope + '_' + mhutils.dateTxtMerge (processed_From , 'YYYY-MM-DD_hh');
               if (!node.cachedInfo[requiredCachedID] || !node.cachedInfo[requiredCachedID].metered_CacheIsStatic) {
                 // There is no 'finalized' (static) cache content for this date reference, add the BUS command which will retrieve info (if possible in range gateway can provide)
                 if (processed_From >= hourlyMeter_FromMin && processed_From <= hourlyMeter_ToMax) {
@@ -374,7 +380,7 @@ module.exports = function (RED) {
           processed_To = new Date(payload.metered_To.getFullYear() , payload.metered_To.getMonth()+1 , 0);
           do {
               // process : build required 'cached IDs' keys required to provide info and add BUS commands to collect not-cached-yet info
-              let requiredCachedID = config.meterscope + '_' + mhutils.dateTxtMerge (processed_From , 'YYYY-MM');
+              let requiredCachedID = metered_Scope + '_' + mhutils.dateTxtMerge (processed_From , 'YYYY-MM');
               if (!node.cachedInfo[requiredCachedID] || !node.cachedInfo[requiredCachedID].metered_CacheIsStatic) {
                 // There is no 'finalized' (static) cache content for this date reference, add the BUS command which will retrieve info
                 commands.push (mhutils.dateTxtMerge(processed_From , '*#18*' + node.meterid + '*52#YY#M##'));
