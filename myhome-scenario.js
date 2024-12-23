@@ -207,6 +207,22 @@ module.exports = function (RED) {
           if (!Array.isArray(frame)) {
             payload.command_received = frame;
           }
+          // MSG1 : add major node configuration info on both returned message & spread it to all other multi msg built
+          msg.mh_nodeConfigInfo = {
+            'name' : config.name ,
+            'topic' : config.topic ,
+            'buslevel' : config.buslevel ,
+            'scenariotype' : config.scenariotype ,
+            'scenarioid' : config.scenarioid ,
+            'gateway' : {
+              'name' : gateway.name ,
+              'host' : gateway.host ,
+              'port' : gateway.port
+            }
+          };
+          multiOutput.forEach(function(multiMsg) {
+            multiMsg.mh_nodeConfigInfo = JSON.parse(JSON.stringify(msg.mh_nodeConfigInfo));
+          });
           // MSG1 : Add all current node stored values to payload
           Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName) {
           	if (objectName.match('buttonsLastState_\\d+')) {

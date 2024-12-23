@@ -205,6 +205,17 @@ module.exports = function (RED) {
           if (!Array.isArray(frame)) {
             payload.command_received = frame;
           }
+          // MSG1 : add major node configuration info on both returned message
+          msg.mh_nodeConfigInfo = {
+            'name' : config.name ,
+            'topic' : config.topic ,
+            'zoneid' : config.zoneid ,
+            'gateway' : {
+              'name' : gateway.name ,
+              'host' : gateway.host ,
+              'port' : gateway.port
+            }
+          };
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
           payload.setTemperature = payloadInfo.setTemperature;

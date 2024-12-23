@@ -74,4 +74,20 @@
     </ul>
 
   <p>The <strong>secondary output</strong> can be configured to better suits the needs of other node types you use without having to use an extra function/switch node for each connector.</p>
+
+  <p>
+    <strong>Both outputs</strong> will also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
+    This can be used in flows to redirect messages based on how (i.e. which node) they come from without having to include 'change nodes' at every stage.
+  </p>
+  <p>
+    The <code>msg.mh_nodeConfigInfo</code> contains node configuration values :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[string]</em> : name</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[string]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.meterid</code> <em>[string]</em> : meter ID</li>
+    <li> <code>mh_nodeConfigInfo.metertype</code> <em>[string]</em> : type of meter (can be 'meter' or 'actuator')</li>
+    <li> <code>mh_nodeConfigInfo.meterscope</code> <em>[string]</em> : scope set (can be 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin') </li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : linked gateway info : name (<code>.name</code>), Host/IP (<code>.host</code>) and port (<code>.port</code>)</li>
+  </ul>
 </script>

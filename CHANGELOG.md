@@ -1,5 +1,18 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
+### v2.4.0 (latest available) - 01/2025
+- **MH Light**
+  - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.lightid`, `.isgroup` and `.gateway` (object)
+- **MH Shutter**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.shutterid`, `.isgroup` and `.gateway` (object)
+- **MH Scenario**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.scenarioid`, `.scenariotype` and `.gateway` (object)
+- **MH Temperature Central Unit**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic` and `.gateway` (object)
+- **MH Temperature Zone**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.zoneid` and `.gateway` (object)
+- **MH Energy** :
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.meterid`, `.metertype`, `.meterscope` and `.gateway` (object)
 ### v2.3.3 (latest available) - 03/2024
 - **MH Energy**
 	- ***Improvement*** : the provided payload can now specify another scope than the one configured on node which has to be queried. Supported values on 'payload.meterscope' are 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin'.
