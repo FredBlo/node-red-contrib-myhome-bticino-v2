@@ -1,6 +1,8 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
 ### v2.4.0 (latest available) - 01/2025
+- **MH Monitoring**
+  - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.ownFamilyName` and `.gateway` (object)
 - **MH Light**
   - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.lightid`, `.isgroup` and `.gateway` (object)
 - **MH Shutter**

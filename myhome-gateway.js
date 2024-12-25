@@ -119,44 +119,44 @@ module.exports = function (RED) {
       let ownFamily = frame.match (/^\*#{0,1}(\d+)\*.+?##/);
       if (ownFamily !== null) {
         let loggingEnabled = false;
-        let emitterTrigger = "";
+        let ownFamilyName = "";
         if (ownFamily !== null) {
           switch (ownFamily[1]) {
             case '1':
               // WHO = 1 : Lighting
               loggingEnabled = node.log_config.log_in_lights;
-              emitterTrigger = 'OWN_LIGHTS';
+              ownFamilyName = 'OWN_LIGHTS';
               break;
             case '2':
               // WHO = 2 : Automation (Shutters management)
               loggingEnabled = node.log_config.log_in_shutters;
-              emitterTrigger = 'OWN_SHUTTERS';
+              ownFamilyName = 'OWN_SHUTTERS';
               break;
             case '4':
               // WHO = 4 : Temperature Control/Heating
               loggingEnabled = node.log_config.log_in_temperature;
-              emitterTrigger = 'OWN_TEMPERATURE';
+              ownFamilyName = 'OWN_TEMPERATURE';
               break;
             case '15' : case '25' :
               // WHO = 15 (CEN) / 25 (CEN+) : Scenario Management
               loggingEnabled = node.log_config.log_in_scenario;
-              emitterTrigger = 'OWN_SCENARIO';
+              ownFamilyName = 'OWN_SCENARIO';
               break;
             case '18':
               // WHO = 18 : Energy Management
               loggingEnabled = node.log_config.log_in_energy;
-              emitterTrigger = 'OWN_ENERGY';
+              ownFamilyName = 'OWN_ENERGY';
               break;
             default:
               loggingEnabled = node.log_config.log_in_others;
-              emitterTrigger = 'OWN_OTHERS';
+              ownFamilyName = 'OWN_OTHERS';
           }
         }
         if (loggingEnabled) {
-          node.log ("Received OpenWebNet command (" + emitterTrigger + ") : '" + frame + "'");
+          node.log ("Received OpenWebNet command (" + ownFamilyName + ") : '" + frame + "'");
         }
-        if (emitterTrigger !== '') {
-          node.emit (emitterTrigger, frame);
+        if (ownFamilyName !== '') {
+          node.emit (ownFamilyName, ownFamilyName , frame);
         }
       }
     }

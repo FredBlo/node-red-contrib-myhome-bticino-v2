@@ -27,7 +27,7 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (frame) {
+    const listenerFunction = function (ownFamilyName , frame) {
       let msg = {};
       node.processReceivedBUSFrames (msg, frame);
     };
@@ -221,7 +221,9 @@ module.exports = function (RED) {
             }
           };
           multiOutput.forEach(function(multiMsg) {
-            multiMsg.mh_nodeConfigInfo = JSON.parse(JSON.stringify(msg.mh_nodeConfigInfo));
+            if (multiMsg !== null) {
+              multiMsg.mh_nodeConfigInfo = JSON.parse(JSON.stringify(msg.mh_nodeConfigInfo));
+            }
           });
           // MSG1 : Add all current node stored values to payload
           Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName) {

@@ -10,5 +10,19 @@
     <p>(none)</p>
 
   <h3>Output</h3>
-    <p>The <strong>output</strong> is a <em>[string]</em> containing the OpenWebNet command read on the MyHome BUS.</p>
+    <p>The <strong>primary output</strong> is a <em>[string]</em> containing the OpenWebNet command read on the MyHome BUS.</p>
+    <p>The <strong>secondary output</strong> contains detailled analyzed information as if the node was working in 'universal mode' (i.e. processing all received BUS frames).</p>
+    <p>'Universal mode' is currently only supported for lights. TODO </p>
+    <p>
+      <strong>Both outputs</strong> will also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
+      This can be used in flows to redirect messages based on how (i.e. which node) they come from without having to include 'change nodes' at every stage.
+    </p>
+    <p>
+      The <code>msg.mh_nodeConfigInfo</code> contains node configuration values :
+    </p>
+    <ul>
+      <li> <code>mh_nodeConfigInfo.name</code> <em>[string]</em> : name</li>
+      <li> <code>mh_nodeConfigInfo.ownFamilyName</code> <em>[string]</em> : the OpenWebNet famaily name (such as 'OWN_LIGHTS', 'OWN_SCENARIO',...)</li>
+      <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : linked gateway info : name (<code>.name</code>), Host/IP (<code>.host</code>) and port (<code>.port</code>)</li>
+    </ul>
 </script>

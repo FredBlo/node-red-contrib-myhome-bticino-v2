@@ -27,7 +27,7 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (frame) {
+    const listenerFunction = function (ownFamilyName , frame) {
       let msg = {};
       node.processReceivedBUSFrames (msg, frame);
     };
