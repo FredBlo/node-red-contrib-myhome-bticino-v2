@@ -31,6 +31,15 @@
             <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
             <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
           </ul>
+          <li><strong>Scenario CEN/CEN+</strong> : payload object details :</li>
+            <ul>
+              <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol (ex: <em>'*25*24#14*287##'</em> means button 14 of scenario 87 finalized a long press)</li>
+              <li> <code>payload.buslevel</code> <em>[string]</em> : bus level ('private_riser', '01', '02', ... '15')</li>
+              <li> <code>payload.scenariotype</code> <em>[string]</em> value is 'CEN' or 'CEN+'</li>
+              <li> <code>payload.scenarioid</code> <em>[string]</em> the ID of scenario (for CEN is an A/P value, for CEN+ is [0-2047])</li>
+              <li> <code>payload.buttonID</code> <em>[string]</em> : the button which was pressed [00-31]</li>
+              <li> <code>payload.actionType</code> <em>[string]</em> : the action type (can be 'SHORT', 'LONG', 'LONG_ONGOING',...)</li>
+            </ul>
       </ul>
     <p>
       <strong>Both outputs</strong> also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
