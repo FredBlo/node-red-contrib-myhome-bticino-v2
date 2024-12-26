@@ -11,8 +11,10 @@
 
   <h3>Output</h3>
     <p>The <strong>primary output</strong> is a <em>[string]</em> containing the OpenWebNet command read on the MyHome BUS.</p>
-    <p>The <strong>secondary output</strong> contains detailled analyzed information as if the node was working in 'universal mode' (i.e. processing all received BUS frames).</p>
-    <p>'Universal mode' is currently only supported for a few types :
+    <p>
+      The <strong>secondary output</strong> contains detailled analyzed information as if the node was working in 'universal mode' (i.e. processing all received BUS frames).
+      Content of msg will vary based on family type :
+    </p>
       <ul>
         <li><strong>Lights</strong> : payload object details :</li>
           <ul>
@@ -31,15 +33,29 @@
               <li> <code>payload.shutterid</code> <em>[string]</em> : shutter ID</li>
               <li> <code>payload.isgroup</code> <em>[boolean]</em> : group call (true) or single shutter point call (false)</li>
             </ul>
-          <li><strong>Scenario CEN/CEN+</strong> : payload object details :</li>
-            <ul>
-              <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol (ex: <em>'*25*24#14*287##'</em> means button 14 of scenario 87 finalized a long press)</li>
-              <li> <code>payload.buslevel</code> <em>[string]</em> : bus level ('private_riser', '01', '02', ... '15')</li>
-              <li> <code>payload.scenariotype</code> <em>[string]</em> value is 'CEN' or 'CEN+'</li>
-              <li> <code>payload.scenarioid</code> <em>[string]</em> the ID of scenario (for CEN is an A/P value, for CEN+ is [0-2047])</li>
-              <li> <code>payload.buttonID</code> <em>[string]</em> : the button which was pressed [00-31]</li>
-              <li> <code>payload.actionType</code> <em>[string]</em> : the action type (can be 'SHORT', 'LONG', 'LONG_ONGOING',...)</li>
-            </ul>
+        <li><strong>Temperature</strong> : payload object details (only reads 'current temperature' of zone mode) :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol</li>
+            <li> <code>payload.zoneid</code> <em>[string]</em> the ID of zone [1-99])</li>
+            <li> <code>payload.state</code> <em>[number]</em> the current measured temperature</li>
+          </ul>
+        <li><strong>Scenario CEN/CEN+</strong> : payload object details :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol (ex: <em>'*25*24#14*287##'</em> means button 14 of scenario 87 finalized a long press)</li>
+            <li> <code>payload.buslevel</code> <em>[string]</em> : bus level ('private_riser', '01', '02', ... '15')</li>
+            <li> <code>payload.scenariotype</code> <em>[string]</em> value is 'CEN' or 'CEN+'</li>
+            <li> <code>payload.scenarioid</code> <em>[string]</em> the ID of scenario (for CEN is an A/P value, for CEN+ is [0-2047])</li>
+            <li> <code>payload.buttonID</code> <em>[string]</em> : the button which was pressed [00-31]</li>
+            <li> <code>payload.actionType</code> <em>[string]</em> : the action type (can be 'SHORT', 'LONG', 'LONG_ONGOING',...)</li>
+          </ul>
+        <li><strong>Energy management</strong> : payload object details (only reads 'instant' consumption mode) :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol</li>
+            <li> <code>payload.metertype</code> <em>[string]</em> value is 'meter' or 'actuator''</li>
+            <li> <code>payload.meterscope</code> <em>[string]</em> is always 'instant' in universal mode</li>
+            <li> <code>payload.meterid</code> <em>[string]</em> : address (1 to 255) of the meter</li>
+            <li> <code>payload.metered_Power</code> <em>[integer]</em> : the instant power (W) measured</li>
+          </ul>
       </ul>
     <p>
       <strong>Both outputs</strong> also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.

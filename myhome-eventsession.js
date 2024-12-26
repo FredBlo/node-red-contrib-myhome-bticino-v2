@@ -70,7 +70,7 @@ module.exports = function (RED) {
       payload.command_received = frame;
 
       // Append content specifc per type
-      let frameMatch;
+      let frameMatch = null;
       switch (ownFamilyName) {
         case 'OWN_LIGHTS':
           // Checks 1 : Light point/group update [*1*<status>|<dimmerLevel10>*where##]
@@ -106,8 +106,8 @@ module.exports = function (RED) {
           break;
 
         case 'OWN_SHUTTERS':
-            // Checks 1 : Shutter point/group update [*2*<status>*where##]
-            //    - <status> [0-2] : 0 = Stop / 1 = Up / 2 = Down
+          // Checks 1 : Shutter point/group update [*2*<status>*where##]
+          //    - <status> [0-2] : 0 = Stop / 1 = Up / 2 = Down
           frameMatch = frame.match (/^\*2\*(\d+)\*(#{0,1}\d{1,4})(?:#4#(\d\d)){0,1}##/);
           // frameMatch[1] = <status> [0-2] : 0 = Stop / 1 = Up / 2 = Down
           // frameMatch[2] = shuttergroupid (begins with # if is a group)
@@ -122,11 +122,20 @@ module.exports = function (RED) {
         	break;
 
         case 'OWN_TEMPERATURE':
-        	// Nothing managed in 'universal mode' yet
+          // Checks 1 : current temperature and set objective frames (OpenWebNet doc) :
+          //  - current temperature (master probe) : *#4*where*0*T## (or *#4*where*0*T*3## if local offset included)
+          //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
+          //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
+          frameMatch = frame.match (/^\*#4\*(\d{1,3})\*0\*0(\d{3})(?:\*3|)##/);
+          // frameMatch[1] = <WHERE> [1-99] : zone ID
+          // frameMatch[2] = T temperature (193 = 19.3°)
+          if (frameMatch !== null) {
+            payload.zoneid = frameMatch[1];
+            payload.state = parseInt (frameMatch[2]) / 10;
+          }
         	break;
 
         case 'OWN_SCENARIO':
-        	// Nothing managed in 'universal mode' yet
           // Checks 1 : Basic scenario (CEN) [*15*WHAT(#<ACTION_TYPE>)*WHERE##]
           //    - WHAT = push button N value [00-31]
           //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
@@ -166,8 +175,19 @@ module.exports = function (RED) {
         	break;
 
         case 'OWN_ENERGY':
-        	// Nothing managed in 'universal mode' yet
+          // Check 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113*<Val>##] with <Val> = WATT)
+          frameMatch = frame.match (/^\*#18\*(5|7)(\d{1,3})(?:#0){0,1}\*113\*(\d+)##/);
+          // frameMatch[1] = WHERE type (5 for meter, 7 for actuator)
+          // frameMatch[2] = WHERE id : N value [1-255]
+          // frameMatch[3] = <Val> = WATT
+          if (frameMatch !== null) {
+            payload.metertype = (frameMatch[1] === '5') ? 'meter' : 'actuator';
+            payload.meterscope = 'instant';
+            payload.meterid = frameMatch[2];
+            payload.metered_Power = parseInt(frameMatch[3]);
+          }
         	break;
+
         case 'OWN_OTHERS':
         	// Nothing managed in 'universal mode' yet
         	break;
