@@ -3,6 +3,7 @@
 ### v2.4.0 (latest available) - 01/2025
 - **MH Monitoring**
   - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.ownFamilyName` and `.gateway` (object)
+  - ***Improvement*** : node has a second output which provides a structured payload object with analyzed information based on BUS received content, as it would be output by a specialized light, shutter,... node. It makes the monitoring node usable as a sort of 'universal node' : all events of one or multiple family types can be processed from a single monitoring node instead of having to add a node for each light, shutter,... point. This is currently only supported for **lights**, **shutters** and **scenario**.
 - **MH Light**
   - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.lightid`, `.isgroup` and `.gateway` (object)
 - **MH Shutter**

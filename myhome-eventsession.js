@@ -106,7 +106,19 @@ module.exports = function (RED) {
           break;
 
         case 'OWN_SHUTTERS':
-        	// Nothing managed in 'universal mode' yet
+            // Checks 1 : Shutter point/group update [*2*<status>*where##]
+            //    - <status> [0-2] : 0 = Stop / 1 = Up / 2 = Down
+          frameMatch = frame.match (/^\*2\*(\d+)\*(#{0,1}\d{1,4})(?:#4#(\d\d)){0,1}##/);
+          // frameMatch[1] = <status> [0-2] : 0 = Stop / 1 = Up / 2 = Down
+          // frameMatch[2] = shuttergroupid (begins with # if is a group)
+          // frameMatch[3] = bus level (01 to 15)
+          if (frameMatch !== null) {
+            payload.buslevel = (frameMatch[3] === undefined) ? 'private_riser' : frameMatch[3];
+            let actionDescr_Shutter = {'0':'STOP', '1':'OPEN', '2':'CLOSE'}[frameMatch[1]];
+            payload.state = (actionDescr_Shutter === undefined) ? '?' : actionDescr_Shutter;
+            payload.shutterid = frameMatch[2].replace('#' , '');
+            payload.isgroup = (frameMatch[2][0] === '#');
+          }
         	break;
 
         case 'OWN_TEMPERATURE':

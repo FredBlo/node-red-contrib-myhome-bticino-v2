@@ -24,13 +24,13 @@
             <li> <code>payload.isgroup</code> <em>[boolean]</em> : group call (true) or single light point call (false)</li>
           </ul>
         <li><strong>Shutters</strong> : payload object details :</li>
-        TODO
-        TODO
-          <ul>
-            <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
-            <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
-            <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
-          </ul>
+            <ul>
+              <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol (ex: <em>'*2*2*25##'</em> means shutter 2.5 'close' action was started)</li>
+              <li> <code>payload.buslevel</code> <em>[string]</em> : bus level ('private_riser', '01', '02', ... '15')</li>
+              <li> <code>payload.state</code> <em>[string]</em> value is 'STOP', 'OPEN' or 'CLOSE'</li>
+              <li> <code>payload.shutterid</code> <em>[string]</em> : shutter ID</li>
+              <li> <code>payload.isgroup</code> <em>[boolean]</em> : group call (true) or single shutter point call (false)</li>
+            </ul>
           <li><strong>Scenario CEN/CEN+</strong> : payload object details :</li>
             <ul>
               <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol (ex: <em>'*25*24#14*287##'</em> means button 14 of scenario 87 finalized a long press)</li>
