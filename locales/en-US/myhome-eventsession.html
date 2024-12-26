@@ -12,9 +12,28 @@
   <h3>Output</h3>
     <p>The <strong>primary output</strong> is a <em>[string]</em> containing the OpenWebNet command read on the MyHome BUS.</p>
     <p>The <strong>secondary output</strong> contains detailled analyzed information as if the node was working in 'universal mode' (i.e. processing all received BUS frames).</p>
-    <p>'Universal mode' is currently only supported for lights. TODO </p>
+    <p>'Universal mode' is currently only supported for a few types :
+      <ul>
+        <li><strong>Lights</strong> : payload object details :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol (ex: <em>'*1*5*25##'</em> means load 2.5 was turned on at 50% brightness)</li>
+            <li> <code>payload.buslevel</code> <em>[string]</em> : bus level ('private_riser', '01', '02', ... '15')</li>
+            <li> <code>payload.state</code> <em>[string]</em> value is 'ON' or 'OFF'</li>
+            <li> <code>payload.brightness</code> <em>[integer]</em> represents current brightness percentage of the load. When non-dimmmable is 0 or 100. </li>
+            <li> <code>payload.lightid</code> <em>[string]</em> : light ID</li>
+            <li> <code>payload.isgroup</code> <em>[boolean]</em> : group call (true) or single light point call (false)</li>
+          </ul>
+        <li><strong>Shutters</strong> : payload object details :</li>
+        TODO
+        TODO
+          <ul>
+            <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
+            <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
+            <li> <code>payload.xxxx</code> <em>[string]</em> : xxxx</li>
+          </ul>
+      </ul>
     <p>
-      <strong>Both outputs</strong> will also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
+      <strong>Both outputs</strong> also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
       This can be used in flows to redirect messages based on how (i.e. which node) they come from without having to include 'change nodes' at every stage.
     </p>
     <p>

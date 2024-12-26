@@ -85,7 +85,7 @@ module.exports = function (RED) {
         // Checks 2 : Advanced scenario (CEN+) [*25*<ACTION_TYPE>#WHAT*WHERE##]
         //    - <ACTION_TYPE> = 21: Short pressure (<0.5s) / 22: Start of extended pressure (>= 0.5s) / 23: Extended pressure (sent every 500ms) / 24: Release after an extended pressure
         //    - WHAT = push button N value [0-31]
-        //    - WHERE = 2 [0-2047] Virtual Address
+        //    - WHERE = 2+[0-2047] Virtual Address
         if (config.scenariotype === 'CEN+') {
           frameMatch = curFrame.match ('^\\*25\\*(\\d{2})#(\\d+)\\*2' + node.scenarioid + '##');
           if (frameMatch !== null) {

@@ -82,11 +82,11 @@ module.exports = function (RED) {
           // frameMatch[2] = lightgroupid (begins with # if is a group)
           // frameMatch[3] = bus level (01 to 15)
           if (frameMatch !== null) {
+            payload.buslevel = (frameMatch[3] === undefined) ? 'private_riser' : frameMatch[3];
             payload.state = (frameMatch[1] === '0') ? 'OFF' : 'ON';
             payload.brightness = (frameMatch[1] === '1') ? 100 : (parseInt(frameMatch[1]) * 10);
             payload.lightid = frameMatch[2].replace('#' , '');
             payload.isgroup = (frameMatch[2][0] === '#');
-            payload.buslevel = (frameMatch[3] === undefined) ? 'private_riser' : frameMatch[3];
           }
           // Checks 2 : Light point/group dimmer info update [*#1*<where>*1*<dimmerLevel100>*<dimmerSpeed>##]
           //    - <dimmerLevel100> [100-200] : 100 = off / 200 = Max
@@ -96,23 +96,63 @@ module.exports = function (RED) {
             // frameMatch[2] = bus level (01 to 15)
             // frameMatch[3] = dimmer level (100 = OFF to 200 = 100%)
             if (frameMatch !== null) {
+              payload.buslevel = (frameMatch[2] === undefined) ? 'private_riser' : frameMatch[2];
               payload.state = (frameMatch[3] === '100') ? 'OFF' : 'ON';
               payload.brightness = (parseInt(frameMatch[3]) - 100);
               payload.lightid = frameMatch[1].replace('#' , '');
               payload.isgroup = (frameMatch[1][0] === '#');
-              payload.buslevel = (frameMatch[2] === undefined) ? 'private_riser' : frameMatch[2];
             }
           }
           break;
+
         case 'OWN_SHUTTERS':
         	// Nothing managed in 'universal mode' yet
         	break;
+
         case 'OWN_TEMPERATURE':
         	// Nothing managed in 'universal mode' yet
         	break;
+
         case 'OWN_SCENARIO':
         	// Nothing managed in 'universal mode' yet
+          // Checks 1 : Basic scenario (CEN) [*15*WHAT(#<ACTION_TYPE>)*WHERE##]
+          //    - WHAT = push button N value [00-31]
+          //    - <ACTION_TYPE> = 1: Release after short pressure (<0.5s) / 2: Release after an extended pressure (>= 0.5s) / 3: Extended pressure (sent every 0.5s as long as button is pressed)
+          //    - WHERE = push button virtual address (A/PL)
+          frameMatch = frame.match (/^\*15\*(\d+)#{0,1}(\d|)\*(\d{2,4})(?:#4#(\d\d)){0,1}##/);
+          // frameMatch[1] = push button N value [00-31]
+          // frameMatch[2] = <ACTION_TYPE>
+          // frameMatch[3] = WHERE = push button virtual address (A/PL)
+          // frameMatch[4] = bus level (01 to 15)
+          if (frameMatch !== null) {
+            payload.buslevel = (frameMatch[4] === undefined) ? 'private_riser' : frameMatch[4];
+            payload.scenariotype = 'CEN';
+            payload.scenarioid = frameMatch[3];
+            payload.buttonID = frameMatch[1];
+            let actionDescr_CEN = {'1':'SHORT', '2':'LONG', '3':'LONG_ONGOING'}[frameMatch[2]];
+            payload.actionType = (actionDescr_CEN === undefined) ? 'PRESS_START' : actionDescr_CEN;
+          }
+          // Checks 2 : Advanced scenario (CEN+) [*25*<ACTION_TYPE>#WHAT*WHERE##]
+          //    - <ACTION_TYPE> = 21: Short pressure (<0.5s) / 22: Start of extended pressure (>= 0.5s) / 23: Extended pressure (sent every 500ms) / 24: Release after an extended pressure
+          //    - WHAT = push button N value [0-31]
+          //    - WHERE = 2+[0-2047] Virtual Address
+          if (frameMatch === null) {
+            frameMatch = frame.match (/^\*25\*(\d{2})#(\d+)\*2(\d{1,4})(?:#4#(\d\d)){0,1}##/);
+            // frameMatch[1] = <ACTION_TYPE>
+            // frameMatch[2] = WHAT : push button N value [0-31]
+            // frameMatch[3] = WHERE : [0-2047] Virtual Address
+            // frameMatch[4] = bus level (01 to 15)
+            if (frameMatch !== null) {
+              payload.buslevel = (frameMatch[4] === undefined) ? 'private_riser' : frameMatch[4];
+              payload.scenariotype = 'CEN+';
+              payload.scenarioid = frameMatch[3];
+              payload.buttonID = frameMatch[2];
+              let actionDescr_CEN = {'21':'SHORT', '22':'LONG_START', '23':'LONG_ONGOING', '24':'LONG'}[frameMatch[1]];
+              payload.actionType = (actionDescr_CEN === undefined) ? '?' : actionDescr_CEN;
+            }
+          }
         	break;
+
         case 'OWN_ENERGY':
         	// Nothing managed in 'universal mode' yet
         	break;
