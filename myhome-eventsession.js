@@ -126,7 +126,7 @@ module.exports = function (RED) {
           //  - current temperature (master probe) : *#4*where*0*T## (or *#4*where*0*T*3## if local offset included)
           //    The T field is composed from 4 digits c1c2c3c4, included between “0020” (2°temperature) and “0430” (43°temperature).
           //    c1 is always equal to 0, it indicates a positive temperature. The c2c3 couple indicates the temperature values between [02° - 43°].
-          frameMatch = frame.match (/^\*#4\*(\d{1,3})\*0\*0(\d{3})(?:\*3|)##/);
+          frameMatch = frame.match (/^\*#4\*(\d{1,2})\*0\*0(\d{3})(?:\*3|)##/);
           // frameMatch[1] = <WHERE> [1-99] : zone ID
           // frameMatch[2] = T temperature (193 = 19.3°)
           if (frameMatch !== null) {
