@@ -1,5 +1,27 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
+### v2.4.0 (latest available) - 01/2025
+- **MH Monitoring**
+  - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.ownFamilyName` and `.gateway` (object)
+  - ***Improvement*** : node has a second output which provides a structured payload object with analyzed information based on BUS received content, as it would be output by a specialized light, shutter,... node. It makes the monitoring node usable as a sort of 'universal node' : all events of one or multiple family types can be processed from a single monitoring node instead of having to add a node for each light, shutter,... point.
+  This currently supports (see Monitoring node documentation for full detailed payload content):
+    - **Lights** : any light point / group call
+    - **Shutters** : any shutter point / group call
+    - **Temperature** : only outputs current temperature update for any zone
+    - **Scenario** : outputs any button press for CEN/CEN+
+    - **Energy** : only outputs current consumption (instant) of any meter
+- **MH Light**
+  - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.lightid`, `.isgroup` and `.gateway`*[object]*
+- **MH Shutter**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.shutterid`, `.isgroup` and `.gateway`*[object]*
+- **MH Scenario**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.scenarioid`, `.scenariotype` and `.gateway`*[object]*
+- **MH Temperature Central Unit**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic` and `.gateway` *[object]*
+- **MH Temperature Zone**
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.zoneid` and `.gateway` *[object]*
+- **MH Energy** :
+	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.meterid`, `.metertype`, `.meterscope` and `.gateway` *[object]*
 ### v2.3.3 (latest available) - 03/2024
 - **MH Energy**
 	- ***Improvement*** : the provided payload can now specify another scope than the one configured on node which has to be queried. Supported values on 'payload.meterscope' are 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin'.

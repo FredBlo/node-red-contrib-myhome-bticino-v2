@@ -27,7 +27,7 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (frame) {
+    const listenerFunction = function (ownFamilyName , frame) {
       let msg = {};
       node.processReceivedBUSFrames (msg, frame);
     };
@@ -85,7 +85,7 @@ module.exports = function (RED) {
         // Checks 2 : Advanced scenario (CEN+) [*25*<ACTION_TYPE>#WHAT*WHERE##]
         //    - <ACTION_TYPE> = 21: Short pressure (<0.5s) / 22: Start of extended pressure (>= 0.5s) / 23: Extended pressure (sent every 500ms) / 24: Release after an extended pressure
         //    - WHAT = push button N value [0-31]
-        //    - WHERE = 2 [0-2047] Virtual Address
+        //    - WHERE = 2+[0-2047] Virtual Address
         if (config.scenariotype === 'CEN+') {
           frameMatch = curFrame.match ('^\\*25\\*(\\d{2})#(\\d+)\\*2' + node.scenarioid + '##');
           if (frameMatch !== null) {
@@ -207,6 +207,24 @@ module.exports = function (RED) {
           if (!Array.isArray(frame)) {
             payload.command_received = frame;
           }
+          // MSG1 : add major node configuration info on both returned message & spread it to all other multi msg built
+          msg.mh_nodeConfigInfo = {
+            'name' : config.name ,
+            'topic' : config.topic ,
+            'buslevel' : config.buslevel ,
+            'scenariotype' : config.scenariotype ,
+            'scenarioid' : config.scenarioid ,
+            'gateway' : {
+              'name' : gateway.name ,
+              'host' : gateway.host ,
+              'port' : gateway.port
+            }
+          };
+          multiOutput.forEach(function(multiMsg) {
+            if (multiMsg !== null) {
+              multiMsg.mh_nodeConfigInfo = JSON.parse(JSON.stringify(msg.mh_nodeConfigInfo));
+            }
+          });
           // MSG1 : Add all current node stored values to payload
           Object.getOwnPropertyNames(payloadInfo).forEach (function(objectName) {
           	if (objectName.match('buttonsLastState_\\d+')) {

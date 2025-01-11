@@ -75,4 +75,19 @@
     <li> <code>payload.command_failed</code> <em>[array of strings]</em> will contain the commands which were refused by the MyHome gateway, in OpenWebNet protocol</li>
   </ul>
   <p>Any <strong>additional output</strong> defined is also a JSON object <code>msg.payload</code> having the same (direct) properties as a <code>payload.buttonsLastState_xx</code> object described above.</p>
+  <p>
+    <strong>All outputs</strong> also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
+    This can be used in flows to redirect messages based on how (i.e. which node) they come from without having to include 'change nodes' at every stage.
+  </p>
+  <p>
+    The <code>msg.mh_nodeConfigInfo</code> contains node configuration values :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[string]</em> : name</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[string]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.buslevel</code> <em>[string]</em> : bus level (such as 'private_riser', '01', '02', ... '15')</li>
+    <li> <code>mh_nodeConfigInfo.scenarioid</code> <em>[string]</em> : scenario ID</li>
+    <li> <code>mh_nodeConfigInfo.scenariotype</code> <em>[string]</em> : scenrio type (can be 'CEN' or 'CEN+'</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : linked gateway info : name (<code>.name</code>), Host/IP (<code>.host</code>) and port (<code>.port</code>)</li>
+  </ul>
 </script>

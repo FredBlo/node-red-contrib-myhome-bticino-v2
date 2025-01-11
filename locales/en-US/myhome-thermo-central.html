@@ -77,25 +77,37 @@
     <br>
     <u>Samples:</u>
   </p>
-    <ul>
-      <li><strong>HUEMagic</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being a boolean (true/false)</li>
-          <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
-        </ul>
-      </li>
-      <li><strong>Homekit-bridge</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
-        </ul>
-        <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
-      </li>
-      <li><strong>MyHome</strong> nodes support :
-        <ul>
-          <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
-          <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
-          <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
-        </ul>
-      </li>
-    </ul>
+  <ul>
+    <li><strong>HUEMagic</strong> nodes support :
+      <ul>
+        <li><code>payload</code> being a boolean (true/false)</li>
+        <li><code>payload</code> being a JSON object where <code>.ON</code> is a boolean (true/false)</li>
+      </ul>
+    </li>
+    <li><strong>Homekit-bridge</strong> nodes support :
+      <ul>
+        <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+      </ul>
+      <p>(see:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) allow managing iOS Home App.</p>
+    </li>
+    <li><strong>MyHome</strong> nodes support :
+      <ul>
+        <li><code>payload</code> being either a boolean (true/false) or a string (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> being a JSON object where <code>.state</code> is a string (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> being a JSON object where <code>.On</code> is a boolean (true/false)</li>
+      </ul>
+    </li>
+  </ul>
+  <p>
+    <strong>Both outputs</strong> also include an additional object <code>msg.mh_nodeConfigInfo</code> which includes data from node configuration.
+    This can be used in flows to redirect messages based on how (i.e. which node) they come from without having to include 'change nodes' at every stage.
+  </p>
+  <p>
+    The <code>msg.mh_nodeConfigInfo</code> contains node configuration values :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[string]</em> : name</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[string]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : linked gateway info : name (<code>.name</code>), Host/IP (<code>.host</code>) and port (<code>.port</code>)</li>
+  </ul>
 </script>

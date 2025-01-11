@@ -27,7 +27,7 @@ module.exports = function (RED) {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Add listener on node linked to a dedicated function call to be able to remove it on close
-    const listenerFunction = function (frame) {
+    const listenerFunction = function (ownFamilyName , frame) {
       let msg = {};
       node.processReceivedBUSFrames (msg, frame);
     };
@@ -109,6 +109,19 @@ module.exports = function (RED) {
           if (!Array.isArray(frame)) {
             payload.command_received = frame;
           }
+          // MSG1 : add major node configuration info on both returned message
+          msg.mh_nodeConfigInfo = {
+          	'name' : config.name ,
+          	'topic' : config.topic ,
+          	'buslevel' : config.buslevel ,
+          	'lightid' : config.lightid ,
+          	'isgroup' : config.isgroup ,
+          	'gateway' : {
+          		'name' : gateway.name ,
+          		'host' : gateway.host ,
+          		'port' : gateway.port
+          	}
+          };
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
           if (payloadInfo.brightness !== undefined) {
