@@ -138,7 +138,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
       setTimeout (function() {
         logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started...');
         let success_callback = function (commands, cmd_responses, cmd_failed) {
-          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started was successful (' + cmd_responses.length + ' responded)');
+          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights was successful (' + cmd_responses.length + ' responded)');
         };
         let error_callback = function (cmd_failed, nodeStatusErrorMsg) {
           logNodeEvent (callingNode, 'warn', logEnabled, 'gateway connection : gathering status of all connected lights started FAILED : ' + nodeStatusErrorMsg);
