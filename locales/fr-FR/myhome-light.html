@@ -1,0 +1,102 @@
+<script type="text/x-red" data-help-name="myhome-light">
+<p>Ajoute un nœud MyHome Light à votre flux.</p>
+  <ul>
+    <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+    <li><strong>Topic</strong> est utilisé sur le payload reçu pour déclencher l'action du nœud (voir les infos dans la définition des entrées)</li>
+    <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+    <li><strong>Lumière</strong> est l'adresse de la charge dans le système MyHome ('A=1 PL=5' devient '15', notez aussi que le format est sur 4 chiffres lorsque A>9 ou PL>9, par exemple 'A=11 PL=5' devient `1105`, 'A=1 PL=15' devient '0115')</li>
+      <ul>
+        <li><strong>Il s'agit d'une référence de groupe</strong> doit être coché lorsque l'adresse de charge définie doit être utilisée comme adresse de groupe et non comme un simple point de charge</li>
+      </ul>
+    <li><strong>Demander uniquement le statut de la charge actuelle</strong> : lorsqu'il est activé, le payload reçu (par ex. 'ON', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel de la charge sans appliquer de changement.
+      <br>Note : cela ne peut pas être activé pour les groupes, car ils n'ont pas d'état propre dans le système MyHome.
+    </li>
+    <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>
+    <li><strong>SmartFilter</strong>
+      <ul>
+        <li>
+            <strong>Filtrer les événements entrants de la passerelle</strong> : lorsqu'il est activé, le nœud ne déclenche un nouveau flux (sortie) que lorsqu'un état a CHANGÉ après réception d'un message MyHome BUS. Cela évite que plusieurs flux se déclenchent pour la même info/commande, car MyHome envoie le même message plusieurs fois (demande d'état, réponse, ...).
+        </li>
+        <li>
+            <strong>Filtrer les commandes sortantes envoyées à la passerelle</strong> : peut être activé pour éviter d'envoyer des commandes inutiles à la passerelle. Le nœud évaluera si une commande est utile en fonction du dernier état connu du nœud (par ex. lorsqu'une lumière est déjà 'on', il n'est pas nécessaire d'envoyer une autre commande pour l'allumer). Si le message reçu (msg.payload) est jugé 'inutile', le nœud arrête le flux (aucun message n'est envoyé en sortie).
+            Note : si utilisé pour des groupes, le nœud se basera uniquement sur les dernières commandes qu'il a lui-même émises, car les groupes n'ont pas d'état en tant que tel dans le système MyHome.
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+<h3>Entrées</h3>
+  <p><code>msg.payload</code> peut être de 2 types</p>
+    <ul>
+      <li>Une valeur simple
+        <ul>
+          <li>une simple <em>chaîne</em> valant 'ON' ou 'OFF'.
+            <br>'TOGGLE' peut aussi être utilisé pour basculer ON->OFF ou OFF->ON selon le dernier état connu (lorsqu'il est inconnu, OFF est supposé).
+            <br>Lors de la commande de variateurs, le niveau de luminosité actuel peut être augmenté / diminué avec 'UP' ou 'DOWN'.</li>
+          <li>un simple <em>booléen</em> valant 'true' ou 'false'</li>
+          <li>une simple <em>valeur numérique</em> entre '0' et '100'. Applicable uniquement pour les lumières dimmables ('0' signifie off, une autre valeur allumera la lampe au pourcentage de luminosité spécifié, arrondi à la dizaine la plus proche)</li>
+        </ul>
+      </li>
+      <li>Un Objet
+        <ul>
+          <li> <code>payload.state</code> <em>[chaîne]</em> la valeur doit être 'ON' ou 'OFF'. Peut aussi être 'UP' ou 'DOWN' pour les variateurs</li>
+          <li> <code>payload.On</code> <em>[booléen]</em> la valeur doit être 'True' ou 'False'<br>
+            (correspond à un repli lorsque .state est indéfini)</li>
+          <li> <code>payload.brightness</code> <em>[entier]</em> (optionnel, pour variateurs uniquement) représente le pourcentage de luminosité appliqué à la charge, de 20 à 100</li>
+        </ul>
+      </li>
+    </ul>
+  <p><code>msg.topic</code> est requis pour déclencher l'action du nœud : le <code>msg.topic</code> reçu doit être défini sur <code>cmd/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud.</p>
+
+<h3>Sorties</h3>
+  <p>La <strong>sortie principale</strong> est un objet JSON <code>msg.payload</code> contenant :</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[chaîne]</em> valeur 'ON' ou 'OFF'</li>
+      <li> <code>payload.brightness</code> <em>[entier]</em> (renvoyé uniquement pour les variateurs) représente le pourcentage de luminosité actuel de la charge</li>
+      <li> <code>payload.command_sent</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED (c.-à-d. des commandes envoyées à la passerelle MyHome), contient les commandes envoyées en protocole OpenWebNet (par ex. <em>'*1*1*15##'</em> pour allumer la charge 1.5)</li>
+      <li> <code>payload.command_received</code> <em>[chaîne]</em> lorsque le nœud est déclenché depuis la passerelle (c.-à-d. une commande détectée sur le BUS MyHome pour la charge configurée), contient la commande lue en protocole OpenWebNet (ex : <em>'*1*5*25##'</em> signifie que la charge 2.5 a été allumée à 50 %)</li>
+      <li> <code>payload.command_responses</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED en mode lecture seule, contiendra la ou les réponses renvoyées par le BUS MyHome en protocole OpenWebNet</li>
+      <li> <code>payload.command_failed</code> <em>[tableau de chaînes]</em> contiendra les commandes refusées par la passerelle MyHome, en protocole OpenWebNet</li>
+    </ul>
+
+  <p>La <strong>sortie secondaire</strong> peut être configurée pour mieux correspondre aux besoins d'autres types de nœuds que vous utilisez, sans avoir à ajouter un nœud function/switch supplémentaire pour chaque connecteur.
+    <br>
+    <u>Exemples :</u>
+  </p>
+    <ul>
+      <li><strong>HUEMagic</strong> prend en charge :
+        <ul>
+          <li><code>payload</code> étant un booléen (true/false)</li>
+          <li><code>payload</code> étant un objet JSON où <code>.ON</code> est un booléen (true/false)</li>
+        </ul>
+      </li>
+      <li><strong>Homekit-bridge</strong> prend en charge :
+        <ul>
+          <li><code>payload</code> étant un objet JSON où <code>.On</code> est un booléen (true/false)</li>
+        </ul>
+        <p>(voir :&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) permet de gérer l'application iOS Home.</p>
+      </li>
+      <li><strong>MyHome</strong> prend en charge :
+        <ul>
+          <li><code>payload</code> étant soit un booléen (true/false) soit une chaîne (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> étant un objet JSON où <code>.state</code> est une chaîne (ON/OFF/OPEN/CLOSE/...)</li>
+          <li><code>payload</code> étant un objet JSON où <code>.On</code> est un booléen (true/false)</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      <strong>Les deux sorties</strong> incluent également un objet additionnel <code>msg.mh_nodeConfigInfo</code> qui contient des données de configuration du nœud.
+      Cela peut être utilisé dans les flux pour rediriger les messages selon leur origine (c.-à-d. quel nœud les a émis) sans avoir à inclure des nœuds de changement à chaque étape.
+    </p>
+    <p>
+      Le <code>msg.mh_nodeConfigInfo</code> contient les valeurs de configuration du nœud :
+    </p>
+    <ul>
+      <li> <code>mh_nodeConfigInfo.name</code> <em>[chaîne]</em> : nom</li>
+      <li> <code>mh_nodeConfigInfo.topic</code> <em>[chaîne]</em> : topic</li>
+      <li> <code>mh_nodeConfigInfo.buslevel</code> <em>[chaîne]</em> : niveau de bus (tel que 'private_riser', '01', '02', ... '15')</li>
+      <li> <code>mh_nodeConfigInfo.lightid</code> <em>[chaîne]</em> : ID de la lumière</li>
+      <li> <code>mh_nodeConfigInfo.isgroup</code> <em>[booléen]</em> : configuré comme groupe (true) ou comme point de lumière unique (false)</li>
+      <li> <code>mh_nodeConfigInfo.gateway</code> <em>[objet]</em> : informations sur la passerelle liée : nom (<code>.name</code>), hôte/IP (<code>.host</code>) et port (<code>.port</code>)</li>
+    </ul>
+</script>

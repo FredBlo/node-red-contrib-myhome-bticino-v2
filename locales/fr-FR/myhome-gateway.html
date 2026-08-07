@@ -1,0 +1,43 @@
+<script type="text/x-red" data-help-name="myhome-gateway">
+  <style>
+    #mh-tableinfo {width: 95%;font-size: small;}
+    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
+    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
+    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
+  </style>
+  <p>Le nœud de configuration de la passerelle</p>
+  <ul>
+    <li><strong>Nom, adresse IP, port</strong> ... assez explicite :-)</li>
+    <li><strong>Mot de passe</strong> peut être défini :
+      <ul>
+        <li><em>vide</em> : le mot de passe n'est pas nécessaire lorsque le serveur Node-RED s'exécute sur une adresse IP configurée comme 'adresse locale' sur la passerelle</li>
+        <li><em>numérique</em> : pour l'authentification basique (mot de passe OpenWebNet)</li>
+        <li><em>alphanumérique</em> : pour l'authentification avancée (HMAC-1 (SHA-1) ou HMAC-2 (SHA-2 / 256))</li>
+      </ul>
+    </li>
+    <li><strong>Keep alive</strong> peut être utilisé pour maintenir automatiquement l'activité de surveillance pour les passerelles qui ferment la connexion après un intervalle sans appel depuis une IP enregistrée.
+      <br><i>Note : le nœud de passerelle tentera automatiquement de se reconnecter lorsque la connexion est fermée ou perdue, mais il est préférable de la garder active pour s'assurer que tous les messages BUS sont traités dans Node-RED.</i></li>
+    <li><strong>Recharger</strong> : lorsque la passerelle se connecte avec succès, l'état de toutes les charges connectées au BUS est rassemblé. Tous les nœuds déployés sont également mis à jour en conséquence, et des flux sont déclenchés.</li>
+  </ul>
+  <br>
+  D'après les commentaires d'auteurs précédents et ma propre expérience lors des tests/extensions de ces nœuds, voici les passerelles qu'il <strong>prend en charge</strong> :
+  <table id="mh-tableinfo">
+    <tr>  <th>Passerelle</th>                        <th>Authentification (testée)</th>            <th>Lumières</th> <th>Volets</th> <th>Scénario</th> <th>Température</th> <th>Énergie</th> </tr>
+    <tr>  <td><strong>MH201 *</strong></td>       <td>IP, mot de passe OPEN</td>                       <td>OK [1]</td> <td>OK</td>       <td>?</td>        <td>?</td>           <td>?</td>      </tr>
+    <tr>  <td><strong>MH202</strong></td>         <td>mot de passe OPEN</td>                           <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [3][4]</td>   <td>OK</td>     </tr>
+    <tr>  <td><strong>F455</strong></td>          <td>IP, mot de passe OPEN, HMAC (SHA-1) [2]</td> <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [4]</td>      <td>OK [6]</td> </tr>
+    <tr>  <td><strong>F459</strong></td>          <td>IP, mot de passe OPEN, HMAC (SHA-2)</td>     <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK</td>          <td>OK</td>     </tr>
+    <tr>  <td><strong>myHOMEServer1</strong></td> <td>mot de passe HMAC (SHA-2)</td>                   <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [5]</td>      <td>OK</td>     </tr>
+  </table>
+  <i>* d'après le retour de *Fabio Bui*</i>
+  <br> <i>[1] la passerelle MH201 ne répond pas aux demandes d'état des lumières (sur mise à jour ou en mode lecture seule), mais la réponse elle-même est envoyée sur le BUS et peut être lue/utilisée via un autre flux si nécessaire. Voir plus d'infos sur <a href="https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues/11">GitHub issue #11</a></i>
+  <br> <i>[2] la passerelle F455 ferme la connexion de surveillance après 1 heure d'inactivité. Le connecteur se reconnectera automatiquement mais il est conseillé d'activer le 'keep alive' toutes les 10-15 minutes pour éviter les coupures.</i>
+  <br> <i>[3] la passerelle MH202 renvoie le point de consigne de température sans tenir compte du décalage local</i>
+  <br> <i>[4] les passerelles MH202 & F455 n'enverront que le statut du premier actionneur de zone (lorsqu'on demande 'all fails')</i>
+  <br> <i>[5] myHOMEServer1 n'autorise pas le passage d'une zone en chauffage manuel (en spécifiant un point de consigne de température manuel)</i>
+  <br> <i>[6] F455 renvoie des résultats très instables/incohérents pour les appels horaires et quotidiens. Le cache des nœuds doit être activé pour corriger la plupart d'entre eux lorsque les nœuds fonctionnent depuis un moment...</i>
+
+  <h3>Options de journalisation du BUS</h3>
+    <p>Pour éviter de surcharger la console Node-RED (et les logs), les messages MyHome BUS surveillés ne sont pas journalisés par défaut. Cela peut être activé par type lorsque nécessaire.</p>
+    <p>Lorsque les commandes sortantes sont journalisées, la pile complète de connexion est également enregistrée pour chaque commande envoyée.</p>
+</script>

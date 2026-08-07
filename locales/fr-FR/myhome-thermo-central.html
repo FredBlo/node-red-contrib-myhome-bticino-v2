@@ -1,0 +1,113 @@
+<script type="text/x-red" data-help-name="myhome-thermo-central">
+  <style>
+    #mh-tableinfo {width: 95%;font-size: small;}
+    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: left;}
+    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
+    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
+  </style>
+  <p>Ajoute un nœud MyHome Thermo Central Unit pour surveiller et appliquer des changements via l'unité centrale des zones 1-99.</p>
+  <ul>
+    <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+    <li><strong>Topic</strong> est utilisé sur le payload reçu pour déclencher l'action du nœud (voir les infos dans la définition des entrées)</li>
+    <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+    <li><strong>Demander l'actualisation de l'état du Central à la connexion</strong> : lorsqu'il est activé, l'état actuel du Central est récupéré au chargement du nœud (déploiement ou démarrage de Node-RED). La collecte de données déclenchera des flux en conséquence, ce qui peut être utilisé pour (re)définir des valeurs dépendantes dans votre flux à l'initialisation.</li>
+    <li><strong>Demander uniquement le statut actuel</strong> : lorsqu'il est activé, le payload reçu (par ex. 'MANUAL:20.5', '21.5', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel de l'unité centrale sans appliquer de modification.</li>
+    <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>
+    <li><strong>Filtrer les événements entrants de la passerelle</strong> : lorsqu'il est activé, le nœud ne déclenche un nouveau flux (sortie) que lorsqu'un état a CHANGÉ après réception d'un message MyHome BUS. Cela évite que plusieurs flux se déclenchent pour la même info/commande, car MyHome envoie le même message plusieurs fois (demande d'état, réponse, ...)
+      <br>Remarque : SmartFilter est appliqué uniquement aux événements reçus depuis le BUS (et non aux flux Node-RED).</li>
+    </li>
+  </ul>
+
+<h3>Entrées</h3>
+  <p><code>msg.payload</code> peut être de 2 types</p>
+    <ul>
+      <li>Une valeur simple <em>[chaîne]</em> correspondant à une commande valide de l'unité centrale</li>
+      <li>Un Objet où <code>payload.state</code> contient une commande valide de l'unité centrale</li>
+    </ul>
+    <br>
+    <p>Une <strong>commande valide d'unité centrale</strong> est :</p>
+    <table id="mh-tableinfo">
+      <tr> <th>Commande valide (.state)</th>    <th>.operationMode</th>             <th>_ownValue</th>  <th>Information</th>
+      <tr> <td>ANTIFREEZE</td>                <td>Antifreeze</td>                 <td>102</td>        <td>(1)</td>
+      <tr> <td>OFF_HEATING</td>               <td>Off Heating</td>                <td>103</td>        <td>(1)</td>
+      <tr> <td>MANUAL_HEATING:xxxx</td>       <td>Manual Heating</td>             <td>110</td>        <td>(1) xxxx : température en format <strong>4 caractères</strong> : '06.5', '16.0', ...</td>
+      <tr> <td>PROGRAM_HEATING:x</td>         <td>Auto Heating Program</td>       <td>110x</td>       <td>(1) x : numéro de programme [1-3]</td>
+      <tr> <td>SCENARIO_HEATING:xx</td>       <td>Auto Heating Scenario</td>      <td>12xx</td>       <td>(1) xx : numéro de scénario [01-16]</td>
+      <tr> <td>THERMAL_PROTECT</td>           <td>Thermal Protection</td>         <td>202</td>        <td>(2)</td>
+      <tr> <td>OFF_CONDITIONING</td>          <td>Off Conditioning</td>           <td>203</td>        <td>(2)</td>
+      <tr> <td>MANUAL_CONDITIONING:xxxx</td>  <td>Manual Conditioning</td>        <td>210</td>        <td>(2) xxxx : température en format <strong>4 caractères</strong> : '06.5', '16.0', ...</td>
+      <tr> <td>PROGRAM_CONDITIONING:x</td>    <td>Auto Conditioning Program</td>  <td>210x</td>       <td>(2) x : numéro de programme [1-3]</td>
+      <tr> <td>SCENARIO_CONDITIONING:xx</td>  <td>Auto Conditioning Scenario</td> <td>22xx</td>       <td>(2) xx : numéro de scénario [01-16]</td>
+      <tr> <td>OFF</td>                       <td>Off Generic</td>                <td>303</td>        <td></td>
+      <tr> <td>MANUAL:xxxx</td>               <td>Manual Generic</td>             <td>310</td>        <td>xxxx : température en format <strong>4 caractères</strong> : '06.5', '16.0', ...</td>
+      <tr> <td>PROGRAM:x</td>                 <td>Auto Generic Program</td>       <td>310x</td>       <td>x : numéro de programme [1-3]</td>
+      <tr> <td>SCENARIO:xx</td>               <td>Auto Generic Scenario</td>      <td>32xx</td>       <td>xx : numéro de scénario [01-16]</td>
+    </table>
+    <span><i> (1) uniquement valide en mode chauffage</i></span>
+    <span><i> (2) uniquement valide en mode climatisation</i></span>
+  <p><code>msg.topic</code> est requis sur le <code>msg</code> reçu pour déclencher l'action du nœud : </p>
+    <ul>
+      <li>
+        en <strong>mode écriture</strong> : <code>msg.topic</code> doit être défini sur <code>cmd/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud.
+        <br>
+        Remarque : si le nœud est configuré en lecture seule, le contenu de msg.payload est ignoré et un rafraîchissement d'état sera réalisé.
+      </li>
+      <li>
+        en <strong>mode lecture seule</strong> : <code>msg.topic</code> doit être défini sur <code>state/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud.</li>
+        <br>
+        Remarque : même si le nœud n'est PAS configuré en lecture seule, le contenu de msg.payload est ignoré et un rafraîchissement d'état sera réalisé.
+    </ul>
+<h3>Sorties</h3>
+  <p>La <strong>sortie principale</strong> est un objet JSON <code>msg.payload</code> contenant :</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[chaîne]</em> valeur identique à une commande valide de l'unité centrale (voir le tableau des entrées ci-dessus)</li>
+      <li> <code>payload.remoteControl</code> <em>[booléen]</em> indique si le contrôle distant de l'unité centrale est activé ou non. Lorsqu'il est désactivé, toutes les commandes envoyées seront refusées.</li>
+      <li> <code>payload.operationMode</code> <em>[chaîne]</em> mode d'opération actuel défini (voir le tableau des entrées ci-dessus)</li>
+      <li> <code>payload.operationMode_ownValue</code> <em>[chaîne]</em> (référence technique : la valeur OpenWebNet du mode d'opération)</li>
+      <li> <code>payload.operationMode_setTemperature</code> <em>[chaîne]</em> <i>(uniquement en mode manuel)</i> température définie comme point de consigne </li>
+      <li> <code>payload.operationMode_curProgram</code> <em>[chaîne]</em> <i>(uniquement lorsqu'un programme hebdomadaire est activé)</i> programme hebdomadaire actuel défini [1-3]</li>
+      <li> <code>payload.operationMode_curScenario</code> <em>[chaîne]</em> <i>(uniquement lorsqu'un scénario est activé)</i> scénario actuel défini [01-16]</li>
+      <li> <code>payload.command_sent</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED (c.-à-d. des commandes envoyées à la passerelle MyHome), contient les commandes envoyées en protocole OpenWebNet (par ex. <em>'*4*3102*#0##'</em> pour passer l'unité centrale au programme hebdomadaire n°2 (mode générique))</li>
+      <li> <code>payload.command_received</code> <em>[chaîne]</em> lorsque le nœud est déclenché depuis la passerelle (c.-à-d. une commande détectée sur le BUS MyHome pour la charge configurée), contient la commande lue en protocole OpenWebNet (ex : <em>'*4*303*#0##'</em> signifie que l'unité centrale a été mise hors tension)</li>
+      <li> <code>payload.command_responses</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED en mode lecture seule, contiendra la ou les réponses renvoyées par le BUS MyHome en protocole OpenWebNet</li>
+      <li> <code>payload.command_failed</code> <em>[tableau de chaînes]</em> contiendra les commandes refusées par la passerelle MyHome, en protocole OpenWebNet</li>
+    </ul>
+
+  <p>La <strong>sortie secondaire</strong> peut être configurée pour mieux correspondre aux besoins d'autres types de nœuds que vous utilisez, sans avoir à ajouter un nœud function/switch supplémentaire pour chaque connecteur.
+    <br>
+    <u>Exemples :</u>
+  </p>
+  <ul>
+    <li><strong>HUEMagic</strong> prend en charge :
+      <ul>
+        <li><code>payload</code> étant un booléen (true/false)</li>
+        <li><code>payload</code> étant un objet JSON où <code>.ON</code> est un booléen (true/false)</li>
+      </ul>
+    </li>
+    <li><strong>Homekit-bridge</strong> prend en charge :
+      <ul>
+        <li><code>payload</code> étant un objet JSON où <code>.On</code> est un booléen (true/false)</li>
+      </ul>
+      <p>(voir :&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) permet de gérer l'application iOS Home.</p>
+    </li>
+    <li><strong>MyHome</strong> prend en charge :
+      <ul>
+        <li><code>payload</code> étant soit un booléen (true/false) soit une chaîne (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> étant un objet JSON où <code>.state</code> est une chaîne (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> étant un objet JSON où <code>.On</code> est un booléen (true/false)</li>
+      </ul>
+    </li>
+  </ul>
+  <p>
+    <strong>Les deux sorties</strong> incluent également un objet additionnel <code>msg.mh_nodeConfigInfo</code> qui contient des données de configuration du nœud.
+    Cela peut être utilisé dans les flux pour rediriger les messages selon leur origine (c.-à-d. quel nœud les a émis) sans avoir à inclure des nœuds de changement à chaque étape.
+  </p>
+  <p>
+    Le <code>msg.mh_nodeConfigInfo</code> contient les valeurs de configuration du nœud :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[chaîne]</em> : nom</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[chaîne]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[objet]</em> : informations sur la passerelle liée : nom (<code>.name</code>), hôte/IP (<code>.host</code>) et port (<code>.port</code>)</li>
+  </ul>
+</script>

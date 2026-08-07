@@ -1,0 +1,24 @@
+<script type="text/x-red" data-help-name="myhome-commandsession">
+  <p>Nœud d'injection MyHome pour envoyer n'importe quelle commande OpenWebNet supportée au système MyHome.</p>
+    <ul>
+      <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+      <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+      <li><strong>Délai (ms)</strong> est le délai personnalisé à attendre avant d'envoyer une nouvelle commande à la passerelle.
+        <br>
+        Ce délai peut être remplacé si le message entrant contient une valeur (en ms) dans <code>msg.rate</code>
+      </li>
+    </ul>
+
+  <h3>Entrées</h3>
+    <p><code>msg.payload</code> doit contenir la ou les commande(s) à envoyer, au format OpenWebNet (c.-à-d. '*WHO*WHAT*WHERE##'). Lors de l'envoi de plusieurs commandes, cela peut être fait avec une chaîne de caractères contenant les commandes l'une après l'autre, ou avec un tableau de chaînes.</p>
+    <p><code>msg.rate</code> peut contenir une valeur numérique (nombre ou chaîne convertible en nombre). Si le nœud autorise le remplacement dans sa configuration (voir ci-dessus), cette valeur sera utilisée comme délai (en ms) avant l'envoi d'une nouvelle commande sur le BUS.</p>
+
+  <h3>Sortie</h3>
+    <p>La <strong>sortie</strong> est un objet JSON <code>msg.payload</code> contenant :</p>
+      <ul>
+        <li> <code>payload.command_sent</code> <em>[tableau de chaînes]</em> contient les commandes envoyées en protocole OpenWebNet (par ex. <em>'*1*1*15##'</em> pour allumer la charge 1.5)</li>
+        <li> <code>payload.command_responses</code> <em>[tableau de chaînes]</em> contiendra la ou les réponses renvoyées par le BUS MyHome en protocole OpenWebNet</li>
+        <li> <code>payload.command_failed</code> <em>[tableau de chaînes]</em> contiendra les commandes refusées par la passerelle MyHome, en protocole OpenWebNet</li>
+      </ul>
+    <p>Remarque : une erreur est renvoyée uniquement lorsque TOUTES les commandes ont échoué. Dès qu'au moins une commande a réussi, aucune erreur n'est renvoyée.</p>
+</script>
