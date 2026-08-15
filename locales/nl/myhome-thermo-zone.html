@@ -1,0 +1,162 @@
+<script type="text/x-red" data-help-name="myhome-thermo-zone">
+  <style>
+    #mh-tableinfo {width: 300px;font-size: small;}
+    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
+    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
+    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
+  </style>
+  <p>Voegt een MyHome Thermo Zone node toe om wijzigingen te monitoren & toe te passen op een thermisch geregelde zone.</p>
+  <ul>
+    <li><strong>Naam</strong> (verplicht) is de naam van de node</li>
+    <li><strong>Topic</strong> wordt gebruikt op de ontvangen payload om de actie op de node te activeren (zie info bij de definitie van de ingangen)</li>
+    <li><strong>Gateway</strong> is de gateway die geconfigureerd moet worden om verbinding te maken met het MyHome-systeem</li>
+    <li><strong>Zone</strong> is het adres van de zone in het MyHome-systeem (1-99)</li>
+    <li><strong>Status van de zone opvragen bij verbinding</strong> : indien ingeschakeld, wordt de huidige status van de zone opgehaald wanneer de node geladen wordt (dus bij deploy of wanneer de Node-RED-server opstart). Het verzamelen van deze gegevens activeert bijhorende flows, die gebruikt kunnen worden om afhankelijke waarden in je flow bij het laden (opnieuw) in te stellen.
+    <li><strong>Enkel de huidige status van de belasting opvragen</strong> : indien ingeschakeld, wordt de ontvangen payload (bijvoorbeeld '20', 'AUTO', 'OFF' of iets anders) genegeerd en wordt een statusaanvraag verstuurd om de huidige status van de zone op te vragen zonder iets te wijzigen.</li>
+    <li><strong>ALLE inkomende gateway-events overslaan</strong> : indien ingeschakeld, worden alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.</li>
+    <li><strong>Inkomende gateway-events filteren</strong> : indien ingeschakeld, activeert de node pas een nieuwe flow (m.a.w. output) wanneer een status is GEWIJZIGD na ontvangst van een MyHome BUS-bericht. Dit voorkomt dat er meerdere flows starten voor dezelfde info/opdracht, aangezien MyHome hetzelfde bericht meerdere keren verstuurt (bij statusaanvraag, antwoord, ...)
+      <br>Opmerking: SmartFilter wordt enkel toegepast op events die van de BUS ontvangen worden (niet op de Node-RED flows)
+    </li>
+  </ul>
+
+<h3>Ingangen</h3>
+  <p><code>msg.payload</code> kan van 2 types zijn</p>
+    <ul>
+      <li>Een eenvoudige waarde <em>[tekst]</em> is een geldige zone-opdracht</li>
+      <li>Een object waarbij <code>payload.state</code> een geldige zone-opdracht is</li>
+      <p>Een geldige <strong>opdracht voor een thermisch geregelde zone</strong> is :</p>
+      <ul>
+        <li>een <strong>getal</strong> ('20', '21.5',..) : de zone wordt naar manuele modus geschakeld en de opgegeven temperatuur wordt toegepast (min 2°C, max 43°C).</li>
+        <li><strong>OFF</strong> : de zone wordt uitgeschakeld.</li>
+        <li><strong>AUTO</strong> : de zone wordt naar automatische modus geschakeld.</li>
+        <li><strong>PROTECT</strong> : de zone wordt naar generieke beveiligingsmodus geschakeld.</li>
+        <li><strong>THERMAL_PROTECT</strong> : de zone wordt naar thermische beveiligingsmodus geschakeld (bij airco).</li>
+        <li><strong>ANTIFREEZE</strong> : de zone wordt naar vorstbeveiligingsmodus geschakeld (bij verwarming).</li>
+      </ul>
+    </ul>
+  <p><code>msg.topic</code> is vereist op het ontvangen <code>msg</code> om de actie van de node te activeren: </p>
+    <ul>
+      <li>
+        in <strong>schrijfmodus</strong> : <code>msg.topic</code> moet ingesteld zijn op <code>cmd/xxxx</code>, waarbij xxxx de waarde is die als Topic in de nodeconfiguratie is gedefinieerd.
+        <br>
+        Opmerking : als de node geconfigureerd is als alleen-lezen, wordt de inhoud van msg.payload genegeerd en wordt een statusvernieuwing verwerkt.
+      </li>
+      <li>
+        in <strong>alleen-lezen modus</strong> : <code>msg.topic</code> moet ingesteld zijn op <code>state/xxxx</code>, waarbij xxxx de waarde is die als Topic in de nodeconfiguratie is gedefinieerd.</li>
+        <br>
+        Opmerking : zelfs als de node NIET geconfigureerd is als alleen-lezen, wordt de inhoud van msg.payload genegeerd en wordt een statusvernieuwing verwerkt.
+    </ul>
+<h3>Uitgangen</h3>
+  <p>De <strong>primaire output</strong> is een JSON-object <code>msg.payload</code> met</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[getal]</em> de huidig gemeten temperatuur</li>
+      <li> <code>payload.setTemperature</code> <em>[getal]</em> de huidig ingestelde temperatuur als instelpunt</li>
+      <li> <code>payload.operationType_ownValue</code> <em>[tekst]</em> (technische referentie : de OpenWebNet-waarde voor het bedrijfstype)</li>
+      <li> <code>payload.operationType</code> <em>[tekst]</em> het huidige bedrijfstype van de zone
+        <table id="mh-tableinfo">
+          <tr>  <th>ownValue</th> 	<th>operationType</th>	 	  </tr>
+          <tr>  <td>0</td> 		 		  <td>Airco</td>       </tr>
+          <tr>  <td>1</td> 		   	  <td>Verwarming</td>            </tr>
+          <tr>  <td>102</td> 	      <td>Vorstbeveiliging</td>    	    </tr>
+          <tr>  <td>202</td> 	  		<td>Thermische beveiliging</td> </tr>
+          <tr>  <td>303</td> 	     	<td>Generiek UIT</td>   	    </tr>
+        </table>
+      </li>
+      <li> <code>payload.operationMode_ownValue</code> <em>[tekst]</em> (technische referentie : de OpenWebNet-waarde voor de bedrijfsmodus)</li>
+      <li> <code>payload.operationMode</code> <em>[tekst]</em> de huidige bedrijfsmodus van de zone
+        <table id="mh-tableinfo">
+          <tr>  <th>ownValue</th> 	<th>operationMode</th>	 	       </tr>
+          <tr>  <td>110</td> 		 		<td>Manuele verwarming</td>          </tr>
+          <tr>  <td>210</td> 		   	<td>Manuele airco</td>     </tr>
+          <tr>  <td>111</td> 	      <td>Automatische verwarming</td>    	 </tr>
+          <tr>  <td>211</td> 	  		<td>Automatische airco</td>  </tr>
+          <tr>  <td>103</td> 	     	<td>Verwarming uit</td>   	         </tr>
+          <tr>  <td>203</td> 	   		<td>Airco uit</td> 	     </tr>
+          <tr>  <td>102</td> 	  		<td>Vorstbeveiliging</td>              </tr>
+          <tr>  <td>202</td> 		 		<td>Thermische beveiliging</td>      </tr>
+        </table>
+      </li>
+      <li> <code>payload.localOffset_ownValue</code> <em>[tekst]</em> (technische referentie : de OpenWebNet-waarde voor de offset)</li>
+      <li> <code>payload.localOffset</code> <em>[tekst]</em> de waarde is 'ON' of 'OFF'
+        <table id="mh-tableinfo">
+          <tr>  <th>ownValue</th> 	<th>localOffset</th>	 	  </tr>
+          <tr>  <td>00</td> 		 		<td>0 (geen offset)</td>    </tr>
+          <tr>  <td>01</td> 		   	<td>1 (+1°C)</td>         </tr>
+          <tr>  <td>02</td> 	      <td>2 (+2°C)</td>    	    </tr>
+          <tr>  <td>03</td> 	  		<td>3 (+3°C)</td>    	    </tr>
+          <tr>  <td>11</td> 	     	<td>-1 (-1°C)</td>   	    </tr>
+          <tr>  <td>12</td> 	   		<td>-2 (-2°C)</td> 	      </tr>
+          <tr>  <td>13</td> 	  		<td>-3 (-3°C)</td>        </tr>
+          <tr>  <td>04</td> 		 		<td>Lokaal UIT</td>        </tr>
+          <tr>  <td>05</td> 	   		<td>Lokale beveiliging</td>	</tr>
+        </table>
+      </li>
+      <li> <code>payload.actuatorStates</code> <em>[JSON-object]</em> met alle statussen van de actuatoren die aan de huidige zone gekoppeld zijn:
+        <ul>
+          <li><code>actuatorStates.On</code> <em>[boolean]</em> is 'true' wanneer de laatste actuator waarvoor info ontvangen werd 'ON' is</li>
+          <li><code>actuatorStates.actuator_x</code> <em>[JSON-object]</em> (waarbij 'x' '1-9' is, dus 1 object per gekoppelde actuator)
+            <ul>
+              <li><code>actuator_x.state_ownValue</code> <em>[tekst]</em> (technische referentie : de OpenWebNet-waarde voor de status van de actuator)</li>
+              <li><code>actuator_x.state</code> <em>[tekst]</em> bevat de gedetailleerde status van de actuator</li>
+              <li><code>actuator_x.On</code> <em>[boolean]</em> bevat 'true' wanneer de actuator als 'actief' beschouwd wordt</li>
+              <table id="mh-tableinfo">
+                <tr>  <th>ownValue</th>	  <th>state</th>            <th>.On state</th> 	</tr>
+                <tr>  <td>0</td> 			 	  <td>OFF</td>          	  <td>false</td>      </tr>
+                <tr>  <td>1</td> 		  	 	<td>ON</td>           	 	<td>true</td>       </tr>
+                <tr>  <td>2</td> 	    	  <td>Opened</td>       		<td>true</td>       </tr>
+                <tr>  <td>3</td> 	    	  <td>Closed</td>       		<td>false</td>      </tr>
+                <tr>  <td>4</td> 	    	  <td>Stop</td>         		<td>false</td>      </tr>
+                <tr>  <td>5</td> 	    	  <td>OFF Fan Coil</td> 		<td>false</td>      </tr>
+                <tr>  <td>6</td> 	    	  <td>ON Vel 1</td>     		<td>true</td>       </tr>
+                <tr>  <td>7</td> 		  	  <td>ON Vel 2</td>     	  <td>true</td>       </tr>
+                <tr>  <td>8</td> 	    	  <td>ON Vel 3</td>     		<td>true</td>       </tr>
+                <tr>  <td>9</td> 		  	  <td>ON Fan Coil</td>  	  <td>true</td>       </tr>
+              </table>
+            </ul>
+          </li>
+        </ul>
+      <li> <code>payload.command_sent</code> <em>[array van tekst]</em> wanneer de node vanuit Node-RED werd geactiveerd (d.w.z. er werden opdrachten naar de MyHome-gateway verstuurd), bevat dit de opdrachten die verstuurd werden in het OpenWebNet-protocol (bv. <em>'*#4*2*#14*0225*3##'</em> om zone '2' naar manuele modus @22.5°C te schakelen)</li>
+      <li> <code>payload.command_received</code> <em>[tekst]</em> wanneer de node vanuit de gateway werd geactiveerd (d.w.z. er werd een opdracht gedetecteerd op de MyHome BUS voor de geconfigureerde belasting), bevat dit de opdracht die werd gelezen in het OpenWebNet-protocol (bv: <em>'*4*1*2'</em> betekent dat de bedrijfsmodus van zone '2' 'Verwarming' is)</li>
+      <li> <code>payload.command_responses</code> <em>[array van tekstwaarden]</em> wanneer de node vanuit Node-RED in alleen-lezen modus werd geactiveerd, bevat dit het/de antwoord(en) dat/die door de MyHome BUS werd(en) teruggestuurd in het OpenWebNet-protocol</li>
+      <li> <code>payload.command_failed</code> <em>[array van tekstwaarden]</em> bevat de opdrachten die door de MyHome-gateway geweigerd werden, in het OpenWebNet-protocol</li>
+    </ul>
+
+  <p>De <strong>secundaire output</strong> kan geconfigureerd worden om beter aan te sluiten bij de noden van andere nodetypes die je gebruikt, zonder dat je voor elke connector een extra function/switch-node moet toevoegen
+    <br>
+    <u>Voorbeelden:</u>
+  </p>
+  <ul>
+    <li><strong>HUEMagic</strong>-nodes ondersteunen :
+      <ul>
+        <li><code>payload</code> die een boolean is (true/false)</li>
+        <li><code>payload</code> die een JSON-object is waarbij <code>.ON</code> een boolean is (true/false)</li>
+      </ul>
+    </li>
+    <li><strong>Homekit-bridge</strong>-nodes ondersteunen :
+      <ul>
+        <li><code>payload</code> die een JSON-object is waarbij <code>.On</code> een boolean is (true/false)</li>
+      </ul>
+      <p>(zie:&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) waarmee je de iOS Home-app kan beheren.</p>
+    </li>
+    <li><strong>MyHome</strong>-nodes ondersteunen :
+      <ul>
+        <li><code>payload</code> die ofwel een boolean is (true/false), ofwel een tekst (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> die een JSON-object is waarbij <code>.state</code> een tekst is (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> die een JSON-object is waarbij <code>.On</code> een boolean is (true/false)</li>
+      </ul>
+    </li>
+  </ul>
+  <p>
+    <strong>Beide outputs</strong> bevatten ook een extra object <code>msg.mh_nodeConfigInfo</code> met gegevens uit de nodeconfiguratie.
+    Dit kan in flows gebruikt worden om berichten door te sturen op basis van hun herkomst (d.w.z. welke node ze verstuurde), zonder dat je bij elke stap 'change nodes' moet toevoegen.
+  </p>
+  <p>
+    De <code>msg.mh_nodeConfigInfo</code> bevat de volgende configuratiewaarden van de node :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[tekst]</em> : naam</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[tekst]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.zoneid</code> <em>[tekst]</em> : zone-ID [1-99]</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : gekoppelde gateway-info : naam (<code>.name</code>), host/IP (<code>.host</code>) en poort (<code>.port</code>)</li>
+  </ul>
+</script>

@@ -11,7 +11,6 @@
     "url": "https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues"
   },
   "license": "MIT",
-  "dependencies": {},
   "keywords": [
     "node-red",
     "BTicino",
@@ -19,10 +18,11 @@
     "MyHome",
     "OpenWebNet",
     "OWN",
-    "CEN","CEN+",
+    "CEN",
+    "CEN+",
     "SCS"
   ],
-  "bundleDependencies": false,
+  "bundleDependencies": [],
   "deprecated": false,
   "engines": {
     "node": ">=12.0.0"
@@ -40,5 +40,13 @@
       "myhome-thermo-central": "myhome-thermo-central.js",
       "myhome-thermo-zone": "myhome-thermo-zone.js"
     }
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-html": "^8.1.4",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6"
   }
 }

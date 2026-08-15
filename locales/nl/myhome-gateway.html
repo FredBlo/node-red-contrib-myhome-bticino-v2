@@ -1,0 +1,43 @@
+<script type="text/x-red" data-help-name="myhome-gateway">
+  <style>
+    #mh-tableinfo {width: 95%;font-size: small;}
+    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
+    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
+    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
+  </style>
+  <p>De Gateway-configuratienode</p>
+  <ul>
+    <li><strong>Naam, IP-adres, Poort</strong> ... vrij vanzelfsprekend :-)</li>
+    <li><strong>Wachtwoord</strong> kan ingesteld worden op :
+      <ul>
+        <li><em>leeg</em> : een wachtwoord is niet nodig wanneer de Node-RED-server draait op een IP-adres dat op de gateway als 'lokaal adres' geconfigureerd is</li>
+        <li><em>numeriek</em> : voor basisauthenticatie (OpenWebNet-wachtwoorden)</li>
+        <li><em>alfanumeriek</em> : voor geavanceerde authenticatie (HMAC-1 (SHA-1) of HMAC-2 (SHA-2 / 256)</li>
+      </ul>
+    </li>
+    <li><strong>Keep alive</strong> kan gebruikt worden om de monitoringactiviteit actief te houden voor gateways die deze automatisch sluiten na een periode zonder oproepen van het geregistreerde IP-adres.
+      <br><i>Opmerking : de gatewaynode probeert automatisch opnieuw te verbinden wanneer de verbinding gesloten of verloren is, maar het is beter om de verbinding steeds actief te houden zodat alle BUS-berichten binnen Node-RED verwerkt worden</i></li>
+    <li><strong>Herladen</strong> : wanneer de gateway succesvol verbindt, wordt de status van alle op de BUS aangesloten belastingen opgehaald. Alle gedeployde nodes worden hierdoor bijgewerkt en de bijhorende flows worden gestart.</li>
+  </ul>
+  <br>
+  Op basis van opmerkingen van eerdere auteurs en mijn eigen ervaring bij het testen/uitbreiden van deze nodes, zijn dit de gateways die <strong>ondersteund</strong> worden :
+  <table id="mh-tableinfo">
+    <tr>  <th>Gateway</th>                        <th>Authenticatie (getest)</th>             <th>Verlichting</th> <th>Rolluiken</th> <th>Scenario</th> <th>Temperatuur</th> <th>Energie</th> </tr>
+    <tr>  <td><strong>MH201 *</strong></td>       <td>IP, OPEN pwd</td>                       <td>OK [1]</td> <td>OK</td>       <td>?</td>        <td>?</td>           <td>?</td>      </tr>
+    <tr>  <td><strong>MH202</strong></td>         <td>OPEN pwd</td>                           <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [3][4]</td>   <td>OK</td>     </tr>
+    <tr>  <td><strong>F455</strong></td>          <td>IP, OPEN pwd, HMAC (SHA-1) pwd [2]</td> <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [4]</td>      <td>OK [6]</td> </tr>
+    <tr>  <td><strong>F459</strong></td>          <td>IP, OPEN pwd, HMAC (SHA-2) pwd</td>     <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK</td>          <td>OK</td>     </tr>
+    <tr>  <td><strong>myHOMEServer1</strong></td> <td>HMAC (SHA-2) pwd</td>                   <td>OK</td>     <td>OK</td>       <td>OK</td>       <td>OK [5]</td>      <td>OK</td>     </tr>
+  </table>
+  <i>* op basis van feedback van *Fabio Bui*</i>
+  <br> <i>[1] De MH201-gateway 'antwoordt' niet op een lichtstatusaanvraag (bij update of in alleen-lezen modus), maar het antwoord zelf wordt wel op de BUS verstuurd en kan indien nodig via een andere flow gelezen/gebruikt worden. Zie meer info bij <a href="https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/issues/11">GitHub issue #11</a></i>
+  <br> <i>[2] De F455-gateway sluit de monitoringverbinding na 1 uur inactiviteit. De connector maakt automatisch opnieuw verbinding, maar het is best om 'keep alive' elke 10-15 minuten in te schakelen om verbindingsonderbrekingen te vermijden.</i>
+  <br> <i>[3] De MH202-gateway geeft de ingestelde temperatuur terug zonder rekening te houden met de lokale offset</i>
+  <br> <i>[4] De MH202- en F455-gateways sturen enkel de status van de actuator van de eerste zone door (een aanvraag voor alle zones mislukt)</i>
+  <br> <i>[5] myHOMEServer1 laat niet toe een zone naar manuele verwarming te schakelen (met een manueel ingesteld temperatuurpunt)</i>
+  <br> <i>[6] F455 geeft -zeer- onstabiele/vreemde resultaten terug voor uur- en dagaanvragen. Caching van nodes moet ingeschakeld worden om de meeste hiervan te corrigeren wanneer de nodes al een tijdje actief zijn...</i>
+
+  <h3>Logopties voor de BUS</h3>
+    <p>Om de Node-RED-console (en logs) niet te overbelasten, worden gemonitorde MyHome BUS-berichten standaard niet gelogd. Dit kan per type ingeschakeld worden wanneer nodig.</p>
+    <p>Wanneer uitgaande opdrachten gelogd worden, wordt voor elke verstuurde opdracht ook de volledige verbindingsstack gelogd.</p>
+</script>

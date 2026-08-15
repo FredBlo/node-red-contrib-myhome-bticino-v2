@@ -1,0 +1,93 @@
+<script type="text/x-red" data-help-name="myhome-energy">
+<p>Voegt een MyHome Energy management node toe aan je flow.</p>
+  <ul>
+    <li><strong>Naam</strong> (verplicht) is de naam van de node</li>
+    <li><strong>Topic</strong> wordt gebruikt op de ontvangen payload om de actie op de node te activeren (zie info bij de definitie van de ingangen)</li>
+    <li><strong>Gateway</strong> is de gateway die geconfigureerd moet worden om verbinding te maken met het MyHome-systeem</li>
+    <li><strong>Meter</strong> is het type en adres (1 tot 255) van de meter in het MyHome-systeem :</li>
+      <ul>
+        <li><strong>Vermogensbeheermeters</strong> zijn, volgens de OpenWebNet-documentatie, Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554</li>
+        <li><strong>Vermogensbeheeractuators</strong> zijn, volgens de OpenWebNet-documentatie, Bticino F522, F523 / Legrand 03558, 03559</li>
+      </ul>
+      <i>Opmerking : ik heb dit enkel getest met een F520... als je het test/gebruikt met een ander toestel (al dan niet succesvol), laat het me gerust weten !</i>
+    <li><strong>Bereik</strong> bepaalt welke modus van de meter voor deze node gebruikt wordt :</li>
+      <ul>
+        <li><strong>Huidig vermogen</strong> : geeft het 'real-time' verbruik terug, in Watt</li>
+        <li><strong>Dagverbruik (vandaag)</strong> : geeft het verbruik (Wh) terug sinds het begin van de dag (om 00:00:00)</li>
+        <li><strong>Dagverbruik (periode)</strong> : geeft het verbruik (Wh) terug, voor een op te geven periode (zie hieronder), gedetailleerd per dag*.
+        <br><i>Technische opmerking : MyHome geeft dagverbruik enkel weer door uurdetails (voor één dag) of dagdetails (voor een volledige maand) op te vragen. De node filtert correct op basis van je opgegeven periode, maar de verwerking van de aanvraag kan iets langer duren en meer antwoorden genereren dan strikt nodig.</i></li>
+        <li><strong>Uurverbruik (periode)</strong> : geeft het verbruik (Wh) terug, voor een op te geven periode (zie hieronder), gedetailleerd per uur*.</li>
+        <li><strong>Maandverbruik (huidige maand)</strong> : geeft het verbruik (Wh) terug sinds het begin van de maand (1e dag om 00:00:00)</li>
+        <li><strong>Maandverbruik (periode)</strong> : geeft het verbruik (Wh) terug, voor een op te geven periode (zie hieronder), gedetailleerd per maand**.</li>
+        <li><strong>Totaal verbruik sinds begin</strong> : geeft het verbruik (Wh) terug sinds de laatste reset van de meter.</li>
+        <i>* meters bewaren dag-/uurdetails gedurende 12 maanden (dus de huidige maand en de 11 maanden ervoor); een aanvraag buiten dit bereik wordt indien mogelijk beperkt tot dit bereik, of geeft een leeg resultaat terug (wanneer zowel de begin- als einddatum buiten dit bereik vallen).</i>
+        <br><i>** meters bewaren maanddetails gedurende 12 jaar.</i>
+      </ul>
+    <li><strong>ALLE inkomende gateway-events overslaan</strong> : indien ingeschakeld, worden alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.</li>
+    <li><strong>Eerder opgehaalde resultaten cachen</strong> : standaard houdt de node alle eerder opgehaalde resultaten in het geheugen bij. Wanneer hetzelfde bereik opnieuw wordt opgevraagd, wordt de gecachte inhoud gebruikt in plaats van (talrijke) nieuwe aanvragen op de MyHome BUS te versturen. De cache is niet blijvend en wordt gereset bij het opnieuw deployen van de node en bij het herstarten van Node-RED.
+      <br>!! De cache is ook nuttig (/vereist) voor bepaalde opdrachten (zoals het dagverbruik) en/of wanneer je werkt met gateways die niet correct antwoorden op aanvragen... maar de node kan de info toch rechtstreeks op de BUS ophalen en cachen...
+      <br>Opmerking : ongeacht deze instelling wordt de cache nooit gebruikt voor gedeeltelijke resultaten (zoals het huidige vermogen, vandaag, de huidige maand, ...), aangezien deze waarden bij elke aanvraag kunnen wijzigen.
+    </li>
+  </ul>
+
+<h3>Ingangen</h3>
+  <p><code>msg.payload</code> kan van 2 types zijn</p>
+    <ul>
+      <li>... eender wat</li>
+      Wanneer de node geconfigureerd is als 'Huidig vermogen', 'Dagverbruik (vandaag)', 'Maandverbruik (huidige maand)' of 'Totaal verbruik sinds begin', is geen enkele parameter nodig. De node haalt de info steeds van de BUS op en geeft de waarde(n) terug zoals geconfigureerd.
+      </li>
+      <li>Een object
+        <ul>
+          <li> <code>payload.meterscope</code> <em>[tekst]</em> overschrijft, indien opgegeven, het geconfigureerde bereik van de node.
+            <br>Kan zijn : 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin'.</li>
+          <li> <code>payload.metered_From</code> <em>[tekst]</em> de waarde moet omzetbaar zijn naar een geldige datum (+tijd); indien niet, wordt de huidige datum-tijd gebruikt.
+            <br>Bepaalt vanaf wanneer de metergegevens verzameld moeten worden</li>
+          <li> <code>payload.metered_To</code> <em>[tekst]</em> de waarde moet omzetbaar zijn naar een geldige datum (+tijd); indien niet, wordt <code>payload.metered_From</code> gebruikt.
+            <br>Bepaalt tot wanneer de metergegevens verzameld moeten worden</li>
+        </ul>
+      </li>
+    </ul>
+  <p><code>msg.topic</code> is <strong>vereist</strong> om de actie van de node te activeren: de ontvangen <code>msg.topic</code> moet ingesteld zijn op <code>cmd/xxxx</code> of <code>state/xxxx</code>, waarbij xxxx de waarde is die als Topic in de nodeconfiguratie is gedefinieerd. Voor energiebeheernodes is er geen verschil in gedrag tussen de modi 'cmd' en 'state'.</p>
+
+<h3>Uitgangen</h3>
+  <p>De <strong>primaire output</strong> is een JSON-object <code>msg.payload</code> met</p>
+    <ul>
+      <li> <code>payload.metered_Scope</code> <em>[tekst]</em> het geconfigureerde bereik van de node (kan zijn : 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin')</li>
+      <li> <code>payload.metered_From</code> <em>[tekst (datum-tijd)]</em> de effectieve datum vanaf wanneer de gegevens op de meter werden verzameld</li>
+      <li> <code>payload.metered_To</code> <em>[tekst (datum-tijd)]</em> de effectieve datum tot wanneer de gegevens op de meter werden verzameld</li>
+      <li> <code>payload.metered_Power</code> <em>[getal]</em> het ogenblikkelijk vermogen (W) of het totaalverbruik (Wh) gemeten binnen de opgegeven periode</li>
+      <li> <code>payload.metered_Power_asText</code> <em>[tekst]</em> de vermogenswaarde omgezet naar een 'leesbare' tekst (bv. 900 -> 900Wh, 1250 -> 1,25kWh, 1543134 -> 1,54MWh)</li>
+      <li> <code>payload.metered_Info</code> <em>[array van objecten]</em> voor elk gemeten interval (uur / dag / maand) wordt een object teruggegeven met als inhoud :
+        <ul>
+          <li> <code>.metered_From</code> <em>[tekst (datum-tijd)]</em> de effectieve datum vanaf wanneer dit interval op de meter werd verzameld</li>
+          <li> <code>.metered_To</code> <em>[tekst (datum-tijd)]</em> de effectieve datum tot wanneer dit interval op de meter werd verzameld</li>
+          <li> <code>.metered_Power</code> <em>[getal]</em> het verbruik (Wh) gemeten binnen de opgegeven periode</li>
+          <li> <code>.metered_Frame</code> <em>[tekst]</em> -technisch- het OpenWebNet-frame dat van de BUS werd ontvangen en geanalyseerd voor dit interval</li>
+          <li> <code>.metered_CacheID</code> <em>[boolean]</em> -technisch, intern gebruikt voor cachebeheer- is de unieke 'sleutel' van de cache</li>
+          <li> <code>.metered_CacheIsStatic</code> <em>[boolean]</em> -technisch, intern gebruikt voor cachebeheer- geeft aan dat dit interval in de toekomst niet meer zal wijzigen</li>
+        </ul>
+      </li>
+      <li> <code>payload.command_sent</code> <em>[array van tekst]</em> wanneer de node vanuit Node-RED werd geactiveerd (d.w.z. er werden opdrachten naar de MyHome-gateway verstuurd), bevat dit de opdrachten die verstuurd werden in het OpenWebNet-protocol</li>
+      <li> <code>payload.command_received</code> <em>[tekst]</em> wanneer de node vanuit de gateway werd geactiveerd (d.w.z. er werd een opdracht gedetecteerd op de MyHome BUS voor de geconfigureerde belasting), bevat dit de opdracht die werd gelezen in het OpenWebNet-protocol</li>
+      <li> <code>payload.command_responses</code> <em>[array van tekstwaarden]</em> wanneer de node vanuit Node-RED werd geactiveerd, bevat dit het/de antwoord(en) dat/die door de MyHome BUS werd(en) teruggestuurd in het OpenWebNet-protocol</li>
+      <li> <code>payload.command_failed</code> <em>[array van tekstwaarden]</em> bevat de opdrachten die door de MyHome-gateway geweigerd werden, in het OpenWebNet-protocol</li>
+    </ul>
+
+  <p>De <strong>secundaire output</strong> kan geconfigureerd worden om beter aan te sluiten bij de noden van andere nodetypes die je gebruikt, zonder dat je voor elke connector een extra function/switch-node moet toevoegen.</p>
+
+  <p>
+    <strong>Beide outputs</strong> bevatten ook een extra object <code>msg.mh_nodeConfigInfo</code> met gegevens uit de nodeconfiguratie.
+    Dit kan in flows gebruikt worden om berichten door te sturen op basis van hun herkomst (d.w.z. welke node ze verstuurde), zonder dat je bij elke stap 'change nodes' moet toevoegen.
+  </p>
+  <p>
+    De <code>msg.mh_nodeConfigInfo</code> bevat de volgende configuratiewaarden van de node :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[tekst]</em> : naam</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[tekst]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.meterid</code> <em>[tekst]</em> : meter-ID</li>
+    <li> <code>mh_nodeConfigInfo.metertype</code> <em>[tekst]</em> : type meter (kan 'meter' of 'actuator' zijn)</li>
+    <li> <code>mh_nodeConfigInfo.meterscope</code> <em>[tekst]</em> : ingesteld bereik (kan zijn 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin') </li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : gekoppelde gateway-info : naam (<code>.name</code>), host/IP (<code>.host</code>) en poort (<code>.port</code>)</li>
+  </ul>
+</script>

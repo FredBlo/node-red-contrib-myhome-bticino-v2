@@ -1,0 +1,83 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Gateway",
+		"riser-private": "Privéstijgleiding",
+		"riser-localbus-01": "Lokale bus 1",
+		"riser-localbus-02": "Lokale bus 2",
+		"riser-localbus-03": "Lokale bus 3",
+		"riser-localbus-04": "Lokale bus 4",
+		"riser-localbus-05": "Lokale bus 5",
+		"riser-localbus-06": "Lokale bus 6",
+		"riser-localbus-07": "Lokale bus 7",
+		"riser-localbus-08": "Lokale bus 8",
+		"riser-localbus-09": "Lokale bus 9",
+		"riser-localbus-10": "Lokale bus 10",
+		"riser-localbus-11": "Lokale bus 11",
+		"riser-localbus-12": "Lokale bus 12",
+		"riser-localbus-13": "Lokale bus 13",
+		"riser-localbus-14": "Lokale bus 14",
+		"riser-localbus-15": "Lokale bus 15",
+		"input-label-simple": "eenvoudige modus ('payload' of 'payload.state')",
+		"name": "Naam",
+		"topic": "Topic",
+		"topic-info": "om de actie op deze node te activeren, mag je niet vergeten dat het binnenkomende 'msg' VERPLICHT een 'msg.topic' moet bevatten, namelijk 'state/__topicName__' (bij gebruik in alleen-lezen modus) of 'cmd/__topicName__' (bij gebruik in schrijfmodus); anders negeert de node het binnenkomende bericht.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Inkomende gateway-events filteren",
+		"option-smartfilter-info": "SmartFilter is standaard ingeschakeld, waardoor de node pas een nieuwe flow (m.a.w. output) activeert wanneer een status is GEWIJZIGD na ontvangst van een MyHome BUS-bericht.\nDit voorkomt dat er meerdere flows starten voor dezelfde info/opdracht, aangezien MyHome hetzelfde bericht meerdere keren verstuurt (bij statusaanvraag, antwoord, ...).\n\nOpmerking: SmartFilter wordt nooit toegepast wanneer de node in alleen-lezen modus (statusaanvraag) werkt.",
+		"option-smartfilter-out-checkbox": "Uitgaande opdrachten naar de gateway filteren",
+		"option-skipevents": "Events overslaan",
+		"option-skipevents-checkbox": "ALLE inkomende gateway-events overslaan",
+		"option-skipevents-info": "Indien nodig kunnen alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd worden, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.",
+		"option-readonly": "Alleen-lezen",
+		"option-readonly-checkbox": "Enkel de huidige status van de belasting opvragen",
+		"option-readonly-info": "Indien ingeschakeld, wordt de ontvangen payload (bijvoorbeeld 'ON', 'OFF' of iets anders) genegeerd en wordt er een statusaanvraag verstuurd om de huidige status op te vragen zonder iets te wijzigen.",
+		"secondary-output-title": "Opties voor secundaire output",
+		"secondary-output-intro": "Je kan de secundaire output verfijnen zodat die beter aansluit bij je noden bij integratie met andere node-mechanismen (zie de nodehelp voor meer info).",
+		"secondary-output-name": "Eigenschapsnaam",
+		"secondary-output-name-placeholder": "bv. On / state / ... / (leeg)",
+		"secondary-output-name-info": "Is de naam van de eigenschap in de teruggegeven payload (dus payload.eigenschapsnaam). Indien leeg gelaten, wordt de payload teruggegeven als een enkele waarde (dus niet als object).",
+		"secondary-output-content": "Gegevenstype"
+	},
+
+
+
+	"mh-energy":
+	{
+		"config":
+		{
+
+			"topic-info": "om de actie op deze node te activeren, mag je niet vergeten dat het binnenkomende 'msg' VERPLICHT een 'msg.topic' moet bevatten, namelijk 'state/__topicName__' of 'cmd/__topicName__'; anders negeert de node het binnenkomende bericht. Voor de energienode is er geen verschil tussen 'state' en 'cmd': beide voeren dezelfde bewerking uit.",
+			"name-placeholder": "Naam van de energiemeter",
+			"topic-placeholder": "bv. zonnepanelen",
+			"meterid": "Meter",
+			"meter-type-info": "Energiemeters zijn de toestellen Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554, terwijl vermogensbeheeractuators de toestellen Bticino F522, F523 / Legrand 03558, 03559 zijn.",
+			"meter-type-meter": "Vermogensbeheermeter",
+			"meter-type-actuator": "Vermogensbeheeractuator",
+			"meterscope": "Bereik",
+			"meterscope-instant": "Huidig vermogen",
+			"meterscope-dayuptonow": "Dagverbruik (vandaag)",
+			"meterscope-day": "Dagverbruik (periode)",
+			"meterscope-hour": "Uurverbruik (periode)",
+			"meterscope-monthuptonow": "Maandverbruik (huidige maand)",
+			"meterscope-month": "Maandverbruik (periode)",
+			"meterscope-sincebegin": "Totaal verbruik sinds begin",
+			"enablecache": "Cache gebruiken",
+			"enablecache-checkbox": "Opgehaalde resultaten cachen",
+			"enablecache-info": "Standaard houdt de node alle eerder opgehaalde resultaten in het geheugen bij. Wanneer hetzelfde bereik opnieuw wordt opgevraagd, wordt de gecachte inhoud gebruikt in plaats van (talrijke) nieuwe aanvragen op de MyHome BUS te versturen. De cache is niet blijvend en wordt gereset bij het opnieuw deployen van de node en bij het herstarten van Node-RED.\n\n!! De cache is ook nuttig (/vereist) voor bepaalde opdrachten (zoals het dagverbruik) en/of wanneer je werkt met gateways die niet correct antwoorden op aanvragen... maar de node kan de info toch rechtstreeks op de BUS ophalen en cachen...\n\nOpmerking: ongeacht deze instelling wordt de cache nooit gebruikt voor gedeeltelijke resultaten (zoals het huidige vermogen, vandaag, de huidige maand, ...), aangezien deze waarden bij elke aanvraag kunnen wijzigen.",
+			"enablecache-outputlog": "debug: cache uitvoeren",
+			"enablecache-outputlog-ok": "Huidige cache-inhoud succesvol naar de primaire output verstuurd.",
+			"enablecache-outputlog-error": "Fout bij het versturen van de huidige cache-inhoud naar de primaire output:",
+			"inputlabel-any": "elke payload met een geldige '.Topic' \nactiveert de node-output",
+			"inputlabel-daterange": "een payload met een geldige '.Topic' activeert \nhet verzamelen van gegevens voor de periode \nvan '.metered_From' tot '.metered_To'",
+			"secondary-output-content-pwr": ".metered_Power (getal in W__h__)",
+			"secondary-output-content-pwr-txt": ".metered_Power (tekst in kW__h__)",
+			"secondary-output-content-pwr-info": ".metered_Info (array met meetgegevens)"
+		},
+		"node":
+		{
+			"status-sincebegin": "Vanaf begin: "
+		}
+	}
+}
