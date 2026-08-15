@@ -1,5 +1,3 @@
-/*jshint esversion: 7, strict: implied, node: true */
-
 var exports = module.exports = {};
 
 const ACK  = '*#*1##';
