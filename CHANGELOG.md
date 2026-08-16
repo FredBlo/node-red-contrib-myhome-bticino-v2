@@ -6,6 +6,7 @@
     - **English** (initially available)
     - **French** new from 2.4.5 (A.I. assisted)
     - **Dutch** new from 2.4.5 (A.I. assisted)
+  - ***Improvement*** : code reviewed to better match 2026 standards
 ### v2.4.0 - 01/2025
 - **MH Monitoring**
   - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.ownFamilyName` and `.gateway` (object)
