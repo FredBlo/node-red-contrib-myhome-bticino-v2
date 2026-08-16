@@ -8,7 +8,6 @@ const REFRESH_ALLLIGHTS = '*#1*0##';
 const SERVER_REQUIRES_HMAC1 = '*98*1##';
 const SERVER_REQUIRES_HMAC2 = '*98*2##';
 const INTER_COMMANDS_DELAY = 50; // ms
-let net = require('net');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MHUtils INTERNAL Function : Internal node event logger
@@ -180,7 +179,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
     if (typeof(cmd_failed) === 'string') {
       cmd_failed = [cmd_failed];
     }
-    let nodeStatusErrorMsg = '';
+    let nodeStatusErrorMsg;
     if (cmd_failed.length > 1) {
       nodeStatusErrorMsg = cmd_failed.length + ' commands failed.';
     } else {
@@ -415,7 +414,7 @@ function calcHMAC (Ra, password) {
   let crypto = require ('crypto');
 
   // Define which algorithm is being used based on received Ra length
-  let shaAlgo = '';
+  let shaAlgo;
   if (Ra.length === 80) {
     shaAlgo = 'sha1';
   } else if (Ra.length === 128) {
