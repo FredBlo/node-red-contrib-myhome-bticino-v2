@@ -20,7 +20,8 @@ module.exports = [
     },
     rules: {
       "no-unused-vars": "warn",
-      "no-console": "off" // Node-RED often uses node.log/node.warn, but console is still common in dev
+      "no-console": "off", // Node-RED often uses node.log/node.warn, but console is still common in dev
+      "no-empty": ["error", { "allowEmptyCatch": true }] // allows try catch blocks without any code in the catch block
     }
   },
 

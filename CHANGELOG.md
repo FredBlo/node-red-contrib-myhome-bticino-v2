@@ -1,6 +1,12 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.4.0 (latest available) - 01/2025
+### v2.4.5 (latest available) - 08/2026
+- **General**
+  - ***Improvement*** : node set is now multilingual with 3 languages supported (for node configurations and help files):
+    - **English** (initially available)
+    - **French** new from 2.4.5 (A.I. assisted)
+    - **Dutch** new from 2.4.5 (A.I. assisted)
+### v2.4.0 - 01/2025
 - **MH Monitoring**
   - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.ownFamilyName` and `.gateway` (object)
   - ***Improvement*** : node has a second output which provides a structured payload object with analyzed information based on BUS received content, as it would be output by a specialized light, shutter,... node. It makes the monitoring node usable as a sort of 'universal node' : all events of one or multiple family types can be processed from a single monitoring node instead of having to add a node for each light, shutter,... point.
