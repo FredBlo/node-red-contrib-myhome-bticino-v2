@@ -50,84 +50,17 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     return true;
   }
 
-  // When we have a non acknowledged return, always abord
+  // When we have a non acknowledged return, always abort
   if (packet === NACK) {
-    logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : NACK command received, abording.');
+    logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : NACK command received, aborting.');
     let errorMsg = "Gateway connection/authentication failed (NACK). Last reached state was '" + persistentObj.state + "'";
     persistentObj.state = 'disconnected';
     error (startCommand, errorMsg); // error callback to stop function
     return false;
   }
 
-  // The connection procedure differs based on how authentication is defined
-  // - Open password check is not asked because we are connecting from an authorized IP range (=returns ACK directly)
-  // - Open password check must be made in basic mode (password is numeric, client receives a hash and 'merges' it with password to return a kind of a hash
-  // - Open password check must be made in HMAC mode (password is alphanumeric, server first responds with the HMAC mode being used, when acknowledged by client,
-  //    returns a server random hash (Ra) which the client must use to generate its own random part (Rb), and a full hash result using the password (Ra,Rb,A,B,Kab),
-  //    the server finally returns another hash the client was able to compute itself too when sending (Ra,Rb,Kab)
-  if (persistentObj.state === 'disconnected') {
-    if (packet == ACK) {
-      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : handshake acknowledged, asking for authentication if required...');
-      persistentObj.state = 'handshake';
-      netSocket.write (startCommand);
-    }
-    return false;
-  }
-  if (persistentObj.state === 'handshake') {
-    // responded to an authentication request
-    if (packet === ACK) {
-      // No password to provide : working in local reserved network addresses
-      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, no password check required (working in local IP address allowed range)...');
-      persistentObj.state = 'authenticating';
-    } else if (packet === SERVER_REQUIRES_HMAC1 || packet === SERVER_REQUIRES_HMAC2) {
-      // The gateway sent back a HMAC authentication request in HMAC format, we acknowledge it to receive a Hash key
-      let hmacType = (packet === SERVER_REQUIRES_HMAC1) ? 'SHA-1' : 'SHA-2 [256]';
-      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, authenticating using HMAC (' + hmacType + ') password check required...');
-      persistentObj.state = 'authenticating_HMAC';
-      netSocket.write (ACK);
-      return false;
-    } else {
-      // The gateway requires a basic password authentication, retrieve the key to generate a hashed password
-      let hashKey = packet.match(/^\*#(\d+)##/);
-      if (hashKey === null) {
-        logNodeEvent (callingNode, 'warn', false, 'gateway connection : request to authenticate acknowledged, no valid key received for basic password check.');
-      } else {
-        // Use it to build hashed password
-        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, authenticating using basic password check...');
-        let hashedPwdCommand = '*#' + calcPass (gateway.pass, hashKey[1].toString()) + '##';
-        persistentObj.state = 'authenticating';
-        netSocket.write (hashedPwdCommand);
-      }
-      return false;
-    }
-  }
-  if (persistentObj.state === 'authenticating_HMAC') {
-    // The gateway sent a random hashed key (Ra) needed to build a hash with password for connection request (Ra,Rb,A,B,Kab)
-    let Ra = packet.match(/^\*#(\d+)##/);
-    if (Ra === null) {
-      logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 1 : invalid random hash (Ra) received from server [' + packet + ']');
-    } else {
-      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : HMAC authentication step 1 : random hash (Ra) received from server, sending response (Ra,Rb,A,B,Kab)...');
-      persistentObj.HMAC_Auth = calcHMAC (Ra[1], gateway.pass);
-      persistentObj.state = 'authenticating_HMAC_HashSent';
-      netSocket.write (persistentObj.HMAC_Auth[0]);
-    }
-    return false;
-  }
-  if (persistentObj.state === 'authenticating_HMAC_HashSent') {
-    // The gateway accepted the hash we send, which means password was OK, and it matches which what we expected (Ra,Rb,Kab)
-    if (packet === persistentObj.HMAC_Auth[1]) {
-      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) matched expectation, password was accepted...');
-      persistentObj.state = 'authenticating';
-      netSocket.write (ACK);
-    } else {
-      logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, abording...');
-      netSocket.write (NACK);
-      error (startCommand, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
-      return false;
-    }
-  }
-  if (persistentObj.state === 'authenticating') {
+  // Reached once authentication (if any) succeeded : mark as connected and optionally kick off a lights refresh
+  function completeConnection () {
     logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : Connection successful !');
     persistentObj.state = 'connected';
     // When starting the monitoring (i.e. the calling node is the gateway), refresh all connected lights if configured so.
@@ -146,6 +79,82 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
       } , 3000);
     }
     return true;
+  }
+
+  // The connection procedure differs based on how authentication is defined
+  // - Open password check is not asked because we are connecting from an authorized IP range (=returns ACK directly)
+  // - Open password check must be made in basic mode (password is numeric, client receives a hash and 'merges' it with password to return a kind of a hash
+  // - Open password check must be made in HMAC mode (password is alphanumeric, server first responds with the HMAC mode being used, when acknowledged by client,
+  //    returns a server random hash (Ra) which the client must use to generate its own random part (Rb), and a full hash result using the password (Ra,Rb,A,B,Kab),
+  //    the server finally returns another hash the client was able to compute itself too when sending (Ra,Rb,Kab)
+  switch (persistentObj.state) {
+    case 'disconnected': {
+      if (packet == ACK) {
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : handshake acknowledged, asking for authentication if required...');
+        persistentObj.state = 'handshake';
+        netSocket.write (startCommand);
+      }
+      return false;
+    }
+
+    case 'handshake': {
+      // responded to an authentication request
+      if (packet === ACK) {
+        // No password to provide : working in local reserved network addresses
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, no password check required (working in local IP address allowed range)...');
+        return completeConnection ();
+      } else if (packet === SERVER_REQUIRES_HMAC1 || packet === SERVER_REQUIRES_HMAC2) {
+        // The gateway sent back a HMAC authentication request in HMAC format, we acknowledge it to receive a Hash key
+        let hmacType = (packet === SERVER_REQUIRES_HMAC1) ? 'SHA-1' : 'SHA-2 [256]';
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, authenticating using HMAC (' + hmacType + ') password check required...');
+        persistentObj.state = 'authenticating_HMAC';
+        netSocket.write (ACK);
+      } else {
+        // The gateway requires a basic password authentication, retrieve the key to generate a hashed password
+        let hashKey = packet.match (/^\*#(\d+)##/);
+        if (hashKey === null) {
+          logNodeEvent (callingNode, 'warn', false, 'gateway connection : request to authenticate acknowledged, no valid key received for basic password check.');
+        } else {
+          // Use it to build hashed password
+          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : request to authenticate acknowledged, authenticating using basic password check...');
+          let hashedPwdCommand = '*#' + calcPass (gateway.pass, hashKey[1].toString()) + '##';
+          persistentObj.state = 'authenticating';
+          netSocket.write (hashedPwdCommand);
+        }
+      }
+      return false;
+    }
+
+    case 'authenticating_HMAC': {
+      // The gateway sent a random hashed key (Ra) needed to build a hash with password for connection request (Ra,Rb,A,B,Kab)
+      let Ra = packet.match (/^\*#(\d+)##/);
+      if (Ra === null) {
+        logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 1 : invalid random hash (Ra) received from server [' + packet + ']');
+      } else {
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : HMAC authentication step 1 : random hash (Ra) received from server, sending response (Ra,Rb,A,B,Kab)...');
+        persistentObj.HMAC_Auth = calcHMAC (Ra[1], gateway.pass);
+        persistentObj.state = 'authenticating_HMAC_HashSent';
+        netSocket.write (persistentObj.HMAC_Auth[0]);
+      }
+      return false;
+    }
+
+    case 'authenticating_HMAC_HashSent': {
+      // The gateway accepted the hash we sent, which means password was OK, and it matches which what we expected (Ra,Rb,Kab)
+      if (packet === persistentObj.HMAC_Auth[1]) {
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) matched expectation, password was accepted...');
+        netSocket.write (ACK);
+        return completeConnection ();
+      }
+      logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, aborting...');
+      netSocket.write (NACK);
+      error (startCommand, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
+      return false;
+    }
+
+    case 'authenticating': {
+      return completeConnection ();
+    }
   }
 }
 exports.processInitialConnection = processInitialConnection;
@@ -219,7 +228,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
       }
     }
   });
-  logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + commands.join(',') + "'), opening connexion to gateway...");
+  logNodeEvent (callingNode, 'debug', false, "mhutils.executeCommand('" + commands.join(',') + "'), opening connection to gateway...");
   client.connect (gateway.port, gateway.host, function() {
     // opening command session
   });
@@ -297,7 +306,7 @@ class eventsMonitor {
   }
 
   addMonitoredEvent (eventName, eventFunction) {
-    // Store the registered event to be able to de-actvate it when necessary
+    // Store the registered event to be able to de-activate it when necessary
     let newListener = {};
     newListener.eventName = eventName;
     newListener.listenerFunction = eventFunction;
@@ -327,7 +336,7 @@ function buildSecondaryOutput (primaryClonedMsg, payloadInfo , config, outputDef
   let msg2_value;
   let msg2_type = (config.output2_type === undefined) ? 'boolean' : config.output2_type;
   if (msg2_type === 'text_state') {
-    // Using default property (state), the ouput is the state itself
+    // Using default property (state), the output is the state itself
     msg2_value = payloadInfo.state;
   } else if (msg2_type === 'boolean') {
     // Using default property (state) to define whether is true/false
@@ -425,13 +434,13 @@ function calcHMAC (Ra, password) {
     return;
   }
 
-  // Use a SHA enryptor to build hashed contents
+  // Use a SHA encryptor to build hashed contents
   let Rb = crypto.createHmac(shaAlgo, Math.random().toString(36)).digest('hex');
   let pwd = crypto.createHash(shaAlgo).update(password).digest('hex');
   // Build the connection request to be sent (which is *#Rb*HMAC(Ra+Rb+A+B+Kab)##)
   let contentToHash = digitToHex(Ra) + Rb + HMAC_COPEN + HMAC_SOPEN + pwd;
   let connectionRequest = '*#' + hexToDigit(Rb) + '*' + hexToDigit(crypto.createHash(shaAlgo).update(contentToHash).digest('hex')) + '##'; // *Rb#HMAC(Ra+Rb+A+B+Kab)##
-  // Build the expected response if connexion is OK (which is *#HMAC(Ra+Rb+Kab)##)
+  // Build the expected response if connection is OK (which is *#HMAC(Ra+Rb+Kab)##)
   contentToHash = digitToHex(Ra) + Rb + pwd;
   let expectedResponse = '*#' + hexToDigit(crypto.createHash(shaAlgo).update(contentToHash).digest('hex')) + '##' ;
   // Return connection request & expected response

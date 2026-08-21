@@ -12,7 +12,7 @@
   <h3>Output</h3>
     <p>The <strong>primary output</strong> is a <em>[string]</em> containing the OpenWebNet command read on the MyHome BUS.</p>
     <p>
-      The <strong>secondary output</strong> contains detailled analyzed information as if the node was working in 'universal mode' (i.e. processing all received BUS frames).
+      The <strong>secondary output</strong> contains detailed analyzed information as if the node was working in 'universal mode' (i.e. processing all received BUS frames).
       Content of msg will vary based on family type :
     </p>
       <ul>
@@ -51,7 +51,7 @@
         <li><strong>Energy management</strong> : payload object details (only reads 'instant' consumption mode) :</li>
           <ul>
             <li> <code>payload.command_received</code> <em>[string]</em> contains the command which was read in OpenWebNet protocol</li>
-            <li> <code>payload.metertype</code> <em>[string]</em> value is 'meter' or 'actuator''</li>
+            <li> <code>payload.metertype</code> <em>[string]</em> value is 'meter' or 'actuator'</li>
             <li> <code>payload.meterscope</code> <em>[string]</em> is always 'instant' in universal mode</li>
             <li> <code>payload.meterid</code> <em>[string]</em> : address (1 to 255) of the meter</li>
             <li> <code>payload.metered_Power</code> <em>[integer]</em> : the instant power (W) measured</li>
@@ -66,7 +66,7 @@
     </p>
     <ul>
       <li> <code>mh_nodeConfigInfo.name</code> <em>[string]</em> : name</li>
-      <li> <code>mh_nodeConfigInfo.ownFamilyName</code> <em>[string]</em> : the OpenWebNet famaily name (such as 'OWN_LIGHTS', 'OWN_SCENARIO',...)</li>
+      <li> <code>mh_nodeConfigInfo.ownFamilyName</code> <em>[string]</em> : the OpenWebNet family name (such as 'OWN_LIGHTS', 'OWN_SCENARIO',...)</li>
       <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : linked gateway info : name (<code>.name</code>), Host/IP (<code>.host</code>) and port (<code>.port</code>)</li>
     </ul>
 </script>

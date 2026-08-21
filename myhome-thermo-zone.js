@@ -178,18 +178,18 @@ module.exports = function (RED) {
           processedFrames++;
         }
       }
-      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      // Checks : all done, if nothing was processed, abort (no node / flow update detected), except when refresh is 'forced'
       if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
 
       // Update node status payloadInfo
-      // Icon : when colo is not grey (i.e. blue or yellow), we revert to grey if actuators are not On
+      // Icon : when color is not grey (i.e. blue or yellow), we revert to grey if actuators are not On
       let nodeStatusColor = node.status_icon[0];
       if (nodeStatusColor !== 'grey' && !payloadInfo.actuatorStates.On) {
         nodeStatusColor = 'grey';
       }
-      // Text : append temperatur set point info if needed
+      // Text : append temperature set point info if needed
       let nodeStatusText = payloadInfo.state + '°C (' + payloadInfo.operationMode + ((node.status_needTempInfo) ? ' @' + payloadInfo.setTemperature + '°C' : '') + ')';
       node.status ({fill: nodeStatusColor , shape: node.status_icon[1], text: nodeStatusText});
 
@@ -321,7 +321,7 @@ module.exports = function (RED) {
         //    3: *#4*where*12*T*3##  : T = Zone operation temperature with adjust by local offset
         //    4: *#4*where*13*OL##   : OL = Local Offset (knob status)
         //    5: *#4*where*14*T*3##  : T = Zone Set-point temperature
-        // BUT, during test phase, it appears not all gateways are able to repond to otherwise
+        // BUT, during test phase, it appears not all gateways are able to respond to otherwise
         //  - F455 : does not respond anything to 'Command #1', but all responses are sent on the bus (=indirect fetch)
         //  - MH202 : does not return on 'Command #1' the 1.5: (but is sent on the BUS), returns '*#4*where*14*T##' instead
         //  - F459 & MyHOMEServer1 : all responses are received, and even more (15 actually ...)

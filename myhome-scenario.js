@@ -190,7 +190,7 @@ module.exports = function (RED) {
           node.status ({fill: nodeStatusIcon[0], shape: nodeStatusIcon[1], text: nodeStatusText});
         }
       }
-      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      // Checks : all done, if nothing was processed, abort (no node / flow update detected), except when refresh is 'forced'
       if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
@@ -265,7 +265,7 @@ module.exports = function (RED) {
       if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
         msg.payload = {'state': msg.payload.toString()};
       }
-      // Get values of buttonID and duration from payload text to object (assumig structure is 'ButtonID:Duration')
+      // Get values of buttonID and duration from payload text to object (assuming structure is 'ButtonID:Duration')
       if (typeof(msg.payload.state) === 'string' && msg.payload.buttonID === undefined && msg.payload.actionDuration === undefined) {
         let stateValue = msg.payload.state.split(/:|,|;/);
         msg.payload.buttonID = stateValue[0];
@@ -323,7 +323,7 @@ module.exports = function (RED) {
           commands[i] = commands[i].replace (/WHAT/g, payload.buttonID).replace (/WHERE/g, node.scenarioid);
         }
       }
-      // when no command to send (and not working in read only mode where we only send current node info), abord
+      // when no command to send (and not working in read only mode where we only send current node info), abort
       if (commands.length === 0 & !isReadOnly) {
         return;
       }

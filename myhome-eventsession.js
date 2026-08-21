@@ -22,14 +22,14 @@ module.exports = function (RED) {
           'port' : gateway.port
         }
       };
-      // MSG2 : build secondary output (detailled in 'universal mode')
+      // MSG2 : build secondary output (detailed in 'universal mode')
       let msg2 = node.processReceivedBUSFrames (msg, ownFamilyName, frame);
       // Send both outputs
       node.send ([msg, msg2]);
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Add all listerners on gateway based on types we have to monitor
+    // Add all listeners on gateway based on types we have to monitor
     // Define the function which is to be called on any triggered command received from the gateway
 
     // LIGHTS
@@ -61,13 +61,13 @@ module.exports = function (RED) {
     // Function called when a MyHome BUS frame is received ///////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processReceivedBUSFrames = function (mainMsg, ownFamilyName, frame) {
-      // Init new msg (cloned from main) & add basinc info on payload (common to all family types)
+      // Init new msg (cloned from main) & add basic info on payload (common to all family types)
       let msg = RED.util.cloneMessage (mainMsg);
       let payload = msg.payload = {};
       payload.ownFamilyName = ownFamilyName;
       payload.command_received = frame;
 
-      // Append content specifc per type
+      // Append content specific per type
       let frameMatch = null;
       switch (ownFamilyName) {
         case 'OWN_LIGHTS':
