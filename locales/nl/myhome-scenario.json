@@ -1,0 +1,89 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Gateway",
+		"riser-private": "Privéstijgleiding",
+		"riser-localbus-01": "Lokale bus 1",
+		"riser-localbus-02": "Lokale bus 2",
+		"riser-localbus-03": "Lokale bus 3",
+		"riser-localbus-04": "Lokale bus 4",
+		"riser-localbus-05": "Lokale bus 5",
+		"riser-localbus-06": "Lokale bus 6",
+		"riser-localbus-07": "Lokale bus 7",
+		"riser-localbus-08": "Lokale bus 8",
+		"riser-localbus-09": "Lokale bus 9",
+		"riser-localbus-10": "Lokale bus 10",
+		"riser-localbus-11": "Lokale bus 11",
+		"riser-localbus-12": "Lokale bus 12",
+		"riser-localbus-13": "Lokale bus 13",
+		"riser-localbus-14": "Lokale bus 14",
+		"riser-localbus-15": "Lokale bus 15",
+		"input-label-simple": "eenvoudige modus ('payload' of 'payload.state')",
+		"name": "Naam",
+		"topic": "Topic",
+		"topic-info": "om de actie op deze node te activeren, mag je niet vergeten dat het binnenkomende 'msg' VERPLICHT een 'msg.topic' moet bevatten, namelijk 'state/__topicName__' (bij gebruik in alleen-lezen modus) of 'cmd/__topicName__' (bij gebruik in schrijfmodus); anders negeert de node het binnenkomende bericht.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Inkomende gateway-events filteren",
+		"option-smartfilter-info": "SmartFilter is standaard ingeschakeld, waardoor de node pas een nieuwe flow (m.a.w. output) activeert wanneer een status is GEWIJZIGD na ontvangst van een MyHome BUS-bericht.\nDit voorkomt dat er meerdere flows starten voor dezelfde info/opdracht, aangezien MyHome hetzelfde bericht meerdere keren verstuurt (bij statusaanvraag, antwoord, ...).\n\nOpmerking: SmartFilter wordt nooit toegepast wanneer de node in alleen-lezen modus (statusaanvraag) werkt.",
+		"option-smartfilter-out-checkbox": "Uitgaande opdrachten naar de gateway filteren",
+		"option-skipevents": "Events overslaan",
+		"option-skipevents-checkbox": "ALLE inkomende gateway-events overslaan",
+		"option-skipevents-info": "Indien nodig kunnen alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd worden, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.",
+		"option-readonly": "Alleen-lezen",
+		"option-readonly-checkbox": "Enkel de huidige status van de belasting opvragen",
+		"option-readonly-info": "Indien ingeschakeld, wordt de ontvangen payload (bijvoorbeeld 'ON', 'OFF' of iets anders) genegeerd en wordt er een statusaanvraag verstuurd om de huidige status op te vragen zonder iets te wijzigen.",
+		"secondary-output-title": "Opties voor secundaire output",
+		"secondary-output-intro": "Je kan de secundaire output verfijnen zodat die beter aansluit bij je noden bij integratie met andere node-mechanismen (zie de nodehelp voor meer info).",
+		"secondary-output-name": "Eigenschapsnaam",
+		"secondary-output-name-placeholder": "bv. On / state / ... / (leeg)",
+		"secondary-output-name-info": "Is de naam van de eigenschap in de teruggegeven payload (dus payload.eigenschapsnaam). Indien leeg gelaten, wordt de payload teruggegeven als een enkele waarde (dus niet als object).",
+		"secondary-output-content": "Gegevenstype"
+	},
+
+
+
+	"mh-scenario":
+	{
+		"config":
+		{
+			"name-placeholder": "Naam van het scenario",
+			"topic-placeholder": "bv. bureau-eerste-verdieping",
+			"scenarioid":"Scenario",
+			"scenarioid-placeholder": "32 (voor CEN 3.2) of 126 (voor CEN+ 126)",
+			"inputlabel-simple-xx" : "- 'xx' knop-ID (0-31)                                              ",
+			"inputlabel-simple-yyyy" : "- 'yyyy' -optioneel- duur in ms                       ",
+			"additional-output-title": "Bijkomende outputs...",
+			"add-outputs": "Bijkomende outputs...",
+			"add-outputs-range": "Reeks knoppen...",
+			"add-outputs-newflow": "Een nieuwe flow activeren bij...",
+			"add-outputs-nr": "Output nr.",
+			"add-outputs-btn-from": "Van...",
+			"add-outputs-btn-to": "Tot...",
+			"add-outputs-startpress": "Start van indrukken",
+			"add-outputs-startpress-any": "Start van kort/lang indrukken",
+			"add-outputs-startpress-long": "Start van lang indrukken",
+			"add-outputs-shortpress": "Kort indrukken beëindigd",
+			"add-outputs-longpress": "Lang indrukken beëindigd wanneer >",
+			"add-outputs-longpresswhile": "Lang indrukken (terwijl ingedrukt)",
+			"add-outputs-btn-addnew": "nieuwe reeks knoppen toevoegen",
+			"outputlabel-main": "Hoofdpayload",
+			"outputlabel-btn-from": "knop #__from__",
+			"outputlabel-btn-from-to": "knoppen #__from__ tot #__to__",
+			"outputlabel-btn-on": "bij :",
+			"outputlabel-btn-startpress": "Start van indrukken",
+			"outputlabel-btn-shortpress": "Kort indrukken beëindigd",
+			"outputlabel-btn-longpress": "Lang indrukken (>__duration__s)",
+			"outputlabel-btn-longpresswhile": "Lang indrukken (terwijl ingedrukt)"
+		},
+		"node":
+		{
+			"status-action-button": "Knop #",
+			"status-action-startpress": "kort/lang indrukken gestart",
+			"status-action-startpress-long": "lang indrukken (>0,5s) gestart",
+			"status-action-longpress-ongoing": "lang indrukken bezig",
+			"status-action-endpress-short": "kort ingedrukt (<0,5s)",
+			"status-action-endpress-long": "lang indrukken beëindigd"
+		}
+	}
+}

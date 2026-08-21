@@ -1,0 +1,81 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Passerelle",
+		"riser-private": "Gaine privée",
+		"riser-localbus-01": "Bus local 1",
+		"riser-localbus-02": "Bus local 2",
+		"riser-localbus-03": "Bus local 3",
+		"riser-localbus-04": "Bus local 4",
+		"riser-localbus-05": "Bus local 5",
+		"riser-localbus-06": "Bus local 6",
+		"riser-localbus-07": "Bus local 7",
+		"riser-localbus-08": "Bus local 8",
+		"riser-localbus-09": "Bus local 9",
+		"riser-localbus-10": "Bus local 10",
+		"riser-localbus-11": "Bus local 11",
+		"riser-localbus-12": "Bus local 12",
+		"riser-localbus-13": "Bus local 13",
+		"riser-localbus-14": "Bus local 14",
+		"riser-localbus-15": "Bus local 15",
+		"input-label-simple": "mode simple ('payload' ou 'payload.state')",
+		"name": "Nom",
+		"topic": "Topic",
+		"topic-info": "pour déclencher l'action sur ce nœud, n'oubliez pas que le 'msg' entrant DOIT contenir un 'msg.topic' soit 'state/__topicName__' (en mode lecture seule) soit 'cmd/__topicName__' (en mode écriture), sinon le nœud ignorera le message.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Filtrer les événements entrants de la passerelle",
+		"option-smartfilter-info": "SmartFilter est activé par défaut, ce qui fait que le nœud ne déclenche un nouveau flux (sortie) que lorsqu'un état a CHANGÉ après réception d'un message MyHome BUS.\nCela évite le démarrage de plusieurs flux pour la même information/commande, car MyHome envoie le même message plusieurs fois (demande d'état, réponse, ...).\n\nRemarque : SmartFilter n'est jamais appliqué lorsque le nœud fonctionne en mode lecture seule (demande de mise à jour d'état).",
+		"option-smartfilter-out-checkbox": "Filtrer les commandes sortantes envoyées à la passerelle",
+		"option-skipevents": "Ignorer les événements",
+		"option-skipevents-checkbox": "Ignorer TOUS les événements entrants de la passerelle",
+		"option-skipevents-info": "Si nécessaire, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud peuvent être ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.",
+		"option-readonly": "Lecture seule",
+		"option-readonly-checkbox": "Demander uniquement le statut de la charge actuelle",
+		"option-readonly-info": "Lorsque activé, le payload reçu (par exemple 'ON', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel sans appliquer de modification.",
+		"secondary-output-title": "Options de sortie secondaire",
+		"secondary-output-intro": "Vous pouvez affiner la sortie secondaire pour mieux l'adapter à vos besoins lors de l'intégration avec d'autres mécanismes de nœuds (voir l'aide du nœud pour plus d'infos).",
+		"secondary-output-name": "Nom de propriété",
+		"secondary-output-name-placeholder": "par ex. On / state / ... / (vide)",
+		"secondary-output-name-info": "C'est le nom de propriété dans le payload retourné (c.-à-d. payload.propertyname). Si vide, le payload est retourné comme une valeur unique (pas en objet).",
+		"secondary-output-content": "Type de données"
+	},
+
+
+	"mh-energy":
+	{
+		"config":
+		{
+			"topic-info": "pour déclencher l'action sur ce nœud, n'oubliez pas que le 'msg' entrant DOIT contenir un 'msg.topic' soit 'state/__topicName__' soit 'cmd/__topicName__', sinon le nœud ignorera le message. Pour le nœud énergie, il n'y a pas de différence entre 'state' et 'cmd', les deux exécuteront les mêmes opérations.",
+			"name-placeholder": "Nom du compteur",
+			"topic-placeholder": "par ex. panneaux-solaires",
+			"meterid": "Compteur",
+			"meter-type-info": "Les compteurs de puissance sont les Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554, tandis que les actionneurs de gestion d'énergie sont les Bticino F522, F523 / Legrand 03558, 03559.",
+			"meter-type-meter": "Compteur de gestion d'énergie",
+			"meter-type-actuator": "Actionneur de gestion d'énergie",
+			"meterscope": "Portée",
+			"meterscope-instant": "Puissance actuelle",
+			"meterscope-dayuptonow": "Consommation journalière (aujourd'hui)",
+			"meterscope-day": "Consommation journalière (période)",
+			"meterscope-hour": "Consommation horaire (période)",
+			"meterscope-monthuptonow": "Consommation mensuelle (mois en cours)",
+			"meterscope-month": "Consommation mensuelle (période)",
+			"meterscope-sincebegin": "Consommation totale depuis le départ",
+			"enablecache": "Utiliser le cache",
+			"enablecache-checkbox": "Mettre en cache les résultats récupérés",
+			"enablecache-info": "Par défaut, le nœud conserve tous les résultats précédemment récupérés en mémoire. Lorsque la même portée est demandée, le contenu mis en cache est utilisé au lieu d'envoyer (de nombreuses) requêtes sur le BUS MyHome. Le cache n'est pas persistant et est réinitialisé à chaque redéploiement ou redémarrage de Node-RED.\n\n!! Le cache est également utile (/requis) pour certaines commandes (comme la consommation journalière) et/ou lorsque vous travaillez avec des passerelles qui ne répondent pas correctement aux appels... mais le nœud peut toujours récupérer l'information directement sur le BUS et la mettre en cache.\n\nNotez que, quelle que soit cette option, le cache n'est jamais utilisé pour les résultats partiels (c.-à-d. puissance instantanée, aujourd'hui, mois en cours, ...) car le contenu change constamment d'un appel à l'autre.",
+			"enablecache-outputlog": "debug : sortie du cache",
+			"enablecache-outputlog-ok": "Contenu du cache actuel envoyé avec succès à la sortie principale.",
+			"enablecache-outputlog-error": "Erreur lors de l'envoi du contenu mis en cache actuel à la sortie principale :",
+			"inputlabel-any": "tout payload avec un '.Topic' valide \ndéclenchera la sortie du nœud",
+			"inputlabel-daterange": "payload avec un '.Topic' valide déclenchera \nla collecte de données pour la plage de date/heure \nde '.metered_From' à '.metered_To'",
+			"secondary-output-content-pwr": ".metered_Power (nombre en W__h__)",
+			"secondary-output-content-pwr-txt": ".metered_Power (texte en kW__h__)",
+			"secondary-output-content-pwr-info": ".metered_Info (tableau de détails mesurés)"
+		},
+		"node":
+		{
+			"status-sincebegin": "Depuis le début : "
+		}
+	}
+}

@@ -1,5 +1,3 @@
-/*jshint esversion: 7, strict: implied, node: true */
-
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
 
@@ -244,7 +242,7 @@ module.exports = function (RED) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processInput = function (msg) {
       if (typeof (msg) === 'string') {
-        try {msg = JSON.parse(msg);} catch(error){}
+        try {msg = JSON.parse(msg);} catch{}
       }
       // Only process input received from flow when the topic matches with configuration of nodes
       let isReadOnly = config.isstatusrequest || false;
@@ -258,7 +256,7 @@ module.exports = function (RED) {
       if (msg.payload === undefined) {
         msg.payload = {};
       } else if (typeof(msg.payload) === 'string') {
-        try {msg.payload = JSON.parse(msg.payload);} catch(error){}
+        try {msg.payload = JSON.parse(msg.payload);} catch{}
       }
       if (typeof(msg.payload) === 'string' || typeof(msg.payload) === 'number') {
         msg.payload = {'state': msg.payload};

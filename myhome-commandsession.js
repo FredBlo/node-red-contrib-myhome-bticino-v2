@@ -1,5 +1,3 @@
-/*jshint esversion: 7, strict: implied, node: true */
-
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
 
@@ -46,7 +44,7 @@ module.exports = function (RED) {
           } else if (payload.command_sent.length > 1) {
             nodeStatusText = RED._('mh-cmdsession.node.cmdsent_multi' , {'commandsCount':payload.command_sent.length, 'responsesCount':cmd_responses.length});
           }
-          node.status ({fill: 'green', shape: nodeStatusShape, text: nodeStatusText});
+          node.status ({fill: 'green', shape: nodeStatusShape, text: nodeStatusText + nodeStatusTextErr});
         }, function (cmd_failed, nodeStatusErrorMsg) {
           // Error, only update node state
           node.status ({fill: 'red', shape: 'dot', text: nodeStatusErrorMsg});

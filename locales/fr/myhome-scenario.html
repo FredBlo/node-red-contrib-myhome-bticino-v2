@@ -1,0 +1,91 @@
+<script type="text/html" data-help-name="myhome-scenario">
+  <p>Ajoute un nœud MyHome Scenario à votre flux.</p>
+  <ul>
+    <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+    <li><strong>Topic</strong> est utilisé sur le payload reçu pour déclencher l'action du nœud (voir les infos dans la définition des entrées)</li>
+    <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+    <li><strong>Scénario</strong> définit l'ID du scénario, selon son type :</li>
+      <ul>
+        <li><strong>CEN</strong> : numéro A/PL ('A=1 PL=5' devient '15', notez aussi que le format est sur 4 chiffres lorsque A>9 ou PL>9, par ex. 'A=11 PL=5' devient `1105`, 'A=1 PL=15' devient '0115')</li>
+        <li><strong>CEN+</strong> : numéro de scénario (0-2047)</li>
+      </ul>
+    </li>
+    <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>
+    <li><strong>Règles</strong> : vous pouvez définir différentes règles selon vos besoins. Chaque règle enverra sa sortie à une sortie supplémentaire distincte.
+      <ul>
+        <li><strong>Plage de boutons</strong> : définit quels bouton(s) doivent être surveillés pour déclencher un nouveau flux. Par défaut 0-31, soit la plage maximale.</li>
+        <li><strong>Type d'action</strong> : définit sur quel type d'appui un flux doit démarrer :</li>
+          <ul>
+            <li><i>Au démarrage de l'appui</i> : lorsque le bouton est initialement pressé. Notez que le comportement varie selon le type de scénario. Pour CEN, cet événement se déclenche toujours, même pour un appui court, tandis que pour CEN+, il n'apparaît que lorsqu'un appui long commence.</li>
+            <li><i>À la fin de l'appui court</i> : lorsque le bouton a été pressé moins de <strong>0,5 s</strong>.</li>
+            <li><i>À la fin de l'appui long (après xx ms)</i> : lorsque le bouton a été pressé au moins <strong>0,5 s</strong>. Vous pouvez également définir votre propre durée minimale avant le déclenchement du flux.</li>
+            <li><i>Appui long (tant que le bouton est maintenu)</i> : tant que le bouton reste appuyé, le BUS émettra approximativement un événement toutes les 500 ms.</li>
+          </ul>
+        <p>Remarque : si un événement correspond à plusieurs règles que vous avez définies, plusieurs flux seront démarrés aussi.</p>
+      </ul>
+    </li>
+  </ul>
+
+<h3>Entrées</h3>
+<p><code>msg.payload</code> peut être de 2 types</p>
+  <ul>
+    <li>Une simple <em>chaîne</em> : <code>xx(:yyyy)</code>
+      <ul>
+        <li><code>xx</code> : numéro du bouton (0-31) à simuler</li>
+        <li><code>yyyy</code> : durée (ms) pendant laquelle le bouton reste virtuellement appuyé. Optionnel, par défaut 0 si omis, ce qui signifie un appui court.</li>
+      </ul>
+    </li>
+    <li>Un <em>objet</em> avec les propriétés :
+      <ul>
+        <li> <code>payload.buttonID</code> <em>[chaîne/nombre]</em> le numéro du bouton (0-31) à simuler</li>
+        <li> <code>payload.actionDuration</code> <em>[chaîne/nombre]</em> la durée (ms) pendant laquelle le bouton reste virtuellement appuyé. Optionnel, par défaut 0 si omis, ce qui signifie un appui court.</li>
+        <li> <code>payload.state</code> <em>[chaîne]</em> (optionnel) lorsque <code>.buttonID</code> et <code>.actionDuration</code> sont omis, on teste le contenu de la chaîne 'xx(:yyyy)' comme décrit ci-dessus pour l'entrée simple.</li>
+      </ul>
+    </li>
+    <i>Remarque : techniquement, pour l'appui long, des commandes de répétition sont envoyées toutes les 400 ms pour maintenir virtuellement le bouton « appuyé ». Cela signifie qu'un écart peut survenir entre la durée demandée et la durée effective appliquée (par ex. pour 900 ms demandés, le nœud fera 3x 400, soit 1200 ms).</i>
+  </ul>
+<p><code>msg.topic</code> est requis pour déclencher l'action du nœud : le <code>msg.topic</code> reçu doit être défini sur <code>cmd/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud.</p>
+
+<h3>Sorties</h3>
+<p>La <strong>sortie principale</strong> est un objet JSON <code>msg.payload</code> contenant :</p>
+  <ul>
+    <li> <code>payload.buttonsLastState_xx</code> <em>[objet]</em> où xx est l'ID du bouton (0-31), ce qui signifie que le payload renverra un objet par bouton pour lequel au moins une commande a été reçue depuis le démarrage de Node-RED. Chaque objet contiendra :
+      <ul>
+        <li> <code>.buttonID</code> <em>[nombre]</em> le numéro du bouton (0-31)</li>
+        <li> <code>.state</code> <em>[chaîne]</em> résume l'état du dernier appui du bouton sous une forme simplifiée <code>xx:mmmm(:yyyy)</code> où :
+          <ul>
+            <li><code>xx</code> : numéro du bouton (0-31)</li>
+            <li><code>mmmm</code> : type d'action, peut être 'PRESS_START' / 'LONG_START' / 'LONG_ONGOING' / 'SHORT' / 'LONG'</li>
+            <li><code>yyyy</code> : -uniquement en mode appui long- durée (ms) pendant laquelle le bouton est resté (virtuellement) appuyé</li>
+          </ul>
+        </li>
+        <li> <code>.actionStart</code> <em>[date-heure]</em> la date et l'heure du dernier début d'appui du bouton</li>
+        <li> <code>.actionEnd</code> <em>[date-heure]</em> la date et l'heure de la fin du dernier appui du bouton</li>
+        <li> <code>.actionDuration</code> <em>[nombre]</em> la durée (ms) de l'appui du bouton</li>
+        <li> <code>.countExtPressures</code> <em>[nombre]</em> (uniquement en mode appui long) le nombre de commandes de répétition reçues sur le BUS pendant que le bouton était appuyé</li>
+        <li> <code>payload.state</code> <em>[chaîne]</em> (optionnel) lorsque <code>.buttonID</code> et <code>.actionDuration</code> sont omis, on teste le contenu de la chaîne 'xx(:yyyy)' comme décrit ci-dessus pour l'entrée simple</li>
+      </ul>
+      <i>Remarque : toutes les propriétés du <strong>dernier bouton appuyé</strong> sont aussi incluses directement en tant que propriétés directes du payload lui-même, ce qui permet d'y accéder sans analyser l'objet bouton.</i>
+    </li>
+    <li> <code>payload.command_sent</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED (c.-à-d. des commandes envoyées à la passerelle MyHome), contient les commandes envoyées en protocole OpenWebNet (par ex. <em>'*25*21#8*2100##'</em> pour une courte pression sur le bouton 8 du scénario CEN+ 100)</li>
+    <li> <code>payload.command_received</code> <em>[chaîne]</em> lorsque le nœud est déclenché depuis la passerelle (c.-à-d. une commande détectée sur le BUS MyHome pour le scénario configuré), contient la commande lue en protocole OpenWebNet (ex : <em>'*25*24#14*287##'</em> signifie que le bouton 14 du scénario 87 a terminé un appui long)</li>
+    <li> <code>payload.command_responses</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED en mode lecture seule, contiendra la ou les réponses renvoyées par le BUS MyHome en protocole OpenWebNet</li>
+    <li> <code>payload.command_failed</code> <em>[tableau de chaînes]</em> contiendra les commandes refusées par la passerelle MyHome, en protocole OpenWebNet</li>
+  </ul>
+  <p>Toute <strong>sortie supplémentaire</strong> définie est également un objet JSON <code>msg.payload</code> ayant les mêmes propriétés directes qu'un objet <code>payload.buttonsLastState_xx</code> décrit ci-dessus.</p>
+  <p>
+    <strong>Toutes les sorties</strong> incluent également un objet additionnel <code>msg.mh_nodeConfigInfo</code> qui contient des données de configuration du nœud.
+    Cela peut être utilisé dans les flux pour rediriger les messages selon leur origine (c.-à-d. quel nœud les a émis) sans avoir à inclure des nœuds de changement à chaque étape.
+  </p>
+  <p>
+    Le <code>msg.mh_nodeConfigInfo</code> contient les valeurs de configuration du nœud :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[chaîne]</em> : nom</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[chaîne]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.buslevel</code> <em>[chaîne]</em> : niveau de bus (tel que 'private_riser', '01', '02', ... '15')</li>
+    <li> <code>mh_nodeConfigInfo.scenarioid</code> <em>[chaîne]</em> : ID du scénario</li>
+    <li> <code>mh_nodeConfigInfo.scenariotype</code> <em>[chaîne]</em> : type de scénario (peut être 'CEN' ou 'CEN+')</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[objet]</em> : informations sur la passerelle liée : nom (<code>.name</code>), hôte/IP (<code>.host</code>) et port (<code>.port</code>)</li>
+  </ul>
+</script>

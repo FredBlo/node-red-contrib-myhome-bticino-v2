@@ -1,0 +1,93 @@
+<script type="text/html" data-help-name="myhome-energy">
+<p>Ajoute un nœud MyHome Energy à votre flux.</p>
+  <ul>
+    <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+    <li><strong>Topic</strong> est utilisé sur le payload reçu pour déclencher l'action du nœud (voir les infos dans la définition des entrées)</li>
+    <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+    <li><strong>Compteur</strong> est le type et l'adresse (1 à 255) du compteur dans le système MyHome :</li>
+      <ul>
+        <li><strong>Compteur de gestion d'énergie</strong> correspond, selon la documentation OpenWebNet, aux Bticino F520, F523, 3522 / Legrand 03555, 03557, 03554</li>
+        <li><strong>Actionneurs de gestion d'énergie</strong> correspondent, selon la documentation OpenWebNet, aux Bticino F522, F523 / Legrand 03558, 03559</li>
+      </ul>
+      <i>Note : je n'ai testé qu'avec un F520... si vous l'utilisez avec un autre appareil (avec succès ou non), faites-le moi savoir !</i>
+    <li><strong>Portée</strong> permet de définir le mode du compteur utilisé par ce nœud :</li>
+      <ul>
+        <li><strong>Puissance actuelle</strong> : renvoie la consommation en temps réel, en Watts</li>
+        <li><strong>Consommation journalière (aujourd'hui)</strong> : renvoie la consommation (Wh) depuis le début de la journée (@00:00:00)</li>
+        <li><strong>Consommation journalière (plage horaire)</strong> : renvoie la consommation (Wh) pour une plage horaire spécifiée en entrée (voir ci-dessous), détaillée par jour*.
+        <br><i>TechNote : MyHome n'expose la consommation journalière qu'en demandant les détails horaires (pour un jour) ou les détails journaliers (pour un mois complet). Le nœud filtrera correctement selon votre plage horaire, mais le traitement de la requête peut être un peu plus long et générer plus de réponses que nécessaire.</i></li>
+        <li><strong>Consommation horaire (plage horaire)</strong> : renvoie la consommation (Wh) pour une plage horaire spécifiée en entrée (voir ci-dessous), détaillée par heure*.</li>
+        <li><strong>Consommation mensuelle (mois en cours)</strong> : renvoie la consommation (Wh) depuis le début du mois (1er jour @00:00:00)</li>
+        <li><strong>Consommation mensuelle (plage horaire)</strong> : renvoie la consommation (Wh) pour une plage horaire spécifiée en entrée (voir ci-dessous), détaillée par mois**.</li>
+        <li><strong>Consommation totale depuis le début</strong> : renvoie la consommation (Wh) depuis la dernière remise à zéro du compteur.</li>
+        <i>* les compteurs stockent les détails quotidiens/horaire sur 12 mois (c.-à-d. le mois en cours et 11 mois précédents), demander des infos en dehors de cette plage entraîne la limitation de la plage lorsque possible, ou le retour d'une plage nulle (si les dates From et To sont toutes deux hors plage).</i>
+        <br><i>** les compteurs stockent les détails mensuels sur 12 ans.</i>
+      </ul>
+    <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>
+    <li><strong>Mettre en cache les résultats précédemment récupérés</strong> : par défaut, le nœud conserve en mémoire tous les résultats précédemment récupérés. Lorsque la même portée est demandée, le contenu mis en cache est utilisé au lieu d'envoyer de nombreuses requêtes sur le BUS MyHome. Le cache n'est pas persistant et est réinitialisé au redéploiement du nœud ou au redémarrage de Node-RED.
+      <br>!! Le cache est aussi utile (/requis) pour certaines commandes (comme la consommation journalière) et/ou lorsque vous utilisez des passerelles qui ne répondent pas correctement aux appels... mais le nœud peut toujours récupérer l'information directement sur le BUS et la mettre en cache.
+      <br>Notez que, quelle que soit cette option, le cache n'est jamais utilisé pour les résultats partiels (c.-à-d. puissance instantanée, aujourd'hui, mois en cours, ...) car le contenu change d'un appel à l'autre.
+    </li>
+  </ul>
+
+<h3>Entrées</h3>
+  <p><code>msg.payload</code> peut être de 2 types</p>
+    <ul>
+      <li>... n'importe quoi</li>
+      Lorsque le nœud est configuré en 'Puissance actuelle', 'Consommation journalière (aujourd'hui)', 'Consommation mensuelle (mois en cours)' ou 'Consommation totale depuis le début', aucun paramètre n'est nécessaire. Le nœud analysera toujours le BUS et renverra la/les valeur(s) configurée(s).
+      </li>
+      <li>Un Objet
+        <ul>
+          <li> <code>payload.meterscope</code> <em>[chaîne]</em> lorsqu'il est défini, remplace la portée configurée du nœud.
+            <br>Peut être : 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin'.</li>
+          <li> <code>payload.metered_From</code> <em>[chaîne]</em> la valeur doit être convertible en date (+heure) valide ; sinon elle prendra la date-heure courante.
+            <br>Définit le début de collecte des informations du compteur</li>
+          <li> <code>payload.metered_To</code> <em>[chaîne]</em> la valeur doit être convertible en date (+heure) valide ; sinon elle prendra <code>payload.metered_From</code>.
+            <br>Définit la fin de collecte des informations du compteur</li>
+        </ul>
+      </li>
+    </ul>
+  <p><code>msg.topic</code> est <strong>obligatoire</strong> pour déclencher l'action du nœud : le <code>msg.topic</code> reçu doit être défini sur <code>cmd/xxxx</code> ou <code>state/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud. Pour les nœuds de gestion d'énergie, il n'y a pas de comportement différent entre les modes 'cmd' ou 'state'.</p>
+
+<h3>Sorties</h3>
+  <p>La <strong>sortie principale</strong> est un objet JSON <code>msg.payload</code> contenant :</p>
+    <ul>
+      <li> <code>payload.metered_Scope</code> <em>[chaîne]</em> la portée configurée du nœud (peut être : 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin')</li>
+      <li> <code>payload.metered_From</code> <em>[chaîne (date-heure)]</em> la date effective à partir de laquelle les données ont été collectées sur le compteur</li>
+      <li> <code>payload.metered_To</code> <em>[chaîne (date-heure)]</em> la date effective jusqu'à laquelle les données ont été collectées sur le compteur</li>
+      <li> <code>payload.metered_Power</code> <em>[nombre]</em> la puissance instantanée (W) ou la consommation totale (Wh) mesurée pendant la plage date-heure fournie</li>
+      <li> <code>payload.metered_Power_asText</code> <em>[chaîne]</em> la valeur de puissance convertie en texte lisible (par ex. 900 -> 900Wh, 1250 -> 1,25kWh, 1543134 -> 1,54MWh)</li>
+      <li> <code>payload.metered_Info</code> <em>[tableau d'objets]</em> un objet est renvoyé pour chaque intervalle mesuré (heure / jour / mois) avec, comme contenu :
+        <ul>
+          <li> <code>.metered_From</code> <em>[chaîne (date-heure)]</em> la date effective à partir de laquelle cet intervalle a été collecté sur le compteur</li>
+          <li> <code>.metered_To</code> <em>[chaîne (date-heure)]</em> la date effective jusqu'à laquelle cet intervalle a été collecté sur le compteur</li>
+          <li> <code>.metered_Power</code> <em>[nombre]</em> la consommation (Wh) mesurée pendant cet intervalle</li>
+          <li> <code>.metered_Frame</code> <em>[chaîne]</em> -technique- la trame OpenWebNet reçue du BUS et analysée pour cet intervalle</li>
+          <li> <code>.metered_CacheID</code> <em>[booléen]</em> -utilisation interne technique pour la gestion du cache- est la clé unique du cache</li>
+          <li> <code>.metered_CacheIsStatic</code> <em>[booléen]</em> -utilisation interne technique pour la gestion du cache- indique que cet intervalle ne changera plus à l'avenir</li>
+        </ul>
+      </li>
+      <li> <code>payload.command_sent</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED (c.-à-d. des commandes envoyées à la passerelle MyHome), contient les commandes envoyées en protocole OpenWebNet</li>
+      <li> <code>payload.command_received</code> <em>[chaîne]</em> lorsque le nœud est déclenché depuis la passerelle (c.-à-d. une commande détectée sur le BUS MyHome pour la charge configurée), contient la commande lue en protocole OpenWebNet</li>
+      <li> <code>payload.command_responses</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED, contiendra la ou les réponses renvoyées par le BUS MyHome en protocole OpenWebNet</li>
+      <li> <code>payload.command_failed</code> <em>[tableau de chaînes]</em> contiendra les commandes refusées par la passerelle MyHome, en protocole OpenWebNet</li>
+    </ul>
+
+  <p>La <strong>sortie secondaire</strong> peut être configurée pour mieux correspondre aux besoins d'autres types de nœuds que vous utilisez, sans avoir à ajouter un nœud function/switch supplémentaire pour chaque connecteur.</p>
+
+  <p>
+    <strong>Les deux sorties</strong> incluent également un objet additionnel <code>msg.mh_nodeConfigInfo</code> qui contient des données de configuration du nœud.
+    Cela peut être utilisé dans les flux pour rediriger les messages en fonction de leur origine (c.-à-d. du nœud) sans avoir besoin d'ajouter des nœuds de changement à chaque étape.
+  </p>
+  <p>
+    Le <code>msg.mh_nodeConfigInfo</code> contient les valeurs de configuration du nœud :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[chaîne]</em> : nom</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[chaîne]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.meterid</code> <em>[chaîne]</em> : ID du compteur</li>
+    <li> <code>mh_nodeConfigInfo.metertype</code> <em>[chaîne]</em> : type de compteur (peut être 'meter' ou 'actuator')</li>
+    <li> <code>mh_nodeConfigInfo.meterscope</code> <em>[chaîne]</em> : portée définie (peut être 'instant', 'day_uptonow', 'day', 'hour', 'month_uptonow', 'month', 'sincebegin')</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[objet]</em> : informations sur la passerelle liée : nom (<code>.name</code>), hôte/IP (<code>.host</code>) et port (<code>.port</code>)</li>
+  </ul>
+</script>

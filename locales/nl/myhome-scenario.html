@@ -1,0 +1,93 @@
+<script type="text/html" data-help-name="myhome-scenario">
+  <p>Voegt een MyHome Scenario node toe aan je flow.</p>
+  <ul>
+    <li><strong>Naam</strong> (verplicht) is de naam van de node</li>
+    <li><strong>Topic</strong> wordt gebruikt op de ontvangen payload om de actie op de node te activeren (zie info bij de definitie van de ingangen)</li>
+    <li><strong>Gateway</strong> is de gateway die geconfigureerd moet worden om verbinding te maken met het MyHome-systeem</li>
+    <li><strong>Scenario</strong> bepaalt het ID van het scenario, afhankelijk van het type :
+      <ul>
+        <li><strong>CEN</strong> : A/PL-nummer ('A=1 PL=5' wordt '15', let er ook op dat het formaat 4 cijfers telt wanneer A>9 of PL>9, bv. 'A=11 PL=5' wordt `1105`, 'A=1 PL=15' wordt '0115')</li>
+        <li><strong>CEN+</strong> : scenarionummer (0-2047)</li>
+      </ul>
+    </li>
+    <li><strong>ALLE inkomende gateway-events overslaan</strong> : indien ingeschakeld, worden alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.</li>
+    <li><strong>Regels</strong> : je kan verschillende regels definiëren op basis van je noden. Elke regel geeft output naar een aparte bijkomende output.
+      <ul>
+        <li><strong>Reeks knoppen</strong> : bepaalt welke knop(pen) gemonitord moeten worden om een nieuwe flow te activeren. Standaard 0-31, wat de grootst mogelijke reeks knoppen is. </li>
+        <li><strong>Actietype</strong> : bepaalt bij welk type druk op de knop een flow gestart moet worden :
+          <ul>
+            <li><i>Bij start van indrukken</i> : wanneer de knop initieel wordt ingedrukt. Merk op dat het gedrag hier lichtjes verschilt naargelang het scenariotype. Voor CEN wordt dit event altijd geactiveerd, zelfs bij een korte druk, terwijl dit voor CEN+ enkel gebeurt wanneer een lange druk gestart wordt.</li>
+            <li><i>Bij einde van kort indrukken</i> : wanneer de knop minder dan <strong>0,5s</strong> werd ingedrukt.</li>
+            <li><i>Bij einde van lang indrukken (na xx ms)</i> : wanneer de knop minstens <strong>0,5s</strong> werd ingedrukt. Je kan ook je eigen minimale duur bepalen voordat de flow geactiveerd moet worden.</li>
+            <li><i>Bij lang indrukken (terwijl ingedrukt)</i> : zolang de knop ingedrukt blijft, zendt de BUS ongeveer elke 500ms een dergelijk event uit</li>
+          </ul>
+        </li>
+        <p>Opmerking : als een event (dus een druk op een knop) plaatsvindt dat aan meerdere door jou gedefinieerde regels voldoet, worden ook meerdere flows gestart.</p>
+      </ul>
+    </li>
+  </ul>
+
+<h3>Ingangen</h3>
+<p><code>msg.payload</code> kan van 2 types zijn</p>
+  <ul>
+    <li>Een eenvoudige <em>tekst</em>waarde : <code>xx(:yyyy)</code>
+      <ul>
+        <li><code>xx</code> : het knopnummer (0-31) dat virtueel ingedrukt moet worden</li>
+        <li><code>yyyy</code> : de duur (ms) dat de knop virtueel ingedrukt moet blijven. Is optioneel, standaard 0 indien weggelaten, wat een korte druk betekent</li>
+      </ul>
+    </li>
+    <li>Een <em>object</em> met eigenschappen :
+      <ul>
+        <li> <code>payload.buttonID</code> <em>[tekst/getal]</em> het knopnummer (0-31) dat virtueel ingedrukt moet worden</li>
+        <li> <code>payload.actionDuration</code> <em>[tekst/getal]</em> de duur (ms) dat de knop virtueel ingedrukt moet blijven. Is optioneel, standaard 0 indien weggelaten, wat een korte druk betekent
+        </li>
+        <li> <code>payload.state</code> <em>[tekst]</em> (optioneel) wanneer zowel <code>.buttonID</code> als <code>.actionDuration</code> weggelaten zijn, wordt getest op de tekstinhoud 'xx(:yyyy)' zoals hierboven beschreven voor een eenvoudige ingang</li>
+      </ul>
+    </li>
+    <i>Opmerking : technisch gezien worden voor lang indrukken om de 400 ms herhaalopdrachten verstuurd om de knop virtueel 'ingedrukt' te houden. Dit betekent dat er een afwijking kan (en zal) optreden tussen de gevraagde tijd en de effectief toegepaste duur (bv. bij een opgegeven duur van 900ms zal de node 3x 400 toepassen, dus 1200ms).</i>
+  </ul>
+<p><code>msg.topic</code> is vereist om de actie van de node te activeren: de ontvangen <code>msg.topic</code> moet ingesteld zijn op <code>cmd/xxxx</code>, waarbij xxxx de waarde is die als Topic in de nodeconfiguratie is gedefinieerd.</p>
+
+<h3>Uitgangen</h3>
+<p>De <strong>primaire output</strong> is een JSON-object <code>msg.payload</code> met</p>
+  <ul>
+    <li> <code>payload.buttonsLastState_xx</code> <em>[object]</em> waarbij xx het knop-ID is (0-31); dit betekent dat de teruggegeven payload één object bevat per knop waarvoor sinds het opstarten van Node-RED minstens één opdracht ontvangen werd. Elk object bevat :
+      <ul>
+        <li> <code>.buttonID</code> <em>[getal]</em> het knopnummer (0-31)</li>
+        <li> <code>.state</code> <em>[tekst]</em> vat de informatie over de laatste status van de knop samen in een vereenvoudigde vorm <code>xx:mmmm(:yyyy)</code> waarbij :
+          <ul>
+            <li><code>xx</code> : knopnummer (0-31)</li>
+            <li><code>mmmm</code> : actietype, kan zijn 'PRESS_START' / 'LONG_START' / 'LONG_ONGOING' / 'SHORT' / 'LONG'</li>
+            <li><code>yyyy</code> : -enkel in lang-indrukken-modus- de duur (ms) dat de knop (virtueel) ingedrukt bleef</li>
+          </ul>
+        </li>
+        <li> <code>.actionStart</code> <em>[datum-tijd]</em> de datum-tijd waarop de knop het laatst werd ingedrukt (start van de druk)</li>
+        <li> <code>.actionEnd</code> <em>[datum-tijd]</em> de datum-tijd waarop de knop het laatst werd ingedrukt (einde van de druk)</li>
+        <li> <code>.actionDuration</code> <em>[getal]</em> de duur (ms) dat de knop werd ingedrukt</li>
+        <li> <code>.countExtPressures</code> <em>[getal]</em> (enkel bij lang indrukken) het aantal herhaalopdrachten dat op de bus ontvangen werd terwijl de knop ingedrukt was</li>
+        <li> <code>payload.state</code> <em>[tekst]</em> (optioneel) wanneer zowel <code>.buttonID</code> als <code>.actionDuration</code> weggelaten zijn, wordt getest op de tekstinhoud 'xx(:yyyy)' zoals hierboven beschreven voor een eenvoudige ingang</li>
+      </ul>
+      <i>Opmerking : alle eigenschappen van de <strong>laatst ingedrukte knop</strong> worden ook rechtstreeks als eigenschappen van de payload zelf opgenomen, zodat je er direct bij kan zonder het sub-object van de knop te moeten uitlezen.</i>
+    </li>
+    <li> <code>payload.command_sent</code> <em>[array van tekst]</em> wanneer de node vanuit Node-RED werd geactiveerd (d.w.z. er werden opdrachten naar de MyHome-gateway verstuurd), bevat dit de opdrachten die verstuurd werden in het OpenWebNet-protocol (bv. <em>'*25*21#8*2100##'</em> voor een korte druk op knop 8 van scenario CEN+ 100)</li>
+    <li> <code>payload.command_received</code> <em>[tekst]</em> wanneer de node vanuit de gateway werd geactiveerd (d.w.z. er werd een opdracht gedetecteerd op de MyHome BUS voor het geconfigureerde scenario), bevat dit de opdracht die werd gelezen in het OpenWebNet-protocol (bv: <em>'*25*24#14*287##'</em> betekent dat knop 14 van scenario 87 een lang indrukken beëindigde)</li>
+    <li> <code>payload.command_responses</code> <em>[array van tekstwaarden]</em> wanneer de node vanuit Node-RED in alleen-lezen modus werd geactiveerd, bevat dit het/de antwoord(en) dat/die door de MyHome BUS werd(en) teruggestuurd in het OpenWebNet-protocol</li>
+    <li> <code>payload.command_failed</code> <em>[array van tekstwaarden]</em> bevat de opdrachten die door de MyHome-gateway geweigerd werden, in het OpenWebNet-protocol</li>
+  </ul>
+  <p>Elke gedefinieerde <strong>bijkomende output</strong> is eveneens een JSON-object <code>msg.payload</code> met dezelfde (rechtstreekse) eigenschappen als een hierboven beschreven <code>payload.buttonsLastState_xx</code>-object.</p>
+  <p>
+    <strong>Alle outputs</strong> bevatten ook een extra object <code>msg.mh_nodeConfigInfo</code> met gegevens uit de nodeconfiguratie.
+    Dit kan in flows gebruikt worden om berichten door te sturen op basis van hun herkomst (d.w.z. welke node ze verstuurde), zonder dat je bij elke stap 'change nodes' moet toevoegen.
+  </p>
+  <p>
+    De <code>msg.mh_nodeConfigInfo</code> bevat de volgende configuratiewaarden van de node :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[tekst]</em> : naam</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[tekst]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.buslevel</code> <em>[tekst]</em> : busniveau (zoals 'private_riser', '01', '02', ... '15')</li>
+    <li> <code>mh_nodeConfigInfo.scenarioid</code> <em>[tekst]</em> : scenario-ID</li>
+    <li> <code>mh_nodeConfigInfo.scenariotype</code> <em>[tekst]</em> : scenariotype (kan 'CEN' of 'CEN+' zijn)</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : gekoppelde gateway-info : naam (<code>.name</code>), host/IP (<code>.host</code>) en poort (<code>.port</code>)</li>
+  </ul>
+</script>

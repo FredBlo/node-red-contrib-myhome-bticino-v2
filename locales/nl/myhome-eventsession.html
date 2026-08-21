@@ -1,0 +1,72 @@
+<script type="text/html" data-help-name="myhome-eventsession">
+  <p>De monitoringnode die gebruikt wordt om flows te activeren op basis van elke opdracht die op de MyHome-systeem BUS gelezen wordt.</p>
+    <ul>
+      <li><strong>Naam</strong> (verplicht) is de naam van de node</li>
+      <li><strong>Gateway</strong> is de gateway die geconfigureerd moet worden om verbinding te maken met het MyHome-systeem</li>
+      <li><strong>Filters voor opdrachtfamilies</strong> laat je toe te bepalen welk soort MyHome-opdrachten nieuwe flows moeten activeren.</li>
+    </ul>
+
+  <h3>Ingang</h3>
+    <p>(geen)</p>
+
+  <h3>Uitgang</h3>
+    <p>De <strong>primaire output</strong> is een <em>[tekst]</em> met de OpenWebNet-opdracht die op de MyHome BUS gelezen werd.</p>
+    <p>
+      De <strong>secundaire output</strong> bevat gedetailleerde geanalyseerde informatie, alsof de node in 'universele modus' zou werken (d.w.z. alle ontvangen BUS-frames verwerkt).
+      De inhoud van msg varieert naargelang het familietype :
+    </p>
+      <ul>
+        <li><strong>Verlichting</strong> : details van het payload-object :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[tekst]</em> bevat de opdracht die werd gelezen in het OpenWebNet-protocol (bv: <em>'*1*5*25##'</em> betekent dat belasting 2.5 werd aangezet op 50% helderheid)</li>
+            <li> <code>payload.buslevel</code> <em>[tekst]</em> : busniveau ('private_riser', '01', '02', ... '15')</li>
+            <li> <code>payload.state</code> <em>[tekst]</em> de waarde is 'ON' of 'OFF'</li>
+            <li> <code>payload.brightness</code> <em>[geheel getal]</em> geeft het huidige helderheidspercentage van de belasting weer. Voor niet-dimbare lampen is dit 0 of 100. </li>
+            <li> <code>payload.lightid</code> <em>[tekst]</em> : lamp-ID</li>
+            <li> <code>payload.isgroup</code> <em>[boolean]</em> : groepsoproep (true) of oproep naar één lichtpunt (false)</li>
+          </ul>
+        <li><strong>Rolluiken</strong> : details van het payload-object :</li>
+            <ul>
+              <li> <code>payload.command_received</code> <em>[tekst]</em> bevat de opdracht die werd gelezen in het OpenWebNet-protocol (bv: <em>'*2*2*25##'</em> betekent dat de 'sluiten'-actie van rolluik 2.5 werd gestart)</li>
+              <li> <code>payload.buslevel</code> <em>[tekst]</em> : busniveau ('private_riser', '01', '02', ... '15')</li>
+              <li> <code>payload.state</code> <em>[tekst]</em> de waarde is 'STOP', 'OPEN' of 'CLOSE'</li>
+              <li> <code>payload.shutterid</code> <em>[tekst]</em> : rolluik-ID</li>
+              <li> <code>payload.isgroup</code> <em>[boolean]</em> : groepsoproep (true) of oproep naar één rolluik (false)</li>
+            </ul>
+        <li><strong>Temperatuur</strong> : details van het payload-object (leest enkel de 'huidige temperatuur' van de zonemodus) :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[tekst]</em> bevat de opdracht die werd gelezen in het OpenWebNet-protocol</li>
+            <li> <code>payload.zoneid</code> <em>[tekst]</em> het ID van de zone [1-99])</li>
+            <li> <code>payload.state</code> <em>[getal]</em> de huidig gemeten temperatuur (°C)</li>
+          </ul>
+        <li><strong>Scenario CEN/CEN+</strong> : details van het payload-object :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[tekst]</em> bevat de opdracht die werd gelezen in het OpenWebNet-protocol (bv: <em>'*25*24#14*287##'</em> betekent dat knop 14 van scenario 87 een lang indrukken beëindigde)</li>
+            <li> <code>payload.buslevel</code> <em>[tekst]</em> : busniveau ('private_riser', '01', '02', ... '15')</li>
+            <li> <code>payload.scenariotype</code> <em>[tekst]</em> de waarde is 'CEN' of 'CEN+'</li>
+            <li> <code>payload.scenarioid</code> <em>[tekst]</em> het ID van het scenario (voor CEN is dit een A/P-waarde, voor CEN+ is dit [0-2047])</li>
+            <li> <code>payload.buttonID</code> <em>[tekst]</em> : de knop die werd ingedrukt [00-31]</li>
+            <li> <code>payload.actionType</code> <em>[tekst]</em> : het actietype (kan 'SHORT', 'LONG', 'LONG_ONGOING',... zijn)</li>
+          </ul>
+        <li><strong>Energiebeheer</strong> : details van het payload-object (leest enkel de 'instant' verbruiksmodus) :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[tekst]</em> bevat de opdracht die werd gelezen in het OpenWebNet-protocol</li>
+            <li> <code>payload.metertype</code> <em>[tekst]</em> de waarde is 'meter' of 'actuator'</li>
+            <li> <code>payload.meterscope</code> <em>[tekst]</em> is in universele modus steeds 'instant'</li>
+            <li> <code>payload.meterid</code> <em>[tekst]</em> : adres (1 tot 255) van de meter</li>
+            <li> <code>payload.metered_Power</code> <em>[geheel getal]</em> : het gemeten ogenblikkelijk vermogen (W)</li>
+          </ul>
+      </ul>
+    <p>
+      <strong>Beide outputs</strong> bevatten ook een extra object <code>msg.mh_nodeConfigInfo</code> met gegevens uit de nodeconfiguratie.
+      Dit kan in flows gebruikt worden om berichten door te sturen op basis van hun herkomst (d.w.z. welke node ze verstuurde), zonder dat je bij elke stap 'change nodes' moet toevoegen.
+    </p>
+    <p>
+      De <code>msg.mh_nodeConfigInfo</code> bevat de volgende configuratiewaarden van de node :
+    </p>
+    <ul>
+      <li> <code>mh_nodeConfigInfo.name</code> <em>[tekst]</em> : naam</li>
+      <li> <code>mh_nodeConfigInfo.ownFamilyName</code> <em>[tekst]</em> : de naam van de OpenWebNet-familie (zoals 'OWN_LIGHTS', 'OWN_SCENARIO',...)</li>
+      <li> <code>mh_nodeConfigInfo.gateway</code> <em>[object]</em> : gekoppelde gateway-info : naam (<code>.name</code>), host/IP (<code>.host</code>) en poort (<code>.port</code>)</li>
+    </ul>
+</script>

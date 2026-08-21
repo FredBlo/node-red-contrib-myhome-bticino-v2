@@ -1,0 +1,70 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Passerelle",
+		"riser-private": "Gaine privée",
+		"riser-localbus-01": "Bus local 1",
+		"riser-localbus-02": "Bus local 2",
+		"riser-localbus-03": "Bus local 3",
+		"riser-localbus-04": "Bus local 4",
+		"riser-localbus-05": "Bus local 5",
+		"riser-localbus-06": "Bus local 6",
+		"riser-localbus-07": "Bus local 7",
+		"riser-localbus-08": "Bus local 8",
+		"riser-localbus-09": "Bus local 9",
+		"riser-localbus-10": "Bus local 10",
+		"riser-localbus-11": "Bus local 11",
+		"riser-localbus-12": "Bus local 12",
+		"riser-localbus-13": "Bus local 13",
+		"riser-localbus-14": "Bus local 14",
+		"riser-localbus-15": "Bus local 15",
+		"input-label-simple": "mode simple ('payload' ou 'payload.state')",
+		"name": "Nom",
+		"topic": "Topic",
+		"topic-info": "pour déclencher l'action sur ce nœud, n'oubliez pas que le 'msg' entrant DOIT contenir un 'msg.topic' soit 'state/__topicName__' (en mode lecture seule) soit 'cmd/__topicName__' (en mode écriture), sinon le nœud ignorera le message.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Filtrer les événements entrants de la passerelle",
+		"option-smartfilter-info": "SmartFilter est activé par défaut, ce qui fait que le nœud ne déclenche un nouveau flux (sortie) que lorsqu'un état a CHANGÉ après réception d'un message MyHome BUS.\nCela évite le démarrage de plusieurs flux pour la même information/commande, car MyHome envoie le même message plusieurs fois (demande d'état, réponse, ...).\n\nRemarque : SmartFilter n'est jamais appliqué lorsque le nœud fonctionne en mode lecture seule (demande de mise à jour d'état).",
+		"option-smartfilter-out-checkbox": "Filtrer les commandes sortantes envoyées à la passerelle",
+		"option-skipevents": "Ignorer les événements",
+		"option-skipevents-checkbox": "Ignorer TOUS les événements entrants de la passerelle",
+		"option-skipevents-info": "Si nécessaire, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud peuvent être ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.",
+		"option-readonly": "Lecture seule",
+		"option-readonly-checkbox": "Demander uniquement le statut de la charge actuelle",
+		"option-readonly-info": "Lorsque activé, le payload reçu (par exemple 'ON', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel sans appliquer de modification.",
+		"secondary-output-title": "Options de sortie secondaire",
+		"secondary-output-intro": "Vous pouvez affiner la sortie secondaire pour mieux l'adapter à vos besoins lors de l'intégration avec d'autres mécanismes de nœuds (voir l'aide du nœud pour plus d'infos).",
+		"secondary-output-name": "Nom de propriété",
+		"secondary-output-name-placeholder": "par ex. On / state / ... / (vide)",
+		"secondary-output-name-info": "C'est le nom de propriété dans le payload retourné (c.-à-d. payload.propertyname). Si vide, le payload est retourné comme une valeur unique (pas en objet).",
+		"secondary-output-content": "Type de données"
+	},
+
+
+	"mh-eventsession":
+	{
+		"config":
+		{
+			"name-placeholder": "Identifiant de surveillance",
+			"secondary-output-title": "Définir les filtres de familles de commandes",
+			"secondary-output-intro": "Vous pouvez définir quelles familles d'événements MyHome doivent déclencher de nouveaux flux Node-RED.",
+			"type-lights": "Lumières",
+			"type-lights-checkbox": "Tous les événements de lumières",
+			"type-shutters": "Volets",
+			"type-shutters-checkbox": "Tous les événements de volets",
+			"type-temperature": "Température",
+			"type-temperature-checkbox": "Tous les événements de contrôle de température",
+			"type-scenario": "Scénario",
+			"type-scenario-checkbox": "Tous les événements de scénario (CEN/CEN+)",
+			"type-energy": "Énergie",
+			"type-energy-checkbox": "Tous les événements de gestion d'énergie",
+			"type-others": "Autres",
+			"type-others-checkbox": "Tous les AUTRES événements"
+		},
+		"node":
+		{
+
+		}
+	}
+}

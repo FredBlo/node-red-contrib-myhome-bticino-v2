@@ -1,0 +1,83 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Gateway",
+		"riser-private": "Privéstijgleiding",
+		"riser-localbus-01": "Lokale bus 1",
+		"riser-localbus-02": "Lokale bus 2",
+		"riser-localbus-03": "Lokale bus 3",
+		"riser-localbus-04": "Lokale bus 4",
+		"riser-localbus-05": "Lokale bus 5",
+		"riser-localbus-06": "Lokale bus 6",
+		"riser-localbus-07": "Lokale bus 7",
+		"riser-localbus-08": "Lokale bus 8",
+		"riser-localbus-09": "Lokale bus 9",
+		"riser-localbus-10": "Lokale bus 10",
+		"riser-localbus-11": "Lokale bus 11",
+		"riser-localbus-12": "Lokale bus 12",
+		"riser-localbus-13": "Lokale bus 13",
+		"riser-localbus-14": "Lokale bus 14",
+		"riser-localbus-15": "Lokale bus 15",
+		"input-label-simple": "eenvoudige modus ('payload' of 'payload.state')",
+		"name": "Naam",
+		"topic": "Topic",
+		"topic-info": "om de actie op deze node te activeren, mag je niet vergeten dat het binnenkomende 'msg' VERPLICHT een 'msg.topic' moet bevatten, namelijk 'state/__topicName__' (bij gebruik in alleen-lezen modus) of 'cmd/__topicName__' (bij gebruik in schrijfmodus); anders negeert de node het binnenkomende bericht.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Inkomende gateway-events filteren",
+		"option-smartfilter-info": "SmartFilter is standaard ingeschakeld, waardoor de node pas een nieuwe flow (m.a.w. output) activeert wanneer een status is GEWIJZIGD na ontvangst van een MyHome BUS-bericht.\nDit voorkomt dat er meerdere flows starten voor dezelfde info/opdracht, aangezien MyHome hetzelfde bericht meerdere keren verstuurt (bij statusaanvraag, antwoord, ...).\n\nOpmerking: SmartFilter wordt nooit toegepast wanneer de node in alleen-lezen modus (statusaanvraag) werkt.",
+		"option-smartfilter-out-checkbox": "Uitgaande opdrachten naar de gateway filteren",
+		"option-skipevents": "Events overslaan",
+		"option-skipevents-checkbox": "ALLE inkomende gateway-events overslaan",
+		"option-skipevents-info": "Indien nodig kunnen alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd worden, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.",
+		"option-readonly": "Alleen-lezen",
+		"option-readonly-checkbox": "Enkel de huidige status van de belasting opvragen",
+		"option-readonly-info": "Indien ingeschakeld, wordt de ontvangen payload (bijvoorbeeld 'ON', 'OFF' of iets anders) genegeerd en wordt er een statusaanvraag verstuurd om de huidige status op te vragen zonder iets te wijzigen.",
+		"secondary-output-title": "Opties voor secundaire output",
+		"secondary-output-intro": "Je kan de secundaire output verfijnen zodat die beter aansluit bij je noden bij integratie met andere node-mechanismen (zie de nodehelp voor meer info).",
+		"secondary-output-name": "Eigenschapsnaam",
+		"secondary-output-name-placeholder": "bv. On / state / ... / (leeg)",
+		"secondary-output-name-info": "Is de naam van de eigenschap in de teruggegeven payload (dus payload.eigenschapsnaam). Indien leeg gelaten, wordt de payload teruggegeven als een enkele waarde (dus niet als object).",
+		"secondary-output-content": "Gegevenstype"
+	},
+
+
+
+	"mh-gateway":
+	{
+		"config":
+		{
+			"host": "IP-adres",
+			"port": "Poort",
+			"password":"Wachtwoord",
+			"keepalive": "Keep alive",
+			"keepalive-placeholder": "Verstuur elke ... seconden een 'keep alive'-bericht naar de BUS",
+			"keepalive-info": "Interval in seconden tussen tijdsaanvragen om de verbinding actief te houden (minimum 15 s, zet op 0 om het 'keep alive'-mechanisme uit te schakelen)",
+			"lights-onconnect-refreshloads":"Herladen",
+			"lights-onconnect-refreshloads-checkbox":"Status van alle verlichting opvragen bij (her)verbinding",
+			"lights-onconnect-refreshloads-info":"Wanneer de gateway succesvol verbindt, wordt de status van alle op de BUS aangesloten belastingen opgehaald. Alle gedeployde nodes worden hierdoor bijgewerkt en de bijhorende flows worden gestart.",
+			"advBusTracking": "Geavanceerde logopties voor BUS-tracking",
+			"advBusTracking-intro": "Standaard worden alle OpenWebNet-opdrachten die via de MyHome BUS worden ontvangen, niet gelogd.\nIndien nodig voor test- of trackingdoeleinden, kan je dit voor bepaalde onderdelen inschakelen. Let op: het aantal gelogde regels kan snel oplopen, vooral wanneer er energiebeheerelementen actief zijn op de BUS.\n\nIndien ingeschakeld, wordt het logniveau van deze output ingesteld op 'info'.",
+			"advBusTracking-incoming": "Inkomende opdrachten",
+			"type-lights": "Verlichting",
+			"type-lights-checkbox": "Alle verlichtingsevents",
+			"type-shutters": "Rolluiken",
+			"type-shutters-checkbox": "Alle rolluikevents",
+			"type-temperature": "Temperatuur",
+			"type-temperature-checkbox": "Alle events voor temperatuurregeling",
+			"type-scenario": "Scenario",
+			"type-scenario-checkbox": "Alle scenario-events (CEN/CEN+)",
+			"type-energy": "Energie",
+			"type-energy-checkbox": "Alle events voor energiebeheer",
+			"type-others": "Overige",
+			"type-others-checkbox": "Alle OVERIGE events",
+			"advBusTracking-outgoing": "Uitgaande opdrachten",
+			"type-sent": "Verstuurd",
+			"type-sent-checkbox": "Alle opdrachten verstuurd door flows"
+		},
+		"node":
+		{
+
+		}
+	}
+}

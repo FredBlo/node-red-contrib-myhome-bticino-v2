@@ -1,5 +1,3 @@
-/*jshint esversion: 8, strict: implied, node: true */
-
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
 
@@ -268,7 +266,7 @@ module.exports = function (RED) {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     this.processInput = function (msg) {
       if (typeof(msg) === 'string') {
-        try {msg = JSON.parse(msg);} catch(error){}
+        try {msg = JSON.parse(msg);} catch{}
       }
       // DEBUG MODE : ouput cache when button pressed by user directly in node config
       if (msg.__user_inject_props__ === 'DEBUG_SENDCACHE' || msg.payload === 'DEBUG_SENDCACHE') {
@@ -284,7 +282,7 @@ module.exports = function (RED) {
 
       // Get payload and apply conversions (Convert to object if not already so and Validate From/To date-times
       if (typeof(msg.payload) === 'string') {
-        try {msg.payload = JSON.parse(msg.payload);} catch(error){}
+        try {msg.payload = JSON.parse(msg.payload);} catch{}
       }
       if (typeof(msg.payload) !== 'object') {
         msg.payload = {'metered_From':msg.payload};
@@ -309,17 +307,19 @@ module.exports = function (RED) {
       let requiredCachedIDs = [];
       let commands = [];
       switch (metered_Scope) {
-        case 'instant':
+        case 'instant': {
           // Command 1 [WHAT=113] : Current power consumption (Instant, in Watts) [*#18*<Where>*113##]
           // Simple case : no cache, no date-time range to manage
           commands.push ('*#18*' + node.meterid + '*113##');
           break;
-        case 'day_uptonow':
+        }
+        case 'day_uptonow': {
           // Command 2 [WHAT=54] : Current daily consumption (today, in Wh) [*#18*where*54##])
           // Simple case : no cache, no date-time range to manage
           commands.push ('*#18*' + node.meterid + '*54##');
           break;
-        case 'day':
+        }
+        case 'day': {
           // 2 options exist for daily totals
           //  Command 3a [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##]
           //    Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
@@ -356,7 +356,8 @@ module.exports = function (RED) {
               processed_From.setDate (processed_From.getDate()+1);
           } while (processed_From <= processed_To);
           break;
-        case 'hour':
+        }
+        case 'hour': {
           // Command 4 [WHAT=511] : Daily consumption (specified month+day, in Wh) [*#18*<Where>*511#<M>#<D>##])
           // Note: is the same command for day & hour. Full day hourly details are returned (hour tag 1 -> 24 = hourly, hour tag 25 = daily total)
           // The gateway is only able to provide daily/hourly details for a range of 12 months : 11 before + current one. Define max date range
@@ -381,12 +382,14 @@ module.exports = function (RED) {
               processed_From.setHours (processed_From.getHours()+1);
           } while (processed_From <= processed_To);
           break;
-        case 'month_uptonow':
+        }
+        case 'month_uptonow': {
           // Command 5 [WHAT=53] : Current monthly consumption (up to today, in Wh) [*#18*where*53##]
           // Simple case : no cache, no date-time range to manage
           commands.push ('*#18*' + node.meterid + '*53##');
           break;
-        case 'month':
+        }
+        case 'month': {
           // Command 6 [WHAT=52] : Current monthly consumption (specified month, in Wh) [*#18*where*52#<Y>#<M>##])
           // Provided date are rounded to 1st day of month (for From) and last day of month (for To)
           processed_From = new Date(payload.metered_From.getFullYear() , payload.metered_From.getMonth() , 1);
@@ -403,11 +406,13 @@ module.exports = function (RED) {
               processed_From.setMonth (processed_From.getMonth()+1);
           } while (processed_From <= processed_To);
           break;
-        case 'sincebegin':
+        }
+        case 'sincebegin': {
           // Command 7 [WHAT=51] : Full consumption since begin (up to today, in Wh) [*#18*where*51##]
           // Simple case : no cache, no date-time range to manage
           commands.push ('*#18*' + node.meterid + '*51##');
           break;
+        }
       }
       if (commands.length === 0 && requiredCachedIDs.length === 0) {
         return;

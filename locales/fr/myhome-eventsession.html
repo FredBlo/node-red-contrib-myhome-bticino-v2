@@ -1,0 +1,72 @@
+<script type="text/html" data-help-name="myhome-eventsession">
+  <p>Le nœud de surveillance utilisé pour déclencher des flux selon toute commande lue sur le BUS du système MyHome.</p>
+    <ul>
+      <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+      <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+      <li><strong>Filtres de famille de commandes</strong> permet de définir quels types de commandes MyHome doivent déclencher de nouveaux flux.</li>
+    </ul>
+
+  <h3>Entrée</h3>
+    <p>(aucune)</p>
+
+  <h3>Sortie</h3>
+    <p>La <strong>sortie principale</strong> est une <em>[chaîne]</em> contenant la commande OpenWebNet lue sur le BUS MyHome.</p>
+    <p>
+      La <strong>sortie secondaire</strong> contient des informations analysées détaillées comme si le nœud fonctionnait en mode « universel » (c.-à-d. traitant toutes les trames reçues du BUS).
+      Le contenu du msg varie selon le type de famille :
+    </p>
+      <ul>
+        <li><strong>Lumières</strong> : détails de l'objet payload :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[chaîne]</em> contient la commande lue en protocole OpenWebNet (ex : <em>'*1*5*25##'</em> signifie que la charge 2.5 a été allumée à 50 %)</li>
+            <li> <code>payload.buslevel</code> <em>[chaîne]</em> : niveau de bus ('private_riser', '01', '02', ... '15')</li>
+            <li> <code>payload.state</code> <em>[chaîne]</em> valeur 'ON' ou 'OFF'</li>
+            <li> <code>payload.brightness</code> <em>[entier]</em> représente le pourcentage de luminosité actuel de la charge. Pour un non-gradable, 0 ou 100.</li>
+            <li> <code>payload.lightid</code> <em>[chaîne]</em> : ID de la lumière</li>
+            <li> <code>payload.isgroup</code> <em>[booléen]</em> : appel de groupe (true) ou appel point à point (false)</li>
+          </ul>
+        <li><strong>Volets</strong> : détails de l'objet payload :</li>
+            <ul>
+              <li> <code>payload.command_received</code> <em>[chaîne]</em> contient la commande lue en protocole OpenWebNet (ex : <em>'*2*2*25##'</em> signifie qu'une fermeture du volet 2.5 a été commencée)</li>
+              <li> <code>payload.buslevel</code> <em>[chaîne]</em> : niveau de bus ('private_riser', '01', '02', ... '15')</li>
+              <li> <code>payload.state</code> <em>[chaîne]</em> valeur 'STOP', 'OPEN' ou 'CLOSE'</li>
+              <li> <code>payload.shutterid</code> <em>[chaîne]</em> : ID du volet</li>
+              <li> <code>payload.isgroup</code> <em>[booléen]</em> : appel de groupe (true) ou appel point à point (false)</li>
+            </ul>
+        <li><strong>Température</strong> : détails de l'objet payload (lit uniquement la température actuelle en mode zone) :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[chaîne]</em> contient la commande lue en protocole OpenWebNet</li>
+            <li> <code>payload.zoneid</code> <em>[chaîne]</em> l'ID de la zone [1-99]</li>
+            <li> <code>payload.state</code> <em>[nombre]</em> la température mesurée actuelle (°C)</li>
+          </ul>
+        <li><strong>Scénario CEN/CEN+</strong> : détails de l'objet payload :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[chaîne]</em> contient la commande lue en protocole OpenWebNet (ex : <em>'*25*24#14*287##'</em> signifie que le bouton 14 du scénario 87 a terminé un appui long)</li>
+            <li> <code>payload.buslevel</code> <em>[chaîne]</em> : niveau de bus ('private_riser', '01', '02', ... '15')</li>
+            <li> <code>payload.scenariotype</code> <em>[chaîne]</em> valeur 'CEN' ou 'CEN+'</li>
+            <li> <code>payload.scenarioid</code> <em>[chaîne]</em> l'ID du scénario (pour CEN c'est une valeur A/PL, pour CEN+ c'est [0-2047])</li>
+            <li> <code>payload.buttonID</code> <em>[chaîne]</em> : bouton pressé [00-31]</li>
+            <li> <code>payload.actionType</code> <em>[chaîne]</em> : type d'action (peut être 'SHORT', 'LONG', 'LONG_ONGOING', ...)</li>
+          </ul>
+        <li><strong>Gestion d'énergie</strong> : détails de l'objet payload (lit uniquement le mode consommation instantanée) :</li>
+          <ul>
+            <li> <code>payload.command_received</code> <em>[chaîne]</em> contient la commande lue en protocole OpenWebNet</li>
+            <li> <code>payload.metertype</code> <em>[chaîne]</em> valeur 'meter' ou 'actuator'</li>
+            <li> <code>payload.meterscope</code> <em>[chaîne]</em> est toujours 'instant' en mode universel</li>
+            <li> <code>payload.meterid</code> <em>[chaîne]</em> : adresse (1 à 255) du compteur</li>
+            <li> <code>payload.metered_Power</code> <em>[entier]</em> : la puissance instantanée (W) mesurée</li>
+          </ul>
+      </ul>
+    <p>
+      <strong>Les deux sorties</strong> incluent également un objet additionnel <code>msg.mh_nodeConfigInfo</code> qui contient des données de configuration du nœud.
+      Cela peut être utilisé dans les flux pour rediriger les messages selon leur origine (c.-à-d. quel nœud les a émis) sans avoir à inclure des nœuds de changement à chaque étape.
+    </p>
+    <p>
+      Le <code>msg.mh_nodeConfigInfo</code> contient les valeurs de configuration du nœud :
+    </p>
+    <ul>
+      <li> <code>mh_nodeConfigInfo.name</code> <em>[chaîne]</em> : nom</li>
+      <li> <code>mh_nodeConfigInfo.ownFamilyName</code> <em>[chaîne]</em> : le nom de famille OpenWebNet (comme 'OWN_LIGHTS', 'OWN_SCENARIO', ...)</li>
+      <li> <code>mh_nodeConfigInfo.gateway</code> <em>[objet]</em> : informations sur la passerelle liée : nom (<code>.name</code>), hôte/IP (<code>.host</code>) et port (<code>.port</code>)</li>
+    </ul>
+</script>

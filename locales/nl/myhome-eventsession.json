@@ -1,0 +1,71 @@
+{
+	"common":
+	{
+		"_version_common": "2022.11.08",
+		"gateway": "Gateway",
+		"riser-private": "Privéstijgleiding",
+		"riser-localbus-01": "Lokale bus 1",
+		"riser-localbus-02": "Lokale bus 2",
+		"riser-localbus-03": "Lokale bus 3",
+		"riser-localbus-04": "Lokale bus 4",
+		"riser-localbus-05": "Lokale bus 5",
+		"riser-localbus-06": "Lokale bus 6",
+		"riser-localbus-07": "Lokale bus 7",
+		"riser-localbus-08": "Lokale bus 8",
+		"riser-localbus-09": "Lokale bus 9",
+		"riser-localbus-10": "Lokale bus 10",
+		"riser-localbus-11": "Lokale bus 11",
+		"riser-localbus-12": "Lokale bus 12",
+		"riser-localbus-13": "Lokale bus 13",
+		"riser-localbus-14": "Lokale bus 14",
+		"riser-localbus-15": "Lokale bus 15",
+		"input-label-simple": "eenvoudige modus ('payload' of 'payload.state')",
+		"name": "Naam",
+		"topic": "Topic",
+		"topic-info": "om de actie op deze node te activeren, mag je niet vergeten dat het binnenkomende 'msg' VERPLICHT een 'msg.topic' moet bevatten, namelijk 'state/__topicName__' (bij gebruik in alleen-lezen modus) of 'cmd/__topicName__' (bij gebruik in schrijfmodus); anders negeert de node het binnenkomende bericht.",
+		"option-smartfilter": "SmartFilter",
+		"option-smartfilter-checkbox": "Inkomende gateway-events filteren",
+		"option-smartfilter-info": "SmartFilter is standaard ingeschakeld, waardoor de node pas een nieuwe flow (m.a.w. output) activeert wanneer een status is GEWIJZIGD na ontvangst van een MyHome BUS-bericht.\nDit voorkomt dat er meerdere flows starten voor dezelfde info/opdracht, aangezien MyHome hetzelfde bericht meerdere keren verstuurt (bij statusaanvraag, antwoord, ...).\n\nOpmerking: SmartFilter wordt nooit toegepast wanneer de node in alleen-lezen modus (statusaanvraag) werkt.",
+		"option-smartfilter-out-checkbox": "Uitgaande opdrachten naar de gateway filteren",
+		"option-skipevents": "Events overslaan",
+		"option-skipevents-checkbox": "ALLE inkomende gateway-events overslaan",
+		"option-skipevents-info": "Indien nodig kunnen alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd worden, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.",
+		"option-readonly": "Alleen-lezen",
+		"option-readonly-checkbox": "Enkel de huidige status van de belasting opvragen",
+		"option-readonly-info": "Indien ingeschakeld, wordt de ontvangen payload (bijvoorbeeld 'ON', 'OFF' of iets anders) genegeerd en wordt er een statusaanvraag verstuurd om de huidige status op te vragen zonder iets te wijzigen.",
+		"secondary-output-title": "Opties voor secundaire output",
+		"secondary-output-intro": "Je kan de secundaire output verfijnen zodat die beter aansluit bij je noden bij integratie met andere node-mechanismen (zie de nodehelp voor meer info).",
+		"secondary-output-name": "Eigenschapsnaam",
+		"secondary-output-name-placeholder": "bv. On / state / ... / (leeg)",
+		"secondary-output-name-info": "Is de naam van de eigenschap in de teruggegeven payload (dus payload.eigenschapsnaam). Indien leeg gelaten, wordt de payload teruggegeven als een enkele waarde (dus niet als object).",
+		"secondary-output-content": "Gegevenstype"
+	},
+
+
+
+	"mh-eventsession":
+	{
+		"config":
+		{
+			"name-placeholder": "Naam van de monitoring",
+			"secondary-output-title": "Filters voor opdrachtfamilies definiëren",
+			"secondary-output-intro": "Je kan bepalen welke families van MyHome-events nieuwe Node-RED-flows moeten activeren.",
+			"type-lights": "Verlichting",
+			"type-lights-checkbox": "Alle verlichtingsevents",
+			"type-shutters": "Rolluiken",
+			"type-shutters-checkbox": "Alle rolluikevents",
+			"type-temperature": "Temperatuur",
+			"type-temperature-checkbox": "Alle events voor temperatuurregeling",
+			"type-scenario": "Scenario",
+			"type-scenario-checkbox": "Alle scenario-events (CEN/CEN+)",
+			"type-energy": "Energie",
+			"type-energy-checkbox": "Alle events voor energiebeheer",
+			"type-others": "Overige",
+			"type-others-checkbox": "Alle OVERIGE events"
+		},
+		"node":
+		{
+
+		}
+	}
+}

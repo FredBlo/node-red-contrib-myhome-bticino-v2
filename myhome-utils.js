@@ -1,5 +1,3 @@
-/*jshint esversion: 7, strict: implied, node: true */
-
 var exports = module.exports = {};
 
 const ACK  = '*#*1##';
@@ -10,7 +8,6 @@ const REFRESH_ALLLIGHTS = '*#1*0##';
 const SERVER_REQUIRES_HMAC1 = '*98*1##';
 const SERVER_REQUIRES_HMAC2 = '*98*2##';
 const INTER_COMMANDS_DELAY = 50; // ms
-let net = require('net');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MHUtils INTERNAL Function : Internal node event logger
@@ -90,7 +87,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
       return false;
     } else {
       // The gateway requires a basic password authentication, retrieve the key to generate a hashed password
-      let hashKey = packet.match(/^\*\#(\d+)\#\#/);
+      let hashKey = packet.match(/^\*#(\d+)##/);
       if (hashKey === null) {
         logNodeEvent (callingNode, 'warn', false, 'gateway connection : request to authenticate acknowledged, no valid key received for basic password check.');
       } else {
@@ -105,7 +102,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
   }
   if (persistentObj.state === 'authenticating_HMAC') {
     // The gateway sent a random hashed key (Ra) needed to build a hash with password for connection request (Ra,Rb,A,B,Kab)
-    let Ra = packet.match(/^\*\#(\d+)\#\#/);
+    let Ra = packet.match(/^\*#(\d+)##/);
     if (Ra === null) {
       logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 1 : invalid random hash (Ra) received from server [' + packet + ']');
     } else {
@@ -138,7 +135,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
       setTimeout (function() {
         logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started...');
         let success_callback = function (commands, cmd_responses, cmd_failed) {
-          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights was successful (' + cmd_responses.length + ' responded)');
+          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights was successful (' + cmd_responses.length + ' responded ; ' + cmd_failed.length + ' did not respond)');
         };
         let error_callback = function (cmd_failed, nodeStatusErrorMsg) {
           logNodeEvent (callingNode, 'warn', logEnabled, 'gateway connection : gathering status of all connected lights started FAILED : ' + nodeStatusErrorMsg);
@@ -182,7 +179,7 @@ function executeCommand (callingNode, commands, gateway, interCommandsDelay, pro
     if (typeof(cmd_failed) === 'string') {
       cmd_failed = [cmd_failed];
     }
-    let nodeStatusErrorMsg = '';
+    let nodeStatusErrorMsg;
     if (cmd_failed.length > 1) {
       nodeStatusErrorMsg = cmd_failed.length + ' commands failed.';
     } else {
@@ -417,7 +414,7 @@ function calcHMAC (Ra, password) {
   let crypto = require ('crypto');
 
   // Define which algorithm is being used based on received Ra length
-  let shaAlgo = '';
+  let shaAlgo;
   if (Ra.length === 80) {
     shaAlgo = 'sha1';
   } else if (Ra.length === 128) {

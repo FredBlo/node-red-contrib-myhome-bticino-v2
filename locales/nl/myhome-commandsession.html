@@ -1,0 +1,25 @@
+<script type="text/html" data-help-name="myhome-commandsession">
+  <p>MyHome Inject node om eender welke ondersteunde OpenWebNet-opdracht naar het MyHome-systeem te versturen.</p>
+    <ul>
+      <li><strong>Naam</strong> (verplicht) is de naam van de node</li>
+      <li><strong>Gateway</strong> is de gateway die geconfigureerd moet worden om verbinding te maken met het MyHome-systeem</li>
+      <li><strong>Vertraging (ms)</strong> is de aangepaste vertraging die wordt gewacht voordat een nieuwe opdracht naar de gateway wordt gestuurd.
+        <br>
+        Deze vertraging kan overschreven worden wanneer het binnenkomende bericht een waarde (in ms) bevat in <code>msg.rate</code>
+      </li>
+    </ul>
+
+  <h3>Ingangen</h3>
+    <p><code>msg.payload</code> moet de te versturen opdracht(en) bevatten, in OpenWebNet-formaat (dus '*WHO*WHAT*WHERE##'). Wanneer meerdere
+opdrachten verstuurd moeten worden, kan dit door ofwel een tekst te gebruiken met de opdrachten na elkaar, ofwel een array van teksten te gebruiken.</p>
+    <p><code>msg.rate</code> kan een numerieke waarde bevatten (een getal, of een tekst die naar een getal omgezet kan worden). Als de node overschrijven toelaat in zijn configuratie (zie hierboven), wordt deze waarde gebruikt als vertraging (in ms) die wordt toegepast voordat een nieuwe opdracht naar de BUS wordt gestuurd.</p>
+
+  <h3>Uitgang</h3>
+    <p>De <strong>output</strong> is een JSON-object <code>msg.payload</code> met</p>
+      <ul>
+        <li> <code>payload.command_sent</code> <em>[array van tekst]</em> bevat de opdrachten die verstuurd werden in het OpenWebNet-protocol (bv. <em>'*1*1*15##'</em> om belasting 1.5 aan te zetten)</li>
+        <li> <code>payload.command_responses</code> <em>[array van tekstwaarden]</em> bevat het/de antwoord(en) dat/die door de MyHome BUS werd(en) teruggestuurd in het OpenWebNet-protocol</li>
+        <li> <code>payload.command_failed</code> <em>[array van tekstwaarden]</em> bevat de opdrachten die door de MyHome-gateway geweigerd werden, in het OpenWebNet-protocol</li>
+      </ul>
+    <p>Opmerking: er wordt een fout teruggegeven wanneer ALLE opdrachten zijn mislukt. Zodra minstens 1 opdracht is geslaagd, wordt geen fout teruggegeven. </p>
+</script>

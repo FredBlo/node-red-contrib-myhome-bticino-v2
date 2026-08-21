@@ -1,5 +1,3 @@
-/*jshint esversion: 7, strict: implied, node: true */
-
 module.exports = function (RED) {
   let net = require ('net');
   let mhutils = require ('./myhome-utils');

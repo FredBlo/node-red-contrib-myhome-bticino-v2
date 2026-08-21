@@ -1,0 +1,162 @@
+<script type="text/html" data-help-name="myhome-thermo-zone">
+  <style>
+    #mh-tableinfo {width: 300px;font-size: small;}
+    #mh-tableinfo td, #mh-tableinfo th {border: 1px solid #ddd; padding: 2px; text-align: center;}
+    #mh-tableinfo tr:nth-child(even) {background-color: #f2f2f2;}
+    #mh-tableinfo th {background-color: #A6BBCF; color: white;}
+  </style>
+  <p>Ajoute un nœud MyHome Thermo Zone pour surveiller et appliquer des changements sur une zone thermo-contrôlée.</p>
+  <ul>
+    <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
+    <li><strong>Topic</strong> est utilisé sur le payload reçu pour déclencher l'action du nœud (voir les infos dans la définition des entrées)</li>
+    <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
+    <li><strong>Zone</strong> est l'adresse de la zone dans le système MyHome (1-99)</li>
+    <li><strong>Demander l'actualisation de l'état de la zone à la connexion</strong> : lorsqu'il est activé, l'état actuel de la zone est récupéré au chargement du nœud (déploiement ou démarrage de Node-RED). La collecte de données déclenchera des flux en conséquence, ce qui peut être utilisé pour (re)définir des valeurs dépendantes dans votre flux à l'initialisation.</li>
+    <li><strong>Demander uniquement le statut actuel</strong> : lorsqu'il est activé, le payload reçu (par ex. '20', 'AUTO', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel de la zone sans appliquer de changement.</li>
+    <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>
+    <li><strong>Filtrer les événements entrants de la passerelle</strong> : lorsqu'il est activé, le nœud ne déclenche un nouveau flux (sortie) que lorsqu'un état a CHANGÉ après réception d'un message MyHome BUS. Cela évite que plusieurs flux se déclenchent pour la même info/commande, car MyHome envoie le même message plusieurs fois (demande d'état, réponse, ...)
+      <br>Remarque : SmartFilter est appliqué uniquement aux événements reçus depuis le BUS (et non aux flux Node-RED).</li>
+    </li>
+  </ul>
+
+<h3>Entrées</h3>
+  <p><code>msg.payload</code> peut être de 2 types</p>
+    <ul>
+      <li>Une valeur simple <em>[chaîne]</em> est une commande valide de zone</li>
+      <li>Un Objet où <code>payload.state</code> est une commande valide de zone</li>
+      <p>Une <strong>commande de zone thermo-contrôlée</strong> valide est :</p>
+      <ul>
+        <li>un <strong>nombre</strong> ('20', '21.5', ...) : la zone passe en mode manuel et la température spécifiée est appliquée (min 2°C, max 43°C).</li>
+        <li><strong>OFF</strong> : la zone est mise hors tension.</li>
+        <li><strong>AUTO</strong> : la zone passe en mode automatique.</li>
+        <li><strong>PROTECT</strong> : la zone passe en mode protection générique.</li>
+        <li><strong>THERMAL_PROTECT</strong> : la zone passe en mode protection thermique (en climatisation).</li>
+        <li><strong>ANTIFREEZE</strong> : la zone passe en mode antigel (en chauffage).</li>
+      </ul>
+    </ul>
+  <p><code>msg.topic</code> est requis sur le <code>msg</code> reçu pour déclencher l'action du nœud : </p>
+    <ul>
+      <li>
+        en <strong>mode écriture</strong> : <code>msg.topic</code> doit être défini sur <code>cmd/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud.
+        <br>
+        Remarque : si le nœud est configuré en lecture seule, le contenu de msg.payload est ignoré et un rafraîchissement d'état sera réalisé.
+      </li>
+      <li>
+        en <strong>mode lecture seule</strong> : <code>msg.topic</code> doit être défini sur <code>state/xxxx</code> où xxxx est la valeur définie comme Topic dans la configuration du nœud.</li>
+        <br>
+        Remarque : même si le nœud n'est PAS configuré en lecture seule, le contenu de msg.payload est ignoré et un rafraîchissement d'état sera réalisé.
+    </ul>
+<h3>Sorties</h3>
+  <p>La <strong>sortie principale</strong> est un objet JSON <code>msg.payload</code> contenant :</p>
+    <ul>
+      <li> <code>payload.state</code> <em>[nombre]</em> la température mesurée actuelle</li>
+      <li> <code>payload.setTemperature</code> <em>[nombre]</em> la température définie comme point de consigne</li>
+      <li> <code>payload.operationType_ownValue</code> <em>[chaîne]</em> (référence technique : la valeur OpenWebNet du type d'opération)</li>
+      <li> <code>payload.operationType</code> <em>[chaîne]</em> le type d'opération actuel de la zone
+        <table id="mh-tableinfo">
+          <tr>  <th>ownValue</th>  <th>operationType</th>    </tr>
+          <tr>  <td>0</td>         <td>Conditionnement</td>       </tr>
+          <tr>  <td>1</td>         <td>Chauffage</td>            </tr>
+          <tr>  <td>102</td>       <td>Antigel</td>              </tr>
+          <tr>  <td>202</td>       <td>Protection thermique</td>  </tr>
+          <tr>  <td>303</td>       <td>Arrêt générique</td>       </tr>
+        </table>
+      </li>
+      <li> <code>payload.operationMode_ownValue</code> <em>[chaîne]</em> (référence technique : la valeur OpenWebNet du mode d'opération)</li>
+      <li> <code>payload.operationMode</code> <em>[chaîne]</em> le mode d'opération actuel de la zone
+        <table id="mh-tableinfo">
+          <tr>  <th>ownValue</th>  <th>operationMode</th>            </tr>
+          <tr>  <td>110</td>      <td>Chauffage manuel</td>          </tr>
+          <tr>  <td>210</td>      <td>Climatisation manuelle</td>     </tr>
+          <tr>  <td>111</td>      <td>Chauffage automatique</td>       </tr>
+          <tr>  <td>211</td>      <td>Climatisation automatique</td>   </tr>
+          <tr>  <td>103</td>      <td>Arrêt chauffage</td>            </tr>
+          <tr>  <td>203</td>      <td>Arrêt climatisation</td>        </tr>
+          <tr>  <td>102</td>      <td>Antigel</td>                    </tr>
+          <tr>  <td>202</td>      <td>Protection thermique</td>        </tr>
+        </table>
+      </li>
+      <li> <code>payload.localOffset_ownValue</code> <em>[chaîne]</em> (référence technique : la valeur OpenWebNet du décalage)</li>
+      <li> <code>payload.localOffset</code> <em>[chaîne]</em> la valeur est 'ON' ou 'OFF'
+        <table id="mh-tableinfo">
+          <tr>  <th>ownValue</th>  <th>localOffset</th>      </tr>
+          <tr>  <td>00</td>        <td>0 (pas de décalage)</td>    </tr>
+          <tr>  <td>01</td>        <td>1 (+1°C)</td>               </tr>
+          <tr>  <td>02</td>        <td>2 (+2°C)</td>               </tr>
+          <tr>  <td>03</td>        <td>3 (+3°C)</td>               </tr>
+          <tr>  <td>11</td>        <td>-1 (-1°C)</td>              </tr>
+          <tr>  <td>12</td>        <td>-2 (-2°C)</td>              </tr>
+          <tr>  <td>13</td>        <td>-3 (-3°C)</td>              </tr>
+          <tr>  <td>04</td>        <td>Local OFF</td>               </tr>
+          <tr>  <td>05</td>        <td>Protection locale</td>       </tr>
+        </table>
+      </li>
+      <li> <code>payload.actuatorStates</code> <em>[objet JSON]</em> contenant tous les états des actionneurs liés à la zone courante :
+        <ul>
+          <li><code>actuatorStates.On</code> <em>[booléen]</em> est 'true' lorsque le dernier actionneur pour lequel une info a été reçue est 'ON'</li>
+          <li><code>actuatorStates.actuator_x</code> <em>[objet JSON]</em> (où 'x' est '1-9', soit un objet par actionneur lié)
+            <ul>
+              <li><code>actuator_x.state_ownValue</code> <em>[chaîne]</em> (référence technique : la valeur OpenWebNet de l'état de l'actionneur)</li>
+              <li><code>actuator_x.state</code> <em>[chaîne]</em> contient l'état détaillé de l'actionneur</li>
+              <li><code>actuator_x.On</code> <em>[booléen]</em> contient 'true' lorsque l'actionneur est considéré comme 'actif'</li>
+              <table id="mh-tableinfo">
+                <tr>  <th>ownValue</th>    <th>state</th>          <th>.On state</th>   </tr>
+                <tr>  <td>0</td>           <td>OFF</td>            <td>false</td>      </tr>
+                <tr>  <td>1</td>           <td>ON</td>             <td>true</td>       </tr>
+                <tr>  <td>2</td>           <td>Opened</td>         <td>true</td>       </tr>
+                <tr>  <td>3</td>           <td>Closed</td>         <td>false</td>      </tr>
+                <tr>  <td>4</td>           <td>Stop</td>           <td>false</td>      </tr>
+                <tr>  <td>5</td>           <td>OFF Fan Coil</td>  <td>false</td>      </tr>
+                <tr>  <td>6</td>           <td>ON Vel 1</td>       <td>true</td>       </tr>
+                <tr>  <td>7</td>           <td>ON Vel 2</td>       <td>true</td>       </tr>
+                <tr>  <td>8</td>           <td>ON Vel 3</td>       <td>true</td>       </tr>
+                <tr>  <td>9</td>           <td>ON Fan Coil</td>   <td>true</td>       </tr>
+              </table>
+            </ul>
+          </li>
+        </ul>
+      <li> <code>payload.command_sent</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED (c.-à-d. des commandes envoyées à la passerelle MyHome), contient les commandes envoyées en protocole OpenWebNet (par ex. <em>'*#4*2*#14*0225*3##'</em> pour passer la zone '2' en mode manuel à 22.5°C)</li>
+      <li> <code>payload.command_received</code> <em>[chaîne]</em> lorsque le nœud est déclenché depuis la passerelle (c.-à-d. une commande détectée sur le BUS MyHome pour la zone configurée), contient la commande lue en protocole OpenWebNet (ex : <em>'*4*1*2'</em> signifie que l'opération de la zone '2' est 'Heating')</li>
+      <li> <code>payload.command_responses</code> <em>[tableau de chaînes]</em> lorsque le nœud est déclenché depuis Node-RED en mode lecture seule, contiendra la ou les réponses renvoyées par le BUS MyHome en protocole OpenWebNet</li>
+      <li> <code>payload.command_failed</code> <em>[tableau de chaînes]</em> contiendra les commandes refusées par la passerelle MyHome, en protocole OpenWebNet</li>
+    </ul>
+
+  <p>La <strong>sortie secondaire</strong> peut être configurée pour mieux correspondre aux besoins d'autres types de nœuds que vous utilisez, sans avoir à ajouter un nœud function/switch supplémentaire pour chaque connecteur.
+    <br>
+    <u>Exemples :</u>
+  </p>
+  <ul>
+    <li><strong>HUEMagic</strong> prend en charge :
+      <ul>
+        <li><code>payload</code> étant un booléen (true/false)</li>
+        <li><code>payload</code> étant un objet JSON où <code>.ON</code> est un booléen (true/false)</li>
+      </ul>
+    </li>
+    <li><strong>Homekit-bridge</strong> prend en charge :
+      <ul>
+        <li><code>payload</code> étant un objet JSON où <code>.On</code> est un booléen (true/false)</li>
+      </ul>
+      <p>(voir :&nbsp;<a title="homekit bridged" href="https://www.npmjs.com/package/node-red-contrib-homekit-bridged" target="_blank" rel="noopener">https://www.npmjs.com/package/node-red-contrib-homekit-bridged</a>) permet de gérer l'application iOS Home.</p>
+    </li>
+    <li><strong>MyHome</strong> prend en charge :
+      <ul>
+        <li><code>payload</code> étant soit un booléen (true/false) soit une chaîne (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> étant un objet JSON où <code>.state</code> est une chaîne (ON/OFF/OPEN/CLOSE/...)</li>
+        <li><code>payload</code> étant un objet JSON où <code>.On</code> est un booléen (true/false)</li>
+      </ul>
+    </li>
+  </ul>
+  <p>
+    <strong>Les deux sorties</strong> incluent également un objet additionnel <code>msg.mh_nodeConfigInfo</code> qui contient des données de configuration du nœud.
+    Cela peut être utilisé dans les flux pour rediriger les messages selon leur origine (c.-à-d. quel nœud les a émis) sans avoir à inclure des nœuds de changement à chaque étape.
+  </p>
+  <p>
+    Le <code>msg.mh_nodeConfigInfo</code> contient les valeurs de configuration du nœud :
+  </p>
+  <ul>
+    <li> <code>mh_nodeConfigInfo.name</code> <em>[chaîne]</em> : nom</li>
+    <li> <code>mh_nodeConfigInfo.topic</code> <em>[chaîne]</em> : topic</li>
+    <li> <code>mh_nodeConfigInfo.zoneid</code> <em>[chaîne]</em> : ID de zone [1-99]</li>
+    <li> <code>mh_nodeConfigInfo.gateway</code> <em>[objet]</em> : informations sur la passerelle liée : nom (<code>.name</code>), hôte/IP (<code>.host</code>) et port (<code>.port</code>)</li>
+  </ul>
+</script>
