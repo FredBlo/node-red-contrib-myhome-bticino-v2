@@ -24,28 +24,13 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-### v2.4.0 (latest available) - 01/2025
-- **MH Monitoring**
-  - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.ownFamilyName` and `.gateway` (object)
-  - ***Improvement*** : node has a second output which provides a structured payload object with analyzed information based on BUS received content, as it would be output by a specialized light, shutter,... node. It makes the monitoring node usable as a sort of 'universal node' : all events of one or multiple family types can be processed from a single monitoring node instead of having to add a node for each light, shutter,... point.
-  This currently supports (see Monitoring node documentation for full detailed payload content):
-    - **Lights** : any light point / group call
-    - **Shutters** : any shutter point / group call
-    - **Temperature** : only outputs current temperature update for any zone
-    - **Scenario** : outputs any button press for CEN/CEN+
-    - **Energy** : only outputs current consumption (instant) of any meter
-- **MH Light**
-  - ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.lightid`, `.isgroup` and `.gateway`*[object]*
-- **MH Shutter**
-	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.shutterid`, `.isgroup` and `.gateway`*[object]*
-- **MH Scenario**
-	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.buslevel`, `.scenarioid`, `.scenariotype` and `.gateway`*[object]*
-- **MH Temperature Central Unit**
-	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic` and `.gateway` *[object]*
-- **MH Temperature Zone**
-	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.zoneid` and `.gateway` *[object]*
-- **MH Energy** :
-	- ***Improvement*** : new object included in returned msg (`.mh_nodeConfigInfo`) which contains configuration node info : `.name`, `.topic`, `.meterid`, `.metertype`, `.meterscope` and `.gateway` *[object]*
+### v2.4.5 (latest available) - 08/2026
+- **General**
+  - ***Improvement*** : node set is now multilingual with 3 languages supported (for node configurations and help files):
+    - **English** (initially available)
+    - **French** new from 2.4.5 (A.I. assisted)
+    - **Dutch** new from 2.4.5 (A.I. assisted)
+  - ***Improvement*** : code reviewed to better match 2026 standards
 
 The **complete version history** is available in `CHANGELOG.md` file included in npm package or using this link to [GitHub repository](https://github.com/FredBlo/node-red-contrib-myhome-bticino-v2/blob/main/CHANGELOG.md)
 
