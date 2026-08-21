@@ -56,10 +56,11 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     let errorMsg = "Gateway connection/authentication failed (NACK). Last reached state was '" + persistentObj.state + "'";
     persistentObj.state = 'disconnected';
     error (startCommand, errorMsg); // error callback to stop function
+    return false;
   }
 
   // The connection procedure differs based on how authentication is defined
-  // - Open password check is not aske because we are connecting from an authorized IP range (=returns ACK directly)
+  // - Open password check is not asked because we are connecting from an authorized IP range (=returns ACK directly)
   // - Open password check must be made in basic mode (password is numeric, client receives a hash and 'merges' it with password to return a kind of a hash
   // - Open password check must be made in HMAC mode (password is alphanumeric, server first responds with the HMAC mode being used, when acknowledged by client,
   //    returns a server random hash (Ra) which the client must use to generate its own random part (Rb), and a full hash result using the password (Ra,Rb,A,B,Kab),
@@ -123,6 +124,7 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
       logNodeEvent (callingNode, 'warn', false, 'gateway connection : HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation, abording...');
       netSocket.write (NACK);
       error (startCommand, 'HMAC authentication step 2 : hashed response received from server (Ra,Rb,Kab) but did not match expectation.'); // error callback to stop function
+      return false;
     }
   }
   if (persistentObj.state === 'authenticating') {

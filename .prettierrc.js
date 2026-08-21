@@ -2,8 +2,8 @@ module.exports = {
   // Add semicolons at the end of statements (matches typical Node-RED codebase style)
   semi: true,
 
-  // Use double quotes (Node-RED core and most contrib nodes use double quotes)
-  singleQuote: false,
+  // Use single quotes (matches this repo's existing source style)
+  singleQuote: true,
 
   // 2-space indentation (standard across Node-RED core and the ecosystem)
   tabWidth: 2,
