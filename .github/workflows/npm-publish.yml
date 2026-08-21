@@ -21,6 +21,11 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    
+    # OpenID Connect (OIDC) publishing enabled on npmjs.com
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -30,7 +35,5 @@ jobs:
       with:
         node-version: '24.x'
         registry-url: 'https://registry.npmjs.org'
-    - run: npm install
+    - run: npm ci
     - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
