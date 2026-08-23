@@ -72,7 +72,7 @@
         checkboxEditable ('node-input-isstatusrequest' , isEditable, false);
       });
       $('#node-input-skipevents').on('change', function() {
-        // All gateway events are to be ignored. SmartFilter has nothig to filter (so assume is always 'forced on')
+        // All gateway events are to be ignored. SmartFilter has nothing to filter (so assume is always 'forced on')
         let isEditable = !($(this).prop('checked'));
         checkboxEditable ('node-input-smartfilter' , isEditable, true);
       });

@@ -138,7 +138,7 @@ module.exports = function (RED) {
           processedFrames++;
         }
       }
-      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      // Checks : all done, if nothing was processed, abort (no node / flow update detected), except when refresh is 'forced'
       if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }
@@ -257,7 +257,7 @@ module.exports = function (RED) {
             break;
           }
         }
-        // After having parsed commands, apply final command : MANUAL mode a different one, while other ar 'simply' a WHAT command
+        // After having parsed commands, apply final command : MANUAL mode a different one, while other are 'simply' a WHAT command
         if (isManualTemp || parseFloat(payload.state)) {
           // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
           //  - where = [#1 - #99] Setup zone by Central Unit

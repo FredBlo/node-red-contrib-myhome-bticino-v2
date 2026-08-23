@@ -76,11 +76,11 @@ module.exports = function (RED) {
       if (isTryingToConnect) {
         return;
       }
-      // Keep track of attempted connexions count and status (to avoid multiple attempts at the same time)
+      // Keep track of attempted connections count and status (to avoid multiple attempts at the same time)
       isTryingToConnect = true;
       failedConnectionAttempts++;
-      node.log ('gateway connection : instanciating client... (attempt #' + failedConnectionAttempts + ')');
-      // if no more clien available, re-init one
+      node.log ('gateway connection : instantiating client... (attempt #' + failedConnectionAttempts + ')');
+      // if no more client available, re-init one
       if (node.client === undefined) {
         node.client = new net.Socket();
       }
@@ -108,7 +108,7 @@ module.exports = function (RED) {
     function parseFrame (frame) {
       if (frame === NACK) {
         // When we have a non acknowledged return while connected, we ignore the error
-        // The MH201 returns a NACK on the keep alive process (which sends an ACK), and since MONITORING never sends commands, NACK can be ignore
+        // The MH201 returns a NACK on the keep alive process (which sends an ACK), and since MONITORING never sends commands, NACK can be ignored
         // internalError (START_MONITOR, 'Command not acknowledged (NACK) when already connected');
         return;
       }
@@ -178,10 +178,10 @@ module.exports = function (RED) {
     };
 
     instanciateClient (0);
-    // Once client is started, init a repeater which will keep connection alive (ony if configured so in gateway)
+    // Once client is started, init a repeater which will keep connection alive (only if configured so in gateway)
     // TechNote :
-    //  - sending a START_MONITOR command here cause some gateways (myHOMEServer1) to close connection, forcing a re-instatition, ACK is enough...
-    //  - but when sending a simple ACK, some (MH201) returned a NACK, which is now no longer forcing a disconection in the gateway.
+    //  - sending a START_MONITOR command here causes some gateways (myHOMEServer1) to close connection, forcing a re-instantiation, ACK is enough...
+    //  - but when sending a simple ACK, some (MH201) returned a NACK, which is now no longer forcing a disconnection in the gateway.
     function checkConnection() {
       if (failedConnectionAttempts === 0) {
         node.debug ('gateway connection : keeping connection alive every ' + node.timeout/1000 + 's ...');

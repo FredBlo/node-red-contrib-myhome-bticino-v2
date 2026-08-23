@@ -15,7 +15,7 @@ module.exports = function (RED) {
       let commands = msg.payload;
       let payload = {};
 
-      // Define delay to be applied between 2 commands (defaults to node config but can be overriden by msg.rate)
+      // Define delay to be applied between 2 commands (defaults to node config but can be overridden by msg.rate)
       let interCommandsDelay = interCommandsDelay_Cfg;
       if (interCommandsDelay_AllowOverride && !isNaN(msg.rate)) {
         interCommandsDelay = parseInt(msg.rate);

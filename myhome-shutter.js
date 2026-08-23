@@ -74,7 +74,7 @@ module.exports = function (RED) {
           processedFrames++;
         }
       }
-      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      // Checks : all done, if nothing was processed, abort (no node / flow update detected), except when refresh is 'forced'
       if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }

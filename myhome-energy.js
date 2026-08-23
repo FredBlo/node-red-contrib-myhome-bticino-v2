@@ -268,7 +268,7 @@ module.exports = function (RED) {
       if (typeof(msg) === 'string') {
         try {msg = JSON.parse(msg);} catch{}
       }
-      // DEBUG MODE : ouput cache when button pressed by user directly in node config
+      // DEBUG MODE : output cache when button pressed by user directly in node config
       if (msg.__user_inject_props__ === 'DEBUG_SENDCACHE' || msg.payload === 'DEBUG_SENDCACHE') {
         msg.payload = {'cachedInfo' : node.cachedInfo};
         node.send(msg);
@@ -430,8 +430,8 @@ module.exports = function (RED) {
           }
           // Once commands were sent, call internal function to force node info refresh
           // TechNote : if command was sent without any response received, it can be that responses are only sent on the BUS (not as responses)
-          // and/or some gateway are not compliant with OpenWebNet doc (i.e. sending on the BUS only but not to command-caller)
-          // In this case, we will wait a bit + keep waiting as long as this node receives responses directly form the BUS during last xx ms.
+          // and/or some gateways are not compliant with OpenWebNet doc (i.e. sending on the BUS only but not to command-caller)
+          // In this case, we will wait a bit + keep waiting as long as this node receives responses directly from the BUS during last xx ms.
           // This is only available when cache is enabled (otherwise info processed are not kept in memory outside of caller flow anyway)
           let waitBUSDelay = (node.enableCache && commands.length > 0 && (cmd_responses.length + cmd_failed.length) === 0) ? 200 : 0;
           async function processReceivedBUSFrames_delayed (initialDelay , interDelay , maxTotalDelay) {

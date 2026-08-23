@@ -55,7 +55,7 @@ module.exports = function (RED) {
         if (frameMatch !== null) {
           if ((frameMatch[1] === '0') || (frameMatch[1] === '1')) {
             payloadInfo.state = (frameMatch[1] === '1') ? 'ON' : 'OFF';
-            // When light is turned off, it it had a brightness level gathered before, reset it to 0
+            // When light is turned off, if it had a brightness level gathered before, reset it to 0
             if (typeof(payloadInfo.brightness) !== 'undefined') {
               payloadInfo.brightness = 0;
             }
@@ -78,7 +78,7 @@ module.exports = function (RED) {
           processedFrames++;
         }
       }
-      // Checks : all done, if nothing was processed, abord (no node / flow update detected), excepted when refresh is 'forced'
+      // Checks : all done, if nothing was processed, abort (no node / flow update detected), except when refresh is 'forced'
       if (processedFrames === 0 && !forceRefreshAndMsg) {
         return;
       }

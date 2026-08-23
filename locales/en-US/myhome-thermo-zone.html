@@ -91,10 +91,10 @@
           <tr>  <td>05</td> 	   		<td>Local protection</td>	</tr>
         </table>
       </li>
-      <li> <code>payload.actuatorStates</code> <em>[JSON object]</em> containing all the states of actuators binded to current zone:
+      <li> <code>payload.actuatorStates</code> <em>[JSON object]</em> containing all the states of actuators bound to current zone:
         <ul>
           <li><code>actuatorStates.On</code> <em>[boolean]</em> is 'true' when the last actuator for which info was received is 'ON'</li>
-          <li><code>actuatorStates.actuator_x</code> <em>[JSON object]</em> (where 'x' is '1-9', i.e. 1 object per binded actuator)
+          <li><code>actuatorStates.actuator_x</code> <em>[JSON object]</em> (where 'x' is '1-9', i.e. 1 object per bound actuator)
             <ul>
               <li><code>actuator_x.state_ownValue</code> <em>[string]</em> (technical reference : the OpenWebNet value for the actuator's state)</li>
               <li><code>actuator_x.state</code> <em>[string]</em> contains the detailed state of the actuator</li>
