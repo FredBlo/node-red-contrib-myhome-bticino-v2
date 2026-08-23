@@ -1,9 +1,9 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.4.5 (latest available) - 08/2026
+### v2.4.5 & 2.4.6 (latest available) - 08/2026
 - **General**
   - ***Improvement*** : node set is now multilingual with 3 languages supported (for node configurations and help files):
-    - **English** (initially available)
+    - **English** (initially available) + many typo's corrected here and there
     - **French** new from 2.4.5 (A.I. assisted)
     - **Dutch** new from 2.4.5 (A.I. assisted)
   - ***Improvement*** : code reviewed to better match 2026 standards

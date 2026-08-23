@@ -24,10 +24,10 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-### v2.4.5 (latest available) - 08/2026
+### v2.4.5 & 2.4.6 (latest available) - 08/2026
 - **General**
   - ***Improvement*** : node set is now multilingual with 3 languages supported (for node configurations and help files):
-    - **English** (initially available)
+    - **English** (initially available) + many typo's corrected here and there
     - **French** new from 2.4.5 (A.I. assisted)
     - **Dutch** new from 2.4.5 (A.I. assisted)
   - ***Improvement*** : code reviewed to better match 2026 standards
