@@ -1,7 +1,11 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.08",
+		"_version_common": "2026.09.01",
+		"points-group-prefix": "Gr.",
+		"energy-metertype-meter": "Power management meter",
+		"energy-metertype-actuator": "Power management actuator",
+		"points-unnamed-description": "(undefined)",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",
@@ -73,7 +77,13 @@
 			"inputlabel-daterange": "payload with a valid '.Topic' will trigger \ndata collection for date-time range \nfrom '.metered_From' to '.metered_To'",
 			"secondary-output-content-pwr": ".metered_Power (number in W__h__)",
 			"secondary-output-content-pwr-txt": ".metered_Power (text in kW__h__)",
-			"secondary-output-content-pwr-info": ".metered_Info (array of metered details)"
+			"secondary-output-content-pwr-info": ".metered_Info (array of metered details)",
+			"ap-browse-button": "Browse energy points registered on the selected gateway",
+			"ap-browse-noroom": "(no room)",
+			"ap-browse-empty": "No energy points registered yet on this gateway. Open the gateway configuration and add new on the 'Energy' section.",
+			"ap-browse-loading": "Loading...",
+			"ap-browse-unregistered": "Not yet registered on the gateway",
+			"ap-browse-search-placeholder": "Search by room, description or address..."
 		},
 		"node":
 		{

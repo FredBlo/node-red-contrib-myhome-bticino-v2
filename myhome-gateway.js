@@ -8,6 +8,15 @@ module.exports = function (RED) {
   const RESTART_CONNECT_TIMEOUT = 500; // ms
   const RESTART_CONNECT_TIMEOUT_MAX = 30000; // ms
 
+  // WHO=4 passive discovery, one regex per frame shape myhome-thermo-zone.js itself reads
+  const ZONE_DISCOVERY_REGEXES = [
+    /^\*#4\*([1-9]\d?)\*(?:0|14)\*\d{4}(?:\*3)?##/, // master probe temperature / set-point temperature
+    /^\*4\*\d+\*([1-9]\d?)##/,                       // zone operation mode (master-probe WHERE)
+    /^\*#4\*([1-9]\d?)#\d\*20\*\d##/,                // actuator status for zone
+    /^\*#4\*([1-9]\d?)\*13\*\d{2}##/,                // local offset status
+    /^\*4\*\d{3}\*#([1-9]\d?)##/                     // zone operation mode via Central Unit
+  ];
+
   function MyHomeGatewayNode (config) {
     RED.nodes.createNode (this, config);
 
@@ -21,15 +30,18 @@ module.exports = function (RED) {
     node.port = config.port;
     node.pass = config.pass || '';
     node.lights_onconnect_refreshloads = config.lights_onconnect_refreshloads;
+    node.shutters_onconnect_refreshstate = config.shutters_onconnect_refreshstate;
+    node.points = Array.isArray (config.points) ? config.points : []; // BUS points registry (room/description/icon/... per category) - read by device nodes for msg.mh_nodeConfigInfo
     node.log_out_cmd = config.log_out_cmd || false;
+    node.discoveredPoints = { light: {}, shutter: {}, energy: {}, thermozone: {} }; // all points for which something was seen on the BUS. Used by the gateway config editor for auto-discovered points
     node.log_config = {
       "log_out_cmd": config.log_out_cmd || false,
-      "log_in_lights ": config.log_in_lights || false,
-      "log_in_shutters ": config.log_in_shutters || false,
+      "log_in_lights": config.log_in_lights || false,
+      "log_in_shutters": config.log_in_shutters || false,
       "log_in_temperature": config.log_in_temperature || false,
-      "log_in_scenario ": config.log_in_scenario || false,
-      "log_in_energy ": config.log_in_energy || false,
-      "log_in_others ": config.log_in_others || false
+      "log_in_scenario": config.log_in_scenario || false,
+      "log_in_energy": config.log_in_energy || false,
+      "log_in_others": config.log_in_others || false
     };
     node.timeout = (Number(config.timeout) || 0)*1000; // ms
     node.setMaxListeners (100);
@@ -120,34 +132,73 @@ module.exports = function (RED) {
         let ownFamilyName = "";
         if (ownFamily !== null) {
           switch (ownFamily[1]) {
-            case '1':
+            case '1': {
               // WHO = 1 : Lighting
               loggingEnabled = node.log_config.log_in_lights;
               ownFamilyName = 'OWN_LIGHTS';
+              // Passively note down which AP this frame came from (WHERE), whatever its state (WHAT) is
+              let whereMatch = frame.match (/^\*1\*\d+\*(#?\d{1,4})(#4#(\d\d))?##/);
+              if (whereMatch) {
+                let buslevel = whereMatch[3] || '';
+                let pointid = whereMatch[1].replace ('#', '');
+                let isgroup = whereMatch[1].charAt(0) === '#';
+                let pointbusid = whereMatch[1] + (whereMatch[2] || '');
+                node.discoveredPoints.light[pointbusid] = {buslevel: buslevel, pointid: pointid, isgroup: isgroup};
+              }
               break;
-            case '2':
+            }
+            case '2': {
               // WHO = 2 : Automation (Shutters management)
               loggingEnabled = node.log_config.log_in_shutters;
               ownFamilyName = 'OWN_SHUTTERS';
+              // Passively note down which AP this frame came from (WHERE), whatever its state (WHAT) is
+              let whereMatch = frame.match (/^\*2\*\d+\*(#?\d{1,4})(#4#(\d\d))?##/);
+              if (whereMatch) {
+                let buslevel = whereMatch[3] || '';
+                let pointid = whereMatch[1].replace ('#', '');
+                let isgroup = whereMatch[1].charAt(0) === '#';
+                let pointbusid = whereMatch[1] + (whereMatch[2] || '');
+                node.discoveredPoints.shutter[pointbusid] = {buslevel: buslevel, pointid: pointid, isgroup: isgroup};
+              }
               break;
-            case '4':
+            }
+            case '4': {
               // WHO = 4 : Temperature Control/Heating
               loggingEnabled = node.log_config.log_in_temperature;
               ownFamilyName = 'OWN_TEMPERATURE';
+              // Passively note down which zone this frame came from (WHERE) - see ZONE_DISCOVERY_REGEXES above.
+              for (let re of ZONE_DISCOVERY_REGEXES) {
+                let whereMatch = frame.match (re);
+                if (whereMatch) {
+                  node.discoveredPoints.thermozone[whereMatch[1]] = {buslevel: 'private_riser', pointid: whereMatch[1], isgroup: false};
+                  break;
+                }
+              }
               break;
-            case '15' : case '25' :
+            }
+            case '15' : case '25' : {
               // WHO = 15 (CEN) / 25 (CEN+) : Scenario Management
               loggingEnabled = node.log_config.log_in_scenario;
               ownFamilyName = 'OWN_SCENARIO';
               break;
-            case '18':
+            }
+            case '18': {
               // WHO = 18 : Energy Management
               loggingEnabled = node.log_config.log_in_energy;
               ownFamilyName = 'OWN_ENERGY';
+              // Passively note down which meter/actuator this frame came from (WHERE), only forsponse, not a bare request
+              let whereMatch = frame.match (/^\*#18\*(5\d{1,3}|7\d{1,3}#0)\*[\d#]+\*(\d+\*)?\d+##/);
+              if (whereMatch) {
+                let isActuator = whereMatch[1].indexOf ('#0') >= 0;
+                let pointid = whereMatch[1].replace (/^[57]/, '').replace ('#0', '');
+                node.discoveredPoints.energy[whereMatch[1]] = {buslevel: (isActuator ? 'actuator' : 'meter'), pointid: pointid, isgroup: false};
+              }
               break;
-            default:
+            }
+            default: {
               loggingEnabled = node.log_config.log_in_others;
               ownFamilyName = 'OWN_OTHERS';
+            }
           }
         }
         if (loggingEnabled) {
@@ -209,4 +260,15 @@ module.exports = function (RED) {
     });
   }
   RED.nodes.registerType ('myhome-gateway', MyHomeGatewayNode);
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Admin endpoint used by the gateway config editor's points-registry sections to read AP passively
+  // observed so far on the bus (see node.discoveredPoints above) - a plain read of already-known state,
+  // triggers nothing on the bus itself, so it is safe to call every time the editor dialog opens.
+  // A category not (yet) tracked in node.discoveredPoints simply returns no points, not an error.
+  RED.httpAdmin.get ('/myhome-bticino/gateway/:id/discovered-points/:category', RED.auth.needsPermission ('myhome-gateway.read'), function (req, res) {
+    let gatewayNode = RED.nodes.getNode (req.params.id);
+    let categoryPoints = gatewayNode ? gatewayNode.discoveredPoints[req.params.category] : undefined;
+    res.json ({points: categoryPoints ? Object.values (categoryPoints) : []});
+  });
 };

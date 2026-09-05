@@ -37,6 +37,10 @@
   <br> <i>[5] myHOMEServer1 n'autorise pas le passage d'une zone en chauffage manuel (en spécifiant un point de consigne de température manuel)</i>
   <br> <i>[6] F455 renvoie des résultats très instables/incohérents pour les appels horaires et quotidiens. Le cache des nœuds doit être activé pour corriger la plupart d'entre eux lorsque les nœuds fonctionnent depuis un moment...</i>
 
+  <h3>Registre des points lumineux</h3>
+    <p>L'onglet <strong>Lumières</strong> permet de maintenir une liste des points lumineux (AP) connus (Bus principal uniquement pour l'instant), chacun avec une pièce, une icône, une description et une indication s'il s'agit d'un groupe. Ce registre vise à faciliter le choix d'un AP depuis le nœud 'MH Light' (parcourir par pièce plutôt que retenir un code à 2/4 chiffres), et ne change rien au comportement du nœud 'MH Light' lui-même.</p>
+    <p>Tout AP qui répond sur le BUS - que ce soit via son propre changement d'état en usage normal, ou via le rafraîchissement 'Recharger' au (re)connect déjà présent ci-dessus - est automatiquement ajouté ici aussi s'il n'y est pas déjà (les nouvelles entrées reçoivent la pièce 'nouveau' et une description non définie, à vous de les compléter). Les entrées existantes ne sont jamais écrasées de cette façon, et rien n'est envoyé en plus sur le BUS pour que cela se produise.</p>
+
   <h3>Options de journalisation du BUS</h3>
     <p>Pour éviter de surcharger la console Node-RED (et les logs), les messages MyHome BUS surveillés ne sont pas journalisés par défaut. Cela peut être activé par type lorsque nécessaire.</p>
     <p>Lorsque les commandes sortantes sont journalisées, la pile complète de connexion est également enregistrée pour chaque commande envoyée.</p>

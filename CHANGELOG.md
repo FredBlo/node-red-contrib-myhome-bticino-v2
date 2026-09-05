@@ -1,6 +1,18 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v2.4.5 & 2.4.6 (latest available) - 08/2026
+### v3.0.0  (latest available) - 09/2026
+- **General**
+  - ***Improvement*** : many typo's, translations were corrected / improved to better fit within UI constraints
+- **MH Gateway**
+  - ***Improvement*** : the gateway configuration now includes a **BUS points registry**. Each type (lights, shutters, energy,...) can now be managed by defining a list of known points , each with a room, a description and an icon. This enables to no longer have to keep a separate note of which codes maps to which physical light/shutter/energy ID/...
+  Points which respond on the BUS (from normal use, or from the existing on-(re)connect refresh) are automatically added to the list if not already present, and it is possible to add your own alongside.
+  - ***Improvement*** : a new option was added to gather states of all BUS connected shutters on (re)connection, mirroring the existing lights option. This can be configured in the gateway, and is disabled by default for new installs (unlike the lights option).
+  - ***Bug fix*** : the "Advanced BUS tracking logging options" for **Lights**, **Shutters**, **Scenario**, **Energy** and **Others** had no effect (only **Temperature** worked). All 5 now correctly enable/disable their logging as configured.
+- **MH Light** / **MH Shutter** / **MH Temperature Zone** / **MH Energy**
+  - ***Improvement*** : each point can be selected using the list of registered lights from the gateway or by typing a code manually as before. When point is registered at the gateway level, summary info is displayed for easier readings.
+  - ***Improvement*** : `msg.mh_nodeConfigInfo` now also includes `.room` and `.description` (when a matching entry was found in the gateway's registry) and `.pointid_UI` (the human-readable A.PL address, e.g. `1.1` or `10.5` instead of `11` or `1005` for lights).
+
+### v2.4.5 & 2.4.6 - 08/2026
 - **General**
   - ***Improvement*** : node set is now multilingual with 3 languages supported (for node configurations and help files):
     - **English** (initially available) + many typo's corrected here and there

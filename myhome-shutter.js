@@ -1,5 +1,6 @@
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
+  let mhcommon = require ('./resources/myhome-common-utils');
 
   function MyHomeShutterNode (config) {
     RED.nodes.createNode (this, config);
@@ -90,12 +91,16 @@ module.exports = function (RED) {
             payload.command_received = frame;
           }
           // MSG1 : add major node configuration info on both returned message
+          let registeredPoint = mhcommon.findRegisteredPoint (gateway.points, 'shutter', config.buslevel, config.shutterid, config.isgroup);
           msg.mh_nodeConfigInfo = {
           	'name' : config.name ,
           	'topic' : config.topic ,
           	'buslevel' : config.buslevel ,
           	'shutterid' : config.shutterid ,
           	'isgroup' : config.isgroup ,
+          	'room' : (registeredPoint ? registeredPoint.room : '') ,
+          	'description' : (registeredPoint ? registeredPoint.description : '') ,
+          	'pointid_UI' : mhcommon.buildAPL_Dotted (config.shutterid, config.isgroup) ,
           	'gateway' : {
           		'name' : gateway.name ,
           		'host' : gateway.host ,

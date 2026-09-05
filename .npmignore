@@ -7,3 +7,4 @@ eslint.config.js
 .prettierignore
 .vscode/
 CLAUDE.md
+.claude/

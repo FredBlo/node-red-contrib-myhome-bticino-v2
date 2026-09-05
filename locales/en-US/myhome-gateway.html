@@ -37,6 +37,10 @@
   <br> <i>[5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
   <br> <i>[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Nodes caching must be enabled to correct most of them when nodes are running for a while...</i>
 
+  <h3>Lights points registry</h3>
+    <p>The <strong>Lights</strong> tab lets you maintain a list of known light AP (private riser only for now), each with a room, an icon, a description and whether it is a group. This registry is meant to make picking an AP easier from the 'MH Light' node (browse by room instead of remembering a 2/4-digit code), and does not change how the 'MH Light' node itself behaves.</p>
+    <p>Any AP that responds on the BUS - whether from its own status changing during normal use, or from the existing 'Reload' on-(re)connect refresh above - is automatically added here too if not already present (new entries get room 'new' and an undefined description, ready for you to fill in). Existing entries are never overwritten this way, and nothing extra is sent to the BUS to make this happen.</p>
+
   <h3>BUS logging options</h3>
     <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>
     <p>When outgoing commands are logged, the full connection stack is logged too, for every command sent.</p>

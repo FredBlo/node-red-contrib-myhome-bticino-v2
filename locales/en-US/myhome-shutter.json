@@ -1,7 +1,11 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.08",
+		"_version_common": "2026.09.01",
+		"points-group-prefix": "Gr.",
+		"energy-metertype-meter": "Power management meter",
+		"energy-metertype-actuator": "Power management actuator",
+		"points-unnamed-description": "(undefined)",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",
@@ -51,7 +55,13 @@
 			"topic-placeholder": "e.g. firstfloor-office",
 			"shutterid": "Shutter",
 			"shutterid-placeholder": "32 (for shutter 3.2 or group 32)",
-			"shutter-isgroup": "This is a group reference",
+			"shutter-isgroup": "is a group",
+			"ap-browse-button": "Browse shutter points registered on the selected gateway",
+			"ap-browse-noroom": "(no room)",
+			"ap-browse-empty": "No shutter points registered yet on this gateway. Open the gateway configuration and add new on the 'Shutters' section.",
+			"ap-browse-loading": "Loading...",
+			"ap-browse-unregistered": "Not yet registered on the gateway",
+			"ap-browse-search-placeholder": "Search by room, description or address...",
 			"secondary-output-content-state-boolean": ".state (boolean: true / false)",
 			"secondary-output-content-state-txt": ".state (string: OPEN / CLOSE / STOP)"
 		},

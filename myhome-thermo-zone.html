@@ -1,4 +1,6 @@
+<script src="resources/node-red-contrib-myhome-bticino-v2/myhome-common-utils.js"></script>
 <script type="text/javascript">
+  /* global setupApPointPicker */
   RED.nodes.registerType('myhome-thermo-zone',{
     category: 'Bticino MyHome',
     color: '#a6bbcf',
@@ -52,6 +54,9 @@
         $('#node-info-topic').prop('title' , topicInfo);
       });
 
+      // No group or bus-level concept - both fields are simply absent from this template.
+      setupApPointPicker(scope, {category: 'thermozone', addressField: 'zoneid', i18nPrefix: 'mh-thzone', defaultIcon: 'mdi-thermometer', plainId: true});
+
       function checkboxEditable (checkBoxID , isEditable, readonlyValue) {
         // Function to turn checkbox uneditable (=greyed out box & label, disabled access and value forced), or back editable
         $('#' + checkBoxID)
@@ -87,9 +92,29 @@
   <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
 
   <div class="form-row">
-      <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> <span data-i18n="mh-thzone.config.zoneid"></span></label>
-      <input type="text" id="node-input-zoneid" placeholder="1-99"/>
+    <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> <span data-i18n="mh-thzone.config.zoneid"></span></label>
+    <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+      <div style="position: absolute; left: 0px; right: 44px; top:0px;">
+        <input type="text" id="node-input-zoneid" style="width:100%" placeholder="1-99"/>
+      </div>
+      <div style="position: absolute; right: 0px; top:0px;">
+        <button type="button" id="node-input-zoneid-browse-btn" class="red-ui-button" data-i18n="[title]mh-thzone.config.ap-browse-button"><i class="fa fa-search"></i></button>
+      </div>
+    </div>
   </div>
+  <div id="node-input-zoneid-browse-panel" style="display:none; position:fixed; z-index:10000; flex-direction:column; box-sizing:border-box; background:#fff; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:#202020;">
+    <input type="text" id="node-input-zoneid-browse-search" style="width:100%; box-sizing:border-box; height:30px; margin-bottom:4px; font-family:inherit; font-size:inherit; color:inherit;" data-i18n="[placeholder]mh-thzone.config.ap-browse-search-placeholder"/>
+    <div id="node-input-zoneid-browse-loading" style="display:none; padding:8px; color:#888;"><i class="fa fa-spinner fa-spin"></i> <span data-i18n="mh-thzone.config.ap-browse-loading"></span></div>
+    <div id="node-input-zoneid-browse-empty" style="display:none; padding:8px; color:#888;" data-i18n="mh-thzone.config.ap-browse-empty"></div>
+    <div id="node-input-zoneid-browse-tree" style="overflow-y:auto; flex:1 1 auto;"></div>
+  </div>
+  <div class="form-row">
+    <label></label>
+    <div style="display:inline-block; width:70%; background:#EFEFEF; border:1px solid #d6d6d6; border-radius:4px; padding:2px 8px; box-sizing:border-box;">
+      <span id="node-input-zoneid-recap-icon" style="display:inline-flex; vertical-align:middle;"></span><span id="node-input-zoneid-recap-text" style="margin-left:6px; vertical-align:middle; color:#505050;"></span>
+    </div>
+  </div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
   <div class="form-row">
     <label for="node-input-thermo_onconnect_refreshstate"><i class="fa fa-refresh"></i> <span data-i18n="mh-thzone.config.thermo-onconnect-refreshstate"></span></label>
     <label for="node-input-thermo_onconnect_refreshstate" style="width:70%">
