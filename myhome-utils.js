@@ -4,10 +4,17 @@ const ACK  = '*#*1##';
 const NACK = '*#*0##';
 const START_COMMAND = '*99*0##';
 const START_MONITOR = '*99*1##';
-const REFRESH_ALLLIGHTS = '*#1*0##';
 const SERVER_REQUIRES_HMAC1 = '*98*1##';
 const SERVER_REQUIRES_HMAC2 = '*98*2##';
 const INTER_COMMANDS_DELAY = 50; // ms
+// Refresh all states on (re)connect management : for lights and shutters only, by calling a state on GENERAL (WHERE=0)
+// Can be enabled per type in Gateway config. An object is built beforehand to manage parameters of both types
+const REFRESH_ALLLIGHTS = '*#1*0##';
+const REFRESH_ALLSHUTTERS = '*#2*0##';
+const ONCONNECT_REFRESH_COMMANDS = [
+  { confignode_refreshflag: 'lights_onconnect_refreshloads', command: REFRESH_ALLLIGHTS, label: 'lights' },
+  { confignode_refreshflag: 'shutters_onconnect_refreshstate', command: REFRESH_ALLSHUTTERS, label: 'shutters' }
+];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MHUtils INTERNAL Function : Internal node event logger
@@ -59,24 +66,29 @@ function processInitialConnection (startCommand, packet, netSocket, callingNode,
     return false;
   }
 
-  // Reached once authentication (if any) succeeded : mark as connected and optionally kick off a lights refresh
+  // Reached once authentication (if any) succeeded : mark as connected and optionally kick off a
+  // lights/shutters/... refresh (see ONCONNECT_REFRESH_COMMANDS above)
   function completeConnection () {
     logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : Connection successful !');
     persistentObj.state = 'connected';
-    // When starting the monitoring (i.e. the calling node is the gateway), refresh all connected lights if configured so.
+    // When starting the monitoring (i.e. the calling node is the gateway), refresh all connected
+    // lights/shutters/... if configured so, per category.
     // TechNote : the command is delayed by a few seconds. During tests, without such delay, the gateway did not respond (or only partially) is if it was too busy
-    if (startCommand === START_MONITOR && callingNode.lights_onconnect_refreshloads) {
-      logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights within a few seconds...');
-      setTimeout (function() {
-        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights started...');
-        let success_callback = function (commands, cmd_responses, cmd_failed) {
-          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected lights was successful (' + cmd_responses.length + ' responded ; ' + cmd_failed.length + ' did not respond)');
-        };
-        let error_callback = function (cmd_failed, nodeStatusErrorMsg) {
-          logNodeEvent (callingNode, 'warn', logEnabled, 'gateway connection : gathering status of all connected lights started FAILED : ' + nodeStatusErrorMsg);
-        };
-        executeCommand (callingNode, REFRESH_ALLLIGHTS, gateway, 0, false, success_callback, error_callback);
-      } , 3000);
+    if (startCommand === START_MONITOR) {
+      ONCONNECT_REFRESH_COMMANDS.forEach (function (refresh) {
+        if (!callingNode[refresh.confignode_refreshflag]) { return; }
+        logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected ' + refresh.label + ' within a few seconds...');
+        setTimeout (function() {
+          logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected ' + refresh.label + ' started...');
+          let success_callback = function (commands, cmd_responses, cmd_failed) {
+            logNodeEvent (callingNode, 'debug', logEnabled, 'gateway connection : gathering status of all connected ' + refresh.label + ' was successful (' + cmd_responses.length + ' responded ; ' + cmd_failed.length + ' did not respond)');
+          };
+          let error_callback = function (cmd_failed, nodeStatusErrorMsg) {
+            logNodeEvent (callingNode, 'warn', logEnabled, 'gateway connection : gathering status of all connected ' + refresh.label + ' started FAILED : ' + nodeStatusErrorMsg);
+          };
+          executeCommand (callingNode, refresh.command, gateway, 0, false, success_callback, error_callback);
+        } , 3000);
+      });
     }
     return true;
   }

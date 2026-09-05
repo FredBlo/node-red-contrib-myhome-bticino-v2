@@ -1,7 +1,11 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.08",
+		"_version_common": "2026.09.01",
+		"points-group-prefix": "Gr.",
+		"energy-metertype-meter": "Power management meter",
+		"energy-metertype-actuator": "Power management actuator",
+		"points-unnamed-description": "(undefined)",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",
@@ -53,6 +57,12 @@
 			"thermo-onconnect-refreshstate":"Reload",
 			"thermo-onconnect-refreshstate-checkbox":"Ask for Zone state refresh on connect",
 			"thermo-onconnect-refreshstate-info":"Each time the node is deployed (and thus also on node-RED start-up), ask for Zone status refresh. This will also trigger new flows accordingly.",
+			"ap-browse-button": "Browse temperature zone points registered on the selected gateway",
+			"ap-browse-noroom": "(no room)",
+			"ap-browse-empty": "No temperature zone points registered yet on this gateway. Open the gateway configuration and add new on the 'Temperature' section.",
+			"ap-browse-loading": "Loading...",
+			"ap-browse-unregistered": "Not yet registered on the gateway",
+			"ap-browse-search-placeholder": "Search by room, description or address...",
 			"secondary-output-content-textstate": ".state (number: °C)",
 			"secondary-output-content-settemp": ".setTemperature (number: °C)",
 			"secondary-output-content-optype-ownvalue": ".operationType_ownValue (string: see doc)",

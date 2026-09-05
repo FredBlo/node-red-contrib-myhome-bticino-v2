@@ -4,11 +4,13 @@
     <li><strong>Nom</strong> (obligatoire) est le nom du nœud</li>
     <li><strong>Topic</strong> est utilisé sur le payload reçu pour déclencher l'action du nœud (voir les infos dans la définition des entrées)</li>
     <li><strong>Passerelle</strong> est la passerelle à configurer pour se connecter au système MyHome</li>
-    <li><strong>Lumière</strong> est l'adresse de la charge dans le système MyHome ('A=1 PL=5' devient '15', notez aussi que le format est sur 4 chiffres lorsque A>9 ou PL>9, par exemple 'A=11 PL=5' devient `1105`, 'A=1 PL=15' devient '0115')</li>
+    <li><strong>Lumière</strong> est l'adresse de la charge dans le système MyHome ('A=1 PL=5' devient '15', notez aussi que le format est sur 4 chiffres lorsque A>9 ou PL>9, par exemple 'A=11 PL=5' devient `1105`, 'A=1 PL=15' devient '0115').
+      <br>Le bouton <i class="fa fa-search"></i> à côté du champ permet de parcourir les points lumineux connus pour la passerelle sélectionnée (regroupés par pièce) plutôt que de taper le code à la main - à la fois ceux déjà nommés dans le registre 'Lumières' de la passerelle, et ceux simplement détectés sur le BUS mais pas encore enregistrés (regroupés sous 'Pas encore enregistré sur la passerelle').
+    </li>
       <ul>
         <li><strong>Il s'agit d'une référence de groupe</strong> doit être coché lorsque l'adresse de charge définie doit être utilisée comme adresse de groupe et non comme un simple point de charge</li>
       </ul>
-    <li><strong>Demander uniquement le statut de la charge actuelle</strong> : lorsqu'il est activé, le payload reçu (par ex. 'ON', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel de la charge sans appliquer de changement.
+    <li><strong>Demander uniquement le statut actuel</strong> : lorsqu'il est activé, le payload reçu (par ex. 'ON', 'OFF' ou autre) est ignoré et une requête de statut est envoyée pour obtenir l'état actuel de la charge sans appliquer de changement.
       <br>Note : cela ne peut pas être activé pour les groupes, car ils n'ont pas d'état propre dans le système MyHome.
     </li>
     <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>

@@ -1,9 +1,13 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.08",
+		"_version_common": "2026.09.01",
+		"points-group-prefix": "Gr.",
+		"energy-metertype-meter": "Vermogensbeheermeter",
+		"energy-metertype-actuator": "Vermogensbeheeractuator",
+		"points-unnamed-description": "(onbepaald)",
 		"gateway": "Gateway",
-		"riser-private": "Privéstijgleiding",
+		"riser-private": "Hoofdbus",
 		"riser-localbus-01": "Lokale bus 1",
 		"riser-localbus-02": "Lokale bus 2",
 		"riser-localbus-03": "Lokale bus 3",
@@ -26,16 +30,16 @@
 		"option-smartfilter": "SmartFilter",
 		"option-smartfilter-checkbox": "Inkomende gateway-events filteren",
 		"option-smartfilter-info": "SmartFilter is standaard ingeschakeld, waardoor de node pas een nieuwe flow (m.a.w. output) activeert wanneer een status is GEWIJZIGD na ontvangst van een MyHome BUS-bericht.\nDit voorkomt dat er meerdere flows starten voor dezelfde info/opdracht, aangezien MyHome hetzelfde bericht meerdere keren verstuurt (bij statusaanvraag, antwoord, ...).\n\nOpmerking: SmartFilter wordt nooit toegepast wanneer de node in alleen-lezen modus (statusaanvraag) werkt.",
-		"option-smartfilter-out-checkbox": "Uitgaande opdrachten naar de gateway filteren",
-		"option-skipevents": "Events overslaan",
+		"option-smartfilter-out-checkbox": "Uitgaande gateway-opdrachten filteren",
+		"option-skipevents": "Overslaan",
 		"option-skipevents-checkbox": "ALLE inkomende gateway-events overslaan",
 		"option-skipevents-info": "Indien nodig kunnen alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd worden, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.",
 		"option-readonly": "Alleen-lezen",
-		"option-readonly-checkbox": "Enkel de huidige status van de belasting opvragen",
+		"option-readonly-checkbox": "Enkel huidige status opvragen",
 		"option-readonly-info": "Indien ingeschakeld, wordt de ontvangen payload (bijvoorbeeld 'ON', 'OFF' of iets anders) genegeerd en wordt er een statusaanvraag verstuurd om de huidige status op te vragen zonder iets te wijzigen.",
 		"secondary-output-title": "Opties voor secundaire output",
 		"secondary-output-intro": "Je kan de secundaire output verfijnen zodat die beter aansluit bij je noden bij integratie met andere node-mechanismen (zie de nodehelp voor meer info).",
-		"secondary-output-name": "Eigenschapsnaam",
+		"secondary-output-name": "Eigenschap",
 		"secondary-output-name-placeholder": "bv. On / state / ... / (leeg)",
 		"secondary-output-name-info": "Is de naam van de eigenschap in de teruggegeven payload (dus payload.eigenschapsnaam). Indien leeg gelaten, wordt de payload teruggegeven als een enkele waarde (dus niet als object).",
 		"secondary-output-content": "Gegevenstype"
@@ -47,10 +51,10 @@
 		"config":
 		{
 			"name-placeholder": "Naam van de injector",
-			"intercommandsdelay": "Vertraging (ms)",
-			"intercommandsdelay-placeholder": "50 ms (minimale vertraging tussen 2 opdrachten)",
-			"intercommandsdelay-info": "Standaard wordt het tempo beperkt door een zeer korte vertraging (50 ms) toe te passen voordat een nieuwe opdracht naar de MyHome-gateway wordt gestuurd.\nAls je geweigerde opdrachten opmerkt bij het verwerken van meerdere opdrachten tegelijk, kan je deze vertraging verlengen zodat de gateway wat meer 'ademruimte' krijgt.\n \n Je kan het tempo ook laten overschrijven wanneer het ontvangen bericht een numerieke waarde (in ms) bevat in 'msg.rate'.",
-			"intercommandsdelay_frommsg": "'msg.rate' (in ms) toelaten om de vertraging te overschrijven"
+			"intercommandsdelay": "Begrenzer",
+			"intercommandsdelay-placeholder": "50 ms (minimale termijn tussen 2 opdrachten)",
+			"intercommandsdelay-info": "Standaard wordt het tempo beperkt door een zeer korte termijn (50 ms) toe te passen voordat een nieuwe opdracht naar de MyHome-gateway wordt gestuurd.\nAls je geweigerde opdrachten opmerkt bij het verwerken van meerdere opdrachten tegelijk, kan je deze termijn verlengen zodat de gateway wat meer 'ademruimte' krijgt.\n \n Je kan het tempo ook laten overschrijven wanneer het ontvangen bericht een numerieke waarde (in ms) bevat in 'msg.rate'.",
+			"intercommandsdelay_frommsg": "'msg.rate' (in ms) overschrijft de termijn"
 		},
 		"node":
 		{

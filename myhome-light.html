@@ -1,4 +1,6 @@
+<script src="resources/node-red-contrib-myhome-bticino-v2/myhome-common-utils.js"></script>
 <script type="text/javascript">
+  /* global setupApPointPicker */
   RED.nodes.registerType('myhome-light',{
     category: 'Bticino MyHome',
     color: '#a6bbcf',
@@ -56,11 +58,14 @@
     },
     oneditprepare: function() {
       let scope = this;
+
       $('#node-input-topic').on('change', function() {
         let topicName = $(this).val();
         let topicInfo = scope._('common.topic-info' , {'topicName': (topicName) ? topicName : 'topic'});
         $('#node-info-topic').prop('title' , topicInfo);
       });
+
+      setupApPointPicker(scope, {category: 'light', addressField: 'lightid', i18nPrefix: 'mh-light', defaultIcon: 'mdi-lightbulb-outline'});
 
       function checkboxEditable (checkBoxID , isEditable, readonlyValue) {
     		// Function to turn checkbox uneditable (=greyed out box & label, disabled access and value forced), or back editable
@@ -127,19 +132,32 @@
         <option value="14" data-i18n="common.riser-localbus-14">[Local bus 14]</option>
         <option value="15" data-i18n="common.riser-localbus-15">[Local bus 15]</option>
       </select>
-      <div style="position: absolute; left: 114px; right: 0px; top:0px;">
+      <div style="position: absolute; left: 116px; width:60px; top:0px;">
         <input type="text" id="node-input-lightid" style="width:100%" data-i18n="[placeholder]mh-light.config.lightid-placeholder"/>
       </div>
-    </div>
-    <br>
-    <div style="display: inline-block; position: relative; width: 100%; height: 20px;">
-      <div style="position: absolute; left: 210px; right: 0px; top:3px;">
+      <div style="position: absolute; left: 186px; top:6.5px;">
         <label for="node-input-isgroup" style="width:100%">
-          <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:10px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-light.config.light-isgroup"></span>
+          <input type="checkbox" id="node-input-isgroup" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-light.config.light-isgroup"></span>
         </label>
+      </div>
+      <div style="position: absolute; right: 0px; top:0px;">
+        <button type="button" id="node-input-lightid-browse-btn" class="red-ui-button" data-i18n="[title]mh-light.config.ap-browse-button"><i class="fa fa-search"></i></button>
       </div>
     </div>
   </div>
+  <div id="node-input-lightid-browse-panel" style="display:none; position:fixed; z-index:10000; flex-direction:column; box-sizing:border-box; background:#fff; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:#202020;">
+    <input type="text" id="node-input-lightid-browse-search" style="width:100%; box-sizing:border-box; height:30px; margin-bottom:4px; font-family:inherit; font-size:inherit; color:inherit;" data-i18n="[placeholder]mh-light.config.ap-browse-search-placeholder"/>
+    <div id="node-input-lightid-browse-loading" style="display:none; padding:8px; color:#888;"><i class="fa fa-spinner fa-spin"></i> <span data-i18n="mh-light.config.ap-browse-loading"></span></div>
+    <div id="node-input-lightid-browse-empty" style="display:none; padding:8px; color:#888;" data-i18n="mh-light.config.ap-browse-empty"></div>
+    <div id="node-input-lightid-browse-tree" style="overflow-y:auto; flex:1 1 auto;"></div>
+  </div>
+  <div class="form-row">
+    <label></label>
+    <div style="display:inline-block; width:70%; background:#EFEFEF; border:1px solid #d6d6d6; border-radius:4px; padding:2px 8px; box-sizing:border-box;">
+      <span id="node-input-lightid-recap-icon" style="display:inline-flex; vertical-align:middle;"></span><span id="node-input-lightid-recap-text" style="margin-left:6px; vertical-align:middle; color:#505050;"></span>
+    </div>
+  </div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
   <div class="form-row">
     <label for="node-input-isstatusrequest"><i class="fa fa-eye"></i> <span data-i18n="common.option-readonly"></span></label>
     <label for="node-input-isstatusrequest" style="width:70%">

@@ -25,6 +25,23 @@ module.exports = [
     }
   },
 
+  // Browser-side data/helper scripts under resources/, loaded by node HTML files via a plain
+  // <script src="resources/..."> tag (not required()'d server-side) - needs browser globals, not
+  // Node's, and must override the generic **/*.js block above for this one path.
+  {
+    files: ["resources/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: {
+        ...globals.browser
+      }
+    },
+    rules: {
+      "no-unused-vars": "warn"
+    }
+  },
+
   // HTML files (embedded client-side JS: RED.nodes.registerType, etc.)
   {
     files: ["**/*.html"],

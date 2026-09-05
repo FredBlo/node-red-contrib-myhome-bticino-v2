@@ -37,6 +37,10 @@
   <br> <i>[5] myHOMEServer1 laat niet toe een zone naar manuele verwarming te schakelen (met een manueel ingesteld temperatuurpunt)</i>
   <br> <i>[6] F455 geeft -zeer- onstabiele/vreemde resultaten terug voor uur- en dagaanvragen. Caching van nodes moet ingeschakeld worden om de meeste hiervan te corrigeren wanneer de nodes al een tijdje actief zijn...</i>
 
+  <h3>Register van lichtpunten</h3>
+    <p>Het tabblad <strong>Verlichting</strong> laat je een lijst bijhouden van gekende lichtpunten (AP) (voorlopig enkel Hoofdbus), elk met een kamer, een icoon, een omschrijving en of het een groep is. Dit register moet het kiezen van een AP vanuit de 'MH Light'-node makkelijker maken (bladeren per kamer in plaats van een code van 2/4 cijfers te onthouden), en verandert niets aan het gedrag van de 'MH Light'-node zelf.</p>
+    <p>Elk AP dat op de BUS antwoordt - via zijn eigen statuswijziging bij normaal gebruik, of via de bestaande 'Herladen'-vernieuwing bij (her)verbinding hierboven - wordt hier ook automatisch toegevoegd als het er nog niet in staat (nieuwe items krijgen de kamer 'nieuw' en een niet-bepaalde omschrijving, zodat je ze zelf kan aanvullen). Bestaande items worden hierdoor nooit overschreven, en er wordt niets extra naar de BUS verstuurd om dit te laten gebeuren.</p>
+
   <h3>Logopties voor de BUS</h3>
     <p>Om de Node-RED-console (en logs) niet te overbelasten, worden gemonitorde MyHome BUS-berichten standaard niet gelogd. Dit kan per type ingeschakeld worden wanneer nodig.</p>
     <p>Wanneer uitgaande opdrachten gelogd worden, wordt voor elke verstuurde opdracht ook de volledige verbindingsstack gelogd.</p>

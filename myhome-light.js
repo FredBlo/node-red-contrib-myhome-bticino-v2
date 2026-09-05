@@ -1,5 +1,6 @@
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
+  let mhcommon = require ('./resources/myhome-common-utils');
 
   function MyHomeLightNode (config) {
     RED.nodes.createNode (this, config);
@@ -108,12 +109,16 @@ module.exports = function (RED) {
             payload.command_received = frame;
           }
           // MSG1 : add major node configuration info on both returned message
+          let registeredPoint = mhcommon.findRegisteredPoint (gateway.points, 'light', config.buslevel, config.lightid, config.isgroup);
           msg.mh_nodeConfigInfo = {
           	'name' : config.name ,
           	'topic' : config.topic ,
           	'buslevel' : config.buslevel ,
           	'lightid' : config.lightid ,
           	'isgroup' : config.isgroup ,
+          	'room' : (registeredPoint ? registeredPoint.room : '') ,
+          	'description' : (registeredPoint ? registeredPoint.description : '') ,
+          	'pointid_UI' : mhcommon.buildAPL_Dotted (config.lightid, config.isgroup) ,
           	'gateway' : {
           		'name' : gateway.name ,
           		'host' : gateway.host ,

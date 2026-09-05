@@ -24,7 +24,7 @@
         <br><i>** meters bewaren maanddetails gedurende 12 jaar.</i>
       </ul>
     <li><strong>ALLE inkomende gateway-events overslaan</strong> : indien ingeschakeld, worden alle MyHome-statusupdates die de gateway over deze node ontvangt, genegeerd, zodat enkel de door Node-RED ontvangen payloads verwerkt worden.</li>
-    <li><strong>Eerder opgehaalde resultaten cachen</strong> : standaard houdt de node alle eerder opgehaalde resultaten in het geheugen bij. Wanneer hetzelfde bereik opnieuw wordt opgevraagd, wordt de gecachte inhoud gebruikt in plaats van (talrijke) nieuwe aanvragen op de MyHome BUS te versturen. De cache is niet blijvend en wordt gereset bij het opnieuw deployen van de node en bij het herstarten van Node-RED.
+    <li><strong>Opgehaalde resultaten cachen</strong> : standaard houdt de node alle eerder opgehaalde resultaten in het geheugen bij. Wanneer hetzelfde bereik opnieuw wordt opgevraagd, wordt de gecachte inhoud gebruikt in plaats van (talrijke) nieuwe aanvragen op de MyHome BUS te versturen. De cache is niet blijvend en wordt gereset bij het opnieuw deployen van de node en bij het herstarten van Node-RED.
       <br>!! De cache is ook nuttig (/vereist) voor bepaalde opdrachten (zoals het dagverbruik) en/of wanneer je werkt met gateways die niet correct antwoorden op aanvragen... maar de node kan de info toch rechtstreeks op de BUS ophalen en cachen...
       <br>Opmerking : ongeacht deze instelling wordt de cache nooit gebruikt voor gedeeltelijke resultaten (zoals het huidige vermogen, vandaag, de huidige maand, ...), aangezien deze waarden bij elke aanvraag kunnen wijzigen.
     </li>

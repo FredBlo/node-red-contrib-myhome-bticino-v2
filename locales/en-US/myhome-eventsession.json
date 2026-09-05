@@ -1,7 +1,11 @@
 {
 	"common":
 	{
-		"_version_common": "2022.11.08",
+		"_version_common": "2026.09.01",
+		"points-group-prefix": "Gr.",
+		"energy-metertype-meter": "Power management meter",
+		"energy-metertype-actuator": "Power management actuator",
+		"points-unnamed-description": "(undefined)",
 		"gateway": "Gateway",
 		"riser-private": "Private riser",
 		"riser-localbus-01": "Local bus 1",

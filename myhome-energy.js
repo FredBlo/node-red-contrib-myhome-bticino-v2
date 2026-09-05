@@ -1,5 +1,6 @@
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
+  let mhcommon = require ('./resources/myhome-common-utils');
 
   function MyHomeEnergyNode (config) {
     RED.nodes.createNode (this, config);
@@ -234,12 +235,17 @@ module.exports = function (RED) {
             payload.command_received = frame;
           }
           // MSG1 : add major node configuration info on both returned message
+          // TechNote : config.metertype stands in for the (unused, for energy) bus level
+          let registeredPoint = mhcommon.findRegisteredPoint (gateway.points, 'energy', config.metertype, config.meterid, false);
           msg.mh_nodeConfigInfo = {
             'name' : config.name ,
             'topic' : config.topic ,
             'meterid' : config.meterid ,
             'metertype' : config.metertype ,
             'meterscope' : config.meterscope ,
+            'room' : (registeredPoint ? registeredPoint.room : '') ,
+            'description' : (registeredPoint ? registeredPoint.description : '') ,
+            'pointid_UI' : mhcommon.buildAPL_Dotted (config.meterid, true) , // true = raw ID, no A.PL split
             'gateway' : {
               'name' : gateway.name ,
               'host' : gateway.host ,

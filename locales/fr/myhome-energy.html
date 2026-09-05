@@ -24,7 +24,7 @@
         <br><i>** les compteurs stockent les détails mensuels sur 12 ans.</i>
       </ul>
     <li><strong>Ignorer TOUS les événements entrants de la passerelle</strong> : lorsqu'il est activé, toutes les mises à jour d'état MyHome reçues de la passerelle pour ce nœud seront ignorées, ce qui signifie que seuls les payloads reçus par Node-RED seront traités.</li>
-    <li><strong>Mettre en cache les résultats précédemment récupérés</strong> : par défaut, le nœud conserve en mémoire tous les résultats précédemment récupérés. Lorsque la même portée est demandée, le contenu mis en cache est utilisé au lieu d'envoyer de nombreuses requêtes sur le BUS MyHome. Le cache n'est pas persistant et est réinitialisé au redéploiement du nœud ou au redémarrage de Node-RED.
+    <li><strong>Mettre en cache les résultats</strong> : par défaut, le nœud conserve en mémoire tous les résultats précédemment récupérés. Lorsque la même portée est demandée, le contenu mis en cache est utilisé au lieu d'envoyer de nombreuses requêtes sur le BUS MyHome. Le cache n'est pas persistant et est réinitialisé au redéploiement du nœud ou au redémarrage de Node-RED.
       <br>!! Le cache est aussi utile (/requis) pour certaines commandes (comme la consommation journalière) et/ou lorsque vous utilisez des passerelles qui ne répondent pas correctement aux appels... mais le nœud peut toujours récupérer l'information directement sur le BUS et la mettre en cache.
       <br>Notez que, quelle que soit cette option, le cache n'est jamais utilisé pour les résultats partiels (c.-à-d. puissance instantanée, aujourd'hui, mois en cours, ...) car le contenu change d'un appel à l'autre.
     </li>

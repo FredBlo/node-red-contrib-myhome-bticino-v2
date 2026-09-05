@@ -1,5 +1,6 @@
 module.exports = function (RED) {
   let mhutils = require ('./myhome-utils');
+  let mhcommon = require ('./resources/myhome-common-utils');
 
   function MyHomeThermoZoneNode (config) {
     RED.nodes.createNode (this, config);
@@ -204,10 +205,14 @@ module.exports = function (RED) {
             payload.command_received = frame;
           }
           // MSG1 : add major node configuration info on both returned message
+          let registeredPoint = mhcommon.findRegisteredPoint (gateway.points, 'thermozone', 'private_riser', config.zoneid, false);
           msg.mh_nodeConfigInfo = {
             'name' : config.name ,
             'topic' : config.topic ,
             'zoneid' : config.zoneid ,
+            'room' : (registeredPoint ? registeredPoint.room : '') ,
+            'description' : (registeredPoint ? registeredPoint.description : '') ,
+            'pointid_UI' : mhcommon.buildAPL_Dotted (config.zoneid, true) , // true = raw ID, no A.PL split
             'gateway' : {
               'name' : gateway.name ,
               'host' : gateway.host ,

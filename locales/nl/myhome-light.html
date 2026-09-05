@@ -4,7 +4,9 @@
     <li><strong>Naam</strong> (verplicht) is de naam van de node</li>
     <li><strong>Topic</strong> wordt gebruikt op de ontvangen payload om de actie op de node te activeren (zie info bij de definitie van de ingangen)</li>
     <li><strong>Gateway</strong> is de gateway die geconfigureerd moet worden om verbinding te maken met het MyHome-systeem</li>
-    <li><strong>Lamp</strong> is het adres van de belasting in het MyHome-systeem ('A=1 PL=5' wordt '15', let er ook op dat het formaat 4 cijfers telt wanneer A>9 of PL>9, bv. 'A=11 PL=5' wordt `1105`, 'A=1 PL=15' wordt '0115')</li>
+    <li><strong>Lamp</strong> is het adres van de belasting in het MyHome-systeem ('A=1 PL=5' wordt '15', let er ook op dat het formaat 4 cijfers telt wanneer A>9 of PL>9, bv. 'A=11 PL=5' wordt `1105`, 'A=1 PL=15' wordt '0115').
+      <br>De knop <i class="fa fa-search"></i> naast het veld laat je bladeren door de lichtpunten die voor de gekozen gateway gekend zijn (gegroepeerd per kamer) in plaats van de code manueel in te typen - zowel de punten die al een naam kregen in het 'Verlichting'-register van de gateway, als de punten die enkel op de BUS gedetecteerd zijn maar nog niet geregistreerd (gegroepeerd onder 'Nog niet geregistreerd op de gateway').
+    </li>
       <ul>
         <li><strong>Dit is een groepsverwijzing</strong> moet aangevinkt worden wanneer het gedefinieerde belastingsadres gebruikt moet worden als een groepsadres in plaats van een individuele belasting (punt-tot-punt oproep)</li>
       </ul>

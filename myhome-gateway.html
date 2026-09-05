@@ -1,4 +1,7 @@
+<script src="resources/node-red-contrib-myhome-bticino-v2/mdi-icons-definitions.js"></script>
+<script src="resources/node-red-contrib-myhome-bticino-v2/myhome-common-utils.js"></script>
 <script type="text/javascript">
+  /* global MDI_ICON_CATEGORIES, buildAPL_Dotted, buildAPL_FullDescrUI, iconSvgHtml, ensureMdiSpriteLoaded */
   RED.nodes.registerType('myhome-gateway',{
     category: 'config',
     color: '#a6bbcf',
@@ -9,6 +12,8 @@
       pass: { value: '12345', required: false },
       timeout: { value: '600', required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
       lights_onconnect_refreshloads: { value: true, required: false},
+      shutters_onconnect_refreshstate: { value: false, required: false},
+      points: { value: [] },
       log_in_lights: { value: false, required: false},
       log_in_shutters: { value: false, required: false},
       log_in_temperature: { value: false, required: false},
@@ -20,11 +25,558 @@
     icon: 'font-awesome/fa-server',
     label: function() {
       return this.name;
+    },
+    oneditprepare: function() {
+      let scope = this;
+      scope.mhLastDialogHeight = 400; // updated for real by oneditresize as soon as the dialog opens
+      // Backward compatibility : nodes saved before the BUS points registry existed
+      if (!Array.isArray(scope.points)) { scope.points = []; }
+
+      // One entry per points category/section - section markup itself is static HTML (see template
+      // below); only what varies in JS behavior lives here.
+      const POINT_CATEGORY_CONFIGS = [
+        { key: 'light', defaultIcon: 'mdi-lightbulb-outline', hasGroup: true },
+        { key: 'shutter', defaultIcon: 'mdi-window-shutter', hasGroup: true },
+        { key: 'energy', defaultIcon: 'mdi-flash', hasGroup: false, plainId: true, addressPlaceholder: 'ID [1-255]',
+          // No bus-level concept - property used for type meter/actuator
+          busLevelOptions: [
+            { value: 'meter', i18nKey: 'common.energy-metertype-meter' },
+            { value: 'actuator', i18nKey: 'common.energy-metertype-actuator' }
+          ]
+        },
+        { key: 'thermozone', defaultIcon: 'mdi-thermometer', hasGroup: false, plainId: true, addressPlaceholder: '1-99',
+          // No bus-level concept - single-entry list to force computed value (non-editable) when displayed
+          busLevelOptions: [
+            { value: 'private_riser', i18nKey: 'common.riser-private' }
+          ]
+        },
+      ];
+      // Categories whose editableList was actually built this session (lazy, see setUpPointsList) -
+      // oneditsave must leave an unbuilt category's saved points untouched, not treat it as empty.
+      let builtCategories = {};
+
+      // Show each count immediately from saved points, without waiting for the editableList to be
+      // built (refreshPointsCount, below, takes over once it is).
+      POINT_CATEGORY_CONFIGS.forEach(function(config) {
+        $('#mh-gw-' + config.key + '-count').text(' (' + scope.points.filter(function(p) { return p.category === config.key; }).length + ')');
+      });
+
+      // Injected once into a dedicated <style> tag (oneditprepare re-runs on every dialog open).
+      // Selectors targeting a bare <select>/<input>/<button> are id-scoped to beat Node-RED's core
+      // CSS on specificity, with no '!important'.
+      if ($('#mh-gw-injected-styles').length === 0) {
+        let injectedStyle = $('<style id="mh-gw-injected-styles"></style>').appendTo('head');
+        POINT_CATEGORY_CONFIGS.forEach(function(config) {
+          let listSel = '#node-config-input-points-' + config.key;
+          injectedStyle.append(listSel + " .mh-point-summary-row {display:flex; align-items:center; flex-wrap:nowrap; cursor:pointer;}");
+          injectedStyle.append(listSel + " .mh-point-summary-icon {flex-shrink:0; display:inline-flex;}");
+          injectedStyle.append(listSel + " .mh-point-summary-text {flex:1 1 auto; margin-left:6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}");
+          injectedStyle.append(listSel + " .mh-point-summary-row.mh-point-summary-expanded {font-weight:bold;}");
+          injectedStyle.append(listSel + " li.mh-point-row-expanded {background:#fafafa;}");
+          // Remove button is a sibling of the row content, not a descendant - needs its own override.
+          injectedStyle.append(listSel + " li.mh-point-row-expanded > .red-ui-editableList-item-remove {background:transparent;}");
+          injectedStyle.append(listSel + " .mh-point-detail-row {padding:6px 0 2px 26px;}");
+          injectedStyle.append(listSel + " .mh-room-select {width:100%; height:23px; padding:2px 2px; box-sizing:border-box;}");
+          injectedStyle.append(listSel + " .mh-room-new-input {width:100%; height:23px; padding:2px 2px; box-sizing:border-box;}");
+          injectedStyle.append("#mh-gw-" + config.key + "-search {height:18px; padding-top:0px; padding-bottom:0px;}"); // id selector needed to beat core's specificity
+        });
+        injectedStyle.append(".mh-point-field-label {width:72px; display:inline-block;}");
+        // Same 23px square as the row's own editable zones (see detailLine1/2/3 below), so the button lines up with them. The icon itself (see iconSvgHtml(..., 17) 
+        // call sites) is sized just under the button rather than shrunk proportionally with it - halving the icon-to- button-edge margin (was 6px/side at 30px, 
+        // now 3px/side at 23px) keeps it from looking undersized in the smaller button.
+        injectedStyle.append(".mh-icon-btn {display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; padding:0; border:1px solid #ccc; border-radius:4px; background:#fff; cursor:pointer;}");
+        // Appended to <body> + position:fixed (see openIconPicker) so it can't be clipped by a small editableList's own overflow; also escapes Node-RED's dialog-scoped
+        //  CSS, so font/color are hardcoded here rather than inherited (a real v4/v5 rendering difference ruled out relying on Node-RED's own CSS variables for this).
+        injectedStyle.append("#mh-gw-icon-picker-popover {display:none; position:fixed; z-index:10000; box-sizing:border-box; overflow:hidden; flex-direction:column; background:#fff; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:#202020;}");
+        // Form controls don't inherit font-family from an ancestor the way plain text does (their
+        // browser default wins) - repeated explicitly here for the popover's own inputs/buttons.
+        injectedStyle.append("#mh-gw-icon-picker-popover input, #mh-gw-icon-picker-popover button {font-family:inherit; font-size:inherit; color:inherit;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-search {width:100%; height:30px; box-sizing:border-box; margin-bottom:4px; flex-shrink:0;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-grid {overflow-y:auto; flex:1 1 auto;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-category-header {font-weight:bold; font-size:12px; color:#4a4a4a; padding:6px 2px 2px 2px; border-top:1px solid #c5c5c5; margin-top:2px;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-category:first-child .mh-icon-picker-category-header {border-top:none; margin-top:0;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-item {display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; margin:2px; padding:0; border:1px solid transparent; border-radius:4px; background:transparent; cursor:pointer;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-item:hover {border-color:#ccc; background:#f4f4f4;}");
+        injectedStyle.append(".mh-gw-section-header {background:#EFEFEF; padding:6px 8px; margin:8px 0 4px 0; cursor:pointer; user-select:none;}");
+        injectedStyle.append(".mh-gw-section-header .mh-gw-section-chevron {width:14px; display:inline-block;}");
+        // Moved (see setUpPointsList) inside the same bordered frame as its points list, so the two
+        // read as one panel.
+        injectedStyle.append(".mh-gw-points-search-box {padding:2px 8px; border-bottom:1px solid #eee;}");
+        injectedStyle.append(".mh-gw-points-search-box i.fa-search {top:6px;}");
+        injectedStyle.append(".mh-gw-points-search-box .red-ui-searchBox-clear {top:1px;}");
+      }
+
+      // Icon catalog: MDI_ICON_CATEGORIES (resources/mdi-icons-definitions.js) + sprite path data (resources/mdi-icons-sprite.svg, <svg><use href="#mdi-xxx"></use></svg>) - iconSvgHtml()
+      // itself now lives in myhome-common-utils.js, shared with every node's own icon rendering.
+      function iconLabelFromSlug(slug) {
+        return slug.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      }
+
+      // Collapsible sections - plain DOM show/hide, not RED.tabs.create (rendered no tab strip live).
+      function initCollapsibleSection(headerId, contentId, initiallyOpen, onOpen) {
+        let header = $('#' + headerId);
+        let content = $('#' + contentId).toggle(initiallyOpen);
+        let chevron = header.find('.mh-gw-section-chevron').toggleClass('fa-chevron-down', initiallyOpen).toggleClass('fa-chevron-right', !initiallyOpen);
+        header.on('click', function() {
+          let opening = !content.is(':visible');
+          content.toggle(opening);
+          chevron.toggleClass('fa-chevron-down', opening).toggleClass('fa-chevron-right', !opening);
+          if (opening && onOpen) { onOpen(); }
+          recomputeListsHeight();
+        });
+      }
+
+      // <use href="#mdi-xxx"> needs its target <symbol> already in the page - resolves once the
+      // sprite fetch completes (or immediately if already cached this session); every category's
+      // lazy build waits on this before doing anything icon-related. Loader itself now lives in
+      // myhome-common-utils.js, shared with every node's own icon rendering.
+      let spriteReadyDeferred = ensureMdiSpriteLoaded();
+
+      // Shared icon picker popover, built lazily on first use (guarded, reused by every row).
+      let iconPicker = $('#mh-gw-icon-picker-popover');
+      let iconPickerCallback = null;
+      let iconPickerSearch = iconPicker.find('.mh-icon-picker-search');
+      function ensureIconPickerBuilt() {
+        if (iconPicker.find('.mh-icon-picker-item').length > 0) { return; }
+        // RED.editor.showIconPicker was considered instead - not reused, wrong icon grouping for a
+        // curated MDI set with alias/tag search. Its layout is mirrored below though.
+        iconPickerSearch = $('<input type="text" class="mh-icon-picker-search"/>')
+          .attr('placeholder', scope._('mh-gateway.config.icon-search-placeholder'))
+          .appendTo(iconPicker)
+          .searchBox({delay: 100, change: function() {
+            let term = $(this).searchBox('value').toLowerCase();
+            iconPicker.find('.mh-icon-picker-category').each(function() {
+              let cat = $(this);
+              let anyVisible = false;
+              cat.find('.mh-icon-picker-item').each(function() {
+                let item = $(this);
+                let match = !term || item.data('search').indexOf(term) >= 0;
+                item.toggle(match);
+                anyVisible = anyVisible || match;
+              });
+              cat.toggle(anyVisible);
+            });
+          }});
+        let iconGrid = $('<div class="mh-icon-picker-grid"></div>').appendTo(iconPicker);
+        MDI_ICON_CATEGORIES.forEach(function(cat) {
+          let catDiv = $('<div class="mh-icon-picker-category"></div>').appendTo(iconGrid);
+          $('<div class="mh-icon-picker-category-header"></div>').text(scope._(cat.labelKey)).appendTo(catDiv);
+          let itemsDiv = $('<div class="mh-icon-picker-category-items"></div>').appendTo(catDiv);
+          cat.icons.forEach(function(icon) {
+            let iconId = 'mdi-' + icon.slug;
+            let searchText = (icon.slug + ' ' + icon.a + ' ' + icon.t).toLowerCase();
+            $('<button type="button" class="mh-icon-picker-item" title="' + iconLabelFromSlug(icon.slug) + '"></button>')
+              .html(iconSvgHtml(iconId, 22))
+              .data('search', searchText)
+              .on('click', function() {
+                iconPicker.hide();
+                if (iconPickerCallback) { iconPickerCallback(iconId); }
+              })
+              .appendTo(itemsDiv);
+          });
+        });
+      }
+      $(document).on('click', function(e) {
+        if (iconPicker.is(':visible') && !$(e.target).closest('#mh-gw-icon-picker-popover, .mh-icon-btn').length) {
+          iconPicker.hide();
+        }
+      });
+      function openIconPicker(anchorBtn, onPick) {
+        iconPickerCallback = onPick;
+        iconPickerSearch.searchBox('value', ''); // reset any leftover search term - this popover is shared
+        iconPickerSearch.searchBox('change');
+        // Appended to <body> + positioned via getBoundingClientRect() (viewport coords, not jQuery's
+        // .position()) so it can't be clipped by a small editableList's own overflow.
+        iconPicker.appendTo(document.body);
+        let btnRect = anchorBtn.get(0).getBoundingClientRect();
+        let rowRect = anchorBtn.closest('.form-row').get(0).getBoundingClientRect(); // Description's row, whose right edge Room shares too
+        let top = btnRect.bottom + 2;
+        iconPicker.css({
+          top: top,
+          left: btnRect.left,
+          width: rowRect.right - btnRect.left,
+          maxHeight: Math.max(200, window.innerHeight - top - 10), // whatever space remains to the viewport bottom
+          display: 'flex' // not .show(), which falls back to 'block' - needs flex for the column layout
+        });
+        iconPickerSearch.trigger('focus');
+      }
+
+      // Points list (shared by every category)
+      // Reads a row's actual room, whether from the <select> or (when '+ New room...' is picked)
+      // the free-text input next to it.
+      function getRowRoom(row) {
+        let sel = row.find('[id^=node-config-input-point-room-select-]');
+        let selVal = sel.val();
+        if (!selVal || selVal === '__new__') {
+          return row.find('[id^=node-config-input-point-room-new-]').val() || '';
+        }
+        return selVal;
+      }
+      // Rebuilds every BUILT category's room <select> options from the rooms in use across ALL
+      // categories - global on purpose. An unbuilt category's rooms come from saved
+      // 'points' (no live rows yet); a built one's come from its live rows, so an unsaved room is
+      // picked up immediately, including by other already-open categories.
+      function refreshAllRoomSelects() {
+        let rooms = {};
+        POINT_CATEGORY_CONFIGS.forEach(function(config) {
+          if (builtCategories[config.key]) {
+            $('#node-config-input-points-' + config.key).editableList('items').each(function() {
+              let r = getRowRoom($(this));
+              if (r) { rooms[r] = true; }
+            });
+          } else {
+            scope.points.filter(function(p) { return p.category === config.key; }).forEach(function(p) {
+              if (p.room) { rooms[p.room] = true; }
+            });
+          }
+        });
+        let sortedRooms = Object.keys(rooms).sort();
+        POINT_CATEGORY_CONFIGS.forEach(function(config) {
+          if (!builtCategories[config.key]) { return; }
+          $('#node-config-input-points-' + config.key).editableList('items').each(function() {
+            let row = $(this);
+            let currentRoom = getRowRoom(row);
+            let sel = row.find('[id^=node-config-input-point-room-select-]');
+            let newInput = row.find('[id^=node-config-input-point-room-new-]');
+            sel.empty();
+            sortedRooms.forEach(function(r) { sel.append($('<option>').val(r).text(r)); });
+            sel.append($('<option>').val('__new__').text(scope._('mh-gateway.config.points-room-new-option')));
+            if (sortedRooms.indexOf(currentRoom) >= 0) {
+              sel.val(currentRoom).show();
+              newInput.hide();
+            } else if (!currentRoom && sortedRooms.length > 0) {
+              // Brand-new row, no room yet: default to the select (picking an existing room) rather than the free-text input - creating a new
+              // room is the exception once some exist. .trigger('change') runs the row's own handler so lastCommittedRoom/summary stay in sync.
+              sel.val(sortedRooms[0]).show();
+              newInput.hide();
+              sel.trigger('change');
+            } else {
+              sel.val('__new__').hide();
+              newInput.val(currentRoom).show();
+            }
+          });
+        });
+      }
+      function refreshPointsCount(config) {
+        $('#mh-gw-' + config.key + '-count').text(' (' + $('#node-config-input-points-' + config.key).editableList('items').length + ')');
+      }
+
+      // Builds one category's editableList (search box, rows, saved points, auto-discovery) lazily, the first time its section is opened (see initCollapsibleSection)
+      function setUpPointsList(config) {
+        if (builtCategories[config.key]) { return; }
+        builtCategories[config.key] = true;
+        ensureIconPickerBuilt();
+
+        let listId = 'node-config-input-points-' + config.key;
+        let searchId = 'mh-gw-' + config.key + '-search';
+
+        // 'change' passed as a widget option, not chained via .on('change', ...) - searchBox's
+        // internal _trigger fires 'searchboxchange', not 'change'.
+        $('#' + searchId).searchBox({delay: 200, change: function() {
+          let searchVal = $(this).searchBox('value').toLowerCase();
+          $('#' + listId).editableList('filter', function(item) {
+            if (!searchVal) { return true; }
+            let point = item.point || {};
+            let officialAddress = point.pointid ? buildAPL_Dotted(point.pointid, point.isgroup || !!config.plainId) : ''; // match both the raw code and 'A.PL' notation
+            return (point.room||'').toLowerCase().indexOf(searchVal) >= 0
+                || (point.description||'').toLowerCase().indexOf(searchVal) >= 0
+                || (point.pointid||'').toLowerCase().indexOf(searchVal) >= 0
+                || officialAddress.toLowerCase().indexOf(searchVal) >= 0;
+          });
+        }});
+
+        // No forced min-width (caused overflow when the tray is resized narrow) shrinks freely, with summary text's own ellipsis truncation keeping chevron/remove buttons visible
+        $('#' + listId).editableList({
+          addButton: scope._('mh-gateway.config.points-addnew'),
+          removable: true,
+          sortable: false,
+          scrollOnAdd: false,
+          removeItem: function() { refreshPointsCount(config); },
+          addItem: function(container, i, data) {
+            let uniqueRowID = Math.floor((0x99999-0x10000)*Math.random()).toString();
+            let isNewBlankRow = !data.point; // only the 'Add a point' button omits 'point'
+            let point = data.point || {};
+            data.point = point;
+            point.category = config.key;
+
+            let summaryRow = $('<div/>', {class:'mh-point-summary-row'}).appendTo(container);
+            let summaryIcon = $('<span/>', {class:'mh-point-summary-icon'}).appendTo(summaryRow);
+            let summaryText = $('<span/>', {class:'mh-point-summary-text'}).appendTo(summaryRow);
+            let chevron = $('<i/>', {class:'fa fa-chevron-down', style:'margin-left:6px;'}).appendTo(summaryRow);
+
+            // Labels use .text(scope._(...)) rather than data-i18n - these rows are built dynamically,
+            // and Node-RED only scans the static template for data-i18n once.
+            let detailRow = $('<div/>', {class:'mh-point-detail-row', style:'display:none;'}).appendTo(container);
+
+            // Icon button + Description, stretching to the row's right edge (matching the AP field
+            // in myhome-light.html).
+            let detailLine1 = $('<div/>', {class:'form-row', style:'position:relative; height:23px; margin-bottom:6px;'}).appendTo(detailRow);
+            $('<label/>', {class:'mh-point-field-label'}).text(scope._('mh-gateway.config.points-description')).appendTo(detailLine1);
+            let iconValue = (point.icon && point.icon.indexOf('mdi-') === 0) ? point.icon : config.defaultIcon;
+            let iconBtn = $('<button type="button" class="mh-icon-btn" style="position:absolute; left:72px; top:0;"></button>').appendTo(detailLine1);
+            let iconHiddenField = $('<input/>', {type:'hidden', id:'node-config-input-point-icon-' + uniqueRowID, value: iconValue}).appendTo(detailLine1);
+            let descriptionZone = $('<div/>', {style:'position:absolute; left:101px; right:0px; top:0px;'}).appendTo(detailLine1); // 101 = icon btn right edge (95) + 6px gap (same as the vertical gap between stacked zones)
+            let descriptionField = $('<input/>', {type:'text', id:'node-config-input-point-description-' + uniqueRowID, style:'width:100%; height:23px; padding:2px 2px; box-sizing:border-box;', placeholder: scope._('mh-gateway.config.points-description-placeholder-' + config.key)}).appendTo(descriptionZone);
+            iconBtn.on('click', function(e) {
+              e.preventDefault();
+              openIconPicker(iconBtn, function(pickedIcon) {
+                iconHiddenField.val(pickedIcon);
+                iconBtn.html(iconSvgHtml(pickedIcon, 17));
+                refreshSummary();
+              });
+            });
+
+            // Room - a <select> (existing rooms + '+ New room...'), swapped for a free-text input in
+            // place when '+ New room...' is picked. Same stretchy zone as Description.
+            let detailLine2 = $('<div/>', {class:'form-row', style:'position:relative; height:23px; margin-bottom:6px;'}).appendTo(detailRow);
+            $('<label/>', {class:'mh-point-field-label'}).text(scope._('mh-gateway.config.points-room')).appendTo(detailLine2);
+            let roomZone = $('<div/>', {style:'position:absolute; left:72px; right:0px; top:0px;'}).appendTo(detailLine2);
+            let roomSelect = $('<select/>', {id:'node-config-input-point-room-select-' + uniqueRowID, class:'mh-room-select'}).appendTo(roomZone);
+            let roomNewInput = $('<input/>', {type:'text', id:'node-config-input-point-room-new-' + uniqueRowID, class:'mh-room-new-input', style:'display:none;', placeholder: scope._('mh-gateway.config.points-room-placeholder')}).appendTo(roomZone);
+            let lastCommittedRoom = point.room || ''; // last CONFIRMED room (shown in the summary), separate from transient select/input state
+            roomSelect.on('change', function() {
+              if (roomSelect.val() === '__new__') {
+                roomSelect.hide(); // swap for the text input in place, not shown side by side
+                roomNewInput.val('').show().trigger('focus');
+              } else {
+                roomNewInput.hide();
+                lastCommittedRoom = roomSelect.val();
+                refreshSummary();
+              }
+            });
+            roomNewInput.on('change', function() {
+              if (roomNewInput.val()) {
+                lastCommittedRoom = roomNewInput.val();
+                refreshSummary();
+                refreshAllRoomSelects();
+              }
+            });
+            roomNewInput.on('blur', function() {
+              if (!roomNewInput.val()) { // cancel: go back to the select, showing its previous room
+                roomNewInput.hide();
+                roomSelect.val(lastCommittedRoom).show();
+              }
+            });
+
+            // Bus level + Address + optional group checkbox, same left-edge convention as Description/Room above (options vary by
+            // config.busLevelOptions). margin-bottom:0 overrides Node-RED's own default 12px .form-row margin - this is the LAST line
+            // in the detail block, so unlike detailLine1/2 above it has no next sibling to space itself from; leaving the default 12px
+            // here just left a tall gap before the row's own bottom padding (see .mh-point-detail-row) and the next point's summary line.
+            let detailLine3 = $('<div/>', {class:'form-row', style:'position:relative; height:23px; margin-bottom:0;'}).appendTo(detailRow);
+            $('<label/>', {class:'mh-point-field-label'}).text(scope._('mh-gateway.config.points-ap')).appendTo(detailLine3);
+            let busLevelZone = $('<div/>', {style:'position:absolute; left:72px; top:0px;'}).appendTo(detailLine3);
+            // No group checkbox on this line - widen the bus-level select into that freed space.
+            let busLevelWidth = config.hasGroup ? 110 : 220;
+            let busLevelSelect = $('<select/>', {id:'node-config-input-point-buslevel-' + uniqueRowID, style:'width:' + busLevelWidth + 'px; height:23px; padding:2px 2px; box-sizing:border-box;'}).appendTo(busLevelZone);
+            let defaultBusLevelValue;
+            if (config.busLevelOptions) {
+              config.busLevelOptions.forEach(function(opt) {
+                $('<option/>', {value: opt.value}).text(scope._(opt.i18nKey)).appendTo(busLevelSelect);
+              });
+              defaultBusLevelValue = config.busLevelOptions[0].value;
+            } else {
+              $('<option/>', {value:'private_riser'}).text(scope._('common.riser-private')).appendTo(busLevelSelect);
+              for (let busNum = 1; busNum <= 15; busNum++) {
+                let busVal = (busNum < 10 ? '0' : '') + busNum;
+                $('<option/>', {value: busVal}).text(scope._('common.riser-localbus-' + busVal)).appendTo(busLevelSelect);
+              }
+              defaultBusLevelValue = 'private_riser';
+            }
+            // A select with only one option has nothing to choose - disable it so it reads as fixed rather than interactive
+            if (busLevelSelect.find('option').length === 1) {
+              busLevelSelect.prop('disabled', true).css('color', 'LightGrey');
+            }
+            // 6px gap after the bus-level select (same as the vertical gap between stacked zones). No group checkbox, let the AP field stretch to right edge
+            // of a fixed width, so it (and its placeholder) is never clipped.
+            let apZone = $('<div/>', {style: config.hasGroup
+              ? 'position:absolute; left:' + (72 + busLevelWidth + 6) + 'px; top:0px;'
+              : 'position:absolute; left:' + (72 + busLevelWidth + 6) + 'px; right:0px; top:0px;'
+            }).appendTo(detailLine3);
+            let apField = $('<input/>', {type:'text', id:'node-config-input-point-pointid-' + uniqueRowID, style:'width:' + (config.hasGroup ? '50px' : '100%') + '; height:23px; padding:2px 2px; box-sizing:border-box;', placeholder: config.addressPlaceholder || '15'}).appendTo(apZone);
+            let groupCheckbox = null;
+            if (config.hasGroup) {
+              let groupLabel = $('<label/>', {style:'position:absolute; left:238px; top:1px; width:auto;', for:'node-config-input-point-isgroup-' + uniqueRowID}).appendTo(detailLine3); // narrower 50px AP field leaves more room for the group checkbox label to fit on one line
+              groupCheckbox = $('<input/>', {type:'checkbox', id:'node-config-input-point-isgroup-' + uniqueRowID, style:'display:inline-block; width:22px; vertical-align:baseline; margin-left:0px;'}).appendTo(groupLabel);
+              $('<span/>').text(scope._('mh-gateway.config.points-isgroup')).appendTo(groupLabel);
+              groupCheckbox.on('change', refreshSummary);
+            }
+
+            iconBtn.html(iconSvgHtml(iconValue, 17));
+            roomNewInput.val(point.room || '');
+            descriptionField.val(point.description || '');
+            apField.val(point.pointid || '');
+            busLevelSelect.val(point.buslevel || defaultBusLevelValue);
+            if (groupCheckbox) { groupCheckbox.prop('checked', !!point.isgroup); }
+
+            function refreshSummary() {
+              let descr = descriptionField.val() || scope._('mh-gateway.config.points-undefined');
+              let isGroup = groupCheckbox ? groupCheckbox.prop('checked') : false;
+              summaryText.text(buildAPL_FullDescrUI(descr, lastCommittedRoom, apField.val(), isGroup, scope, config.plainId));
+              summaryIcon.html(iconSvgHtml(iconHiddenField.val(), 18));
+            }
+            descriptionField.on('change', refreshSummary);
+            apField.on('change', refreshSummary);
+            refreshSummary();
+
+            summaryRow.on('click', function() {
+              let expanded = detailRow.toggle().is(':visible');
+              chevron.toggleClass('fa-chevron-down', !expanded).toggleClass('fa-chevron-up', expanded);
+              summaryRow.toggleClass('mh-point-summary-expanded', expanded);
+              // Toggled on the <li> itself (container's parent), not on 'container': container is
+              // inset from the <li>'s real edges by the <li>'s own padding, and doesn't cover the
+              // remove button (a sibling of container, not a descendant).
+              container.parent().toggleClass('mh-point-row-expanded', expanded);
+            });
+
+            refreshPointsCount(config);
+            setTimeout(function() { refreshAllRoomSelects(); }, 0); // deferred: let editableList finish registering this row first
+            if (isNewBlankRow) { summaryRow.trigger('click'); } // open immediately rather than showing a blank/undefined summary
+          }
+        });
+
+        // Moved into editableList's own bordered container (as its first child) so search box + list
+        // read as one panel; the original (now empty) .form-row is hidden.
+        let searchBoxContainer = $('#' + searchId).closest('.red-ui-searchBox-container');
+        let originalSearchRow = searchBoxContainer.closest('.form-row');
+        searchBoxContainer.addClass('mh-gw-points-search-box').prependTo($('#' + listId).closest('.red-ui-editableList-container'));
+        originalSearchRow.hide();
+
+        // Restore saved points, sorted once on their display text for a stable initial order (not re-sorted on edit, would be too UX-weird)
+        scope.points.filter(function(p) { return p.category === config.key; }).sort(function(a, b) {
+          return buildAPL_FullDescrUI(a.description, a.room, a.pointid, a.isgroup, undefined, config.plainId).localeCompare(buildAPL_FullDescrUI(b.description, b.room, b.pointid, b.isgroup, undefined, config.plainId), undefined, {sensitivity: 'base'});
+        }).forEach(function(point) {
+          $('#' + listId).editableList('addItem', {point: point});
+        });
+        refreshAllRoomSelects();
+        refreshPointsCount(config);
+
+        // Passively-discovered AP (see node.discoveredPoints in myhome-gateway.js)
+        $.get('myhome-bticino/gateway/' + scope.id + '/discovered-points/' + config.key).done(function(resp) {
+          let existing = {};
+          $('#' + listId).editableList('items').each(function() {
+            let ap = $(this).find('[id^=node-config-input-point-pointid-]').val();
+            let isGroup = $(this).find('[id^=node-config-input-point-isgroup-]').prop('checked');
+            let busLevel = $(this).find('[id^=node-config-input-point-buslevel-]').val() || 'private_riser';
+            // Keyed on bus level too - the same AP number on the private riser and on a local bus
+            // are two distinct devices, not a duplicate.
+            existing[(isGroup ? '#' : '') + ap + '@' + busLevel] = true;
+          });
+          let addedCount = 0;
+          (resp.points || []).forEach(function(discovered) {
+            let busLevel = discovered.buslevel || 'private_riser';
+            let key = (discovered.isgroup ? '#' : '') + discovered.pointid + '@' + busLevel;
+            if (!existing[key]) {
+              existing[key] = true;
+              addedCount++;
+              $('#' + listId).editableList('addItem', {point: {
+                category: config.key,
+                room: scope._('mh-gateway.config.points-newroom'),
+                description: scope._('mh-gateway.config.points-undefined'),
+                icon: config.defaultIcon,
+                pointid: discovered.pointid,
+                buslevel: busLevel,
+                isgroup: discovered.isgroup
+              }});
+            }
+          });
+          if (addedCount > 0) {
+            refreshAllRoomSelects();
+            refreshPointsCount(config);
+          }
+        }).fail(function() {
+          console.warn('[myhome-gateway] could not fetch auto-discovered ' + config.key + ' points'); // silent otherwise - passive background convenience
+        });
+
+        recomputeListsHeight();
+      }
+
+      function recomputeListsHeight() {
+        let rows = $('#dialog-form>div:not(.mh-gw-sections-row)');
+        let height = scope.mhLastDialogHeight;
+        for (let i = 0 ; i<rows.length ; i++) {
+          height -= $(rows[i]).outerHeight(true);
+        }
+        let sectionsRow = $('#dialog-form>div.mh-gw-sections-row');
+        height -= (parseInt(sectionsRow.css('marginTop'))+parseInt(sectionsRow.css('marginBottom')));
+        POINT_CATEGORY_CONFIGS.forEach(function(config) {
+          height -= ($('#mh-gw-' + config.key + '-header').outerHeight(true) || 0);
+        });
+        height -= ($('#mh-gw-advanced-header').outerHeight(true) || 0);
+        if ($('#mh-gw-tab-advanced').is(':visible')) {
+          height -= ($('#mh-gw-tab-advanced').outerHeight(true) || 0);
+        }
+        // Sections aren't mutually exclusive - if several are open at once, split what's left
+        // between them evenly rather than each claiming the full remaining height.
+        let openConfigs = POINT_CATEGORY_CONFIGS.filter(function(config) {
+          return builtCategories[config.key] && $('#mh-gw-tab-' + config.key).is(':visible');
+        });
+        openConfigs.forEach(function(config) {
+          height -= ($('#mh-gw-' + config.key + '-search').closest('.form-row').outerHeight(true) || 0);
+        });
+        if (openConfigs.length === 0) { return; }
+        let perListHeight = Math.max(150, (height - 40 * openConfigs.length) / openConfigs.length);
+        openConfigs.forEach(function(config) {
+          $('#node-config-input-points-' + config.key).editableList('height', perListHeight);
+        });
+      }
+      scope.mhRecomputeListHeight = recomputeListsHeight;
+
+      // All sections start collapsed; each category's editableList is built lazily, on first expand.
+      POINT_CATEGORY_CONFIGS.forEach(function(config) {
+        initCollapsibleSection('mh-gw-' + config.key + '-header', 'mh-gw-tab-' + config.key, false, function() {
+          spriteReadyDeferred.done(function() { setUpPointsList(config); });
+        });
+      });
+      initCollapsibleSection('mh-gw-advanced-header', 'mh-gw-tab-advanced', false);
+
+      // oneditsave has no access to this closure - hand it what it needs via the node instance itself.
+      scope.mhPointCategoryConfigs = POINT_CATEGORY_CONFIGS;
+      scope.mhBuiltCategories = builtCategories;
+    },
+    oneditsave: function() {
+      let node = this;
+      let configs = node.mhPointCategoryConfigs || [];
+      let builtCategories = node.mhBuiltCategories || {};
+      let allPoints = Array.isArray(node.points) ? node.points : [];
+      let categoryKeys = configs.map(function(c) { return c.key; });
+      let otherPoints = allPoints.filter(function(p) { return categoryKeys.indexOf(p.category) === -1; });
+      let categoryPoints = [];
+      configs.forEach(function(config) {
+        if (!builtCategories[config.key]) {
+          // Section never opened this session - keep its previously saved points untouched.
+          categoryPoints = categoryPoints.concat(allPoints.filter(function(p) { return p.category === config.key; }));
+          return;
+        }
+        $('#node-config-input-points-' + config.key).editableList('items').each(function() {
+          let row = $(this);
+          let roomSelectVal = row.find('[id^=node-config-input-point-room-select-]').val();
+          let room = (!roomSelectVal || roomSelectVal === '__new__')
+            ? (row.find('[id^=node-config-input-point-room-new-]').val() || '')
+            : roomSelectVal;
+          categoryPoints.push({
+            category: config.key,
+            room: room,
+            description: row.find('[id^=node-config-input-point-description-]').val() || '',
+            icon: row.find('[id^=node-config-input-point-icon-]').val() || config.defaultIcon,
+            pointid: row.find('[id^=node-config-input-point-pointid-]').val() || '',
+            buslevel: row.find('[id^=node-config-input-point-buslevel-]').val() || 'private_riser',
+            isgroup: config.hasGroup ? row.find('[id^=node-config-input-point-isgroup-]').prop('checked') : false
+          });
+        });
+      });
+      node.points = otherPoints.concat(categoryPoints);
+    },
+    oneditresize: function(size) {
+      this.mhLastDialogHeight = size.height;
+      if (typeof this.mhRecomputeListHeight === 'function') {
+        this.mhRecomputeListHeight();
+      }
     }
   });
 </script>
 
 <script type="text/html" data-template-name="myhome-gateway">
+  <div id="mh-gw-icon-picker-popover"></div>
   <div class="form-row">
     <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="common.name"></span></label>
     <input type="text" id="node-config-input-name" placeholder="F-455">
@@ -46,20 +598,86 @@
     <input type="text" id="node-config-input-timeout" data-i18n="[placeholder]mh-gateway.config.keepalive-placeholder"/>
     &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.keepalive-info"></i>
   </div>
-  <div class="form-row">
-    <label for="node-config-input-lights_onconnect_refreshloads">
-      <img src="resources/node-red-contrib-myhome-bticino-v2/manylights.png" width="16" height="16">
-      <span data-i18n="mh-gateway.config.lights-onconnect-refreshloads"></span>
-    </label>
-    <label for="node-config-input-lights_onconnect_refreshloads" style="width:70%">
-      <input type="checkbox" id="node-config-input-lights_onconnect_refreshloads" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-gateway.config.lights-onconnect-refreshloads-checkbox"></span>
-      &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.lights-onconnect-refreshloads-info"></i>
-    </label>
-  </div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
 
-  <div class="form-tips form-row" style="background:#EFEFEF">
-      <i class="fa fa-window-restore"></i> <b><span data-i18n="mh-gateway.config.advBusTracking"></span></b>
-      <br>
+  <div class="form-row mh-gw-sections-row" style="width:100%">
+
+    <div class="mh-gw-section-header" id="mh-gw-light-header">
+      <i class="fa fa-chevron-right mh-gw-section-chevron"></i>
+      <i class="fa fa-lightbulb-o"></i>
+      <b><span data-i18n="mh-gateway.config.type-lights"></span><span id="mh-gw-light-count"></span></b>
+    </div>
+    <div id="mh-gw-tab-light">
+      <div class="form-row">
+        <label for="node-config-input-lights_onconnect_refreshloads" style="width:100%">
+          <img src="resources/node-red-contrib-myhome-bticino-v2/mh-lightbulb-group_black.svg" width="16" height="16" style="margin-left:8px; vertical-align:middle;">
+          <input type="checkbox" id="node-config-input-lights_onconnect_refreshloads" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-gateway.config.lights-onconnect-refreshloads-checkbox"></span>
+          &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.lights-onconnect-refreshloads-info"></i>
+        </label>
+      </div>
+      <div class="form-row">
+        <input type="text" id="mh-gw-light-search" style="width:100%" data-i18n="[placeholder]mh-gateway.config.points-search-placeholder">
+      </div>
+      <div class="form-row" style="width:100%">
+        <ol id="node-config-input-points-light"></ol>
+      </div>
+    </div>
+
+    <div class="mh-gw-section-header" id="mh-gw-shutter-header">
+      <i class="fa fa-chevron-right mh-gw-section-chevron"></i>
+      <i class="fa fa-align-justify"></i>
+      <b><span data-i18n="mh-gateway.config.type-shutters"></span><span id="mh-gw-shutter-count"></span></b>
+    </div>
+    <div id="mh-gw-tab-shutter">
+      <div class="form-row">
+        <label for="node-config-input-shutters_onconnect_refreshstate" style="width:100%">
+          <img src="resources/node-red-contrib-myhome-bticino-v2/mh-shutters-group_black.svg" width="19" height="16" style="margin-left:8px; vertical-align:middle;">
+          <input type="checkbox" id="node-config-input-shutters_onconnect_refreshstate" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-gateway.config.shutters-onconnect-refreshstate-checkbox"></span>
+          &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.shutters-onconnect-refreshstate-info"></i>
+        </label>
+      </div>
+      <div class="form-row">
+        <input type="text" id="mh-gw-shutter-search" style="width:100%" data-i18n="[placeholder]mh-gateway.config.points-search-placeholder">
+      </div>
+      <div class="form-row" style="width:100%">
+        <ol id="node-config-input-points-shutter"></ol>
+      </div>
+    </div>
+
+    <div class="mh-gw-section-header" id="mh-gw-energy-header">
+      <i class="fa fa-chevron-right mh-gw-section-chevron"></i>
+      <i class="fa fa-bolt"></i>
+      <b><span data-i18n="mh-gateway.config.type-energy"></span><span id="mh-gw-energy-count"></span></b>
+    </div>
+    <div id="mh-gw-tab-energy">
+      <div class="form-row">
+        <input type="text" id="mh-gw-energy-search" style="width:100%" data-i18n="[placeholder]mh-gateway.config.points-search-placeholder">
+      </div>
+      <div class="form-row" style="width:100%">
+        <ol id="node-config-input-points-energy"></ol>
+      </div>
+    </div>
+
+    <div class="mh-gw-section-header" id="mh-gw-thermozone-header">
+      <i class="fa fa-chevron-right mh-gw-section-chevron"></i>
+      <i class="fa fa-thermometer-half"></i>
+      <b><span data-i18n="mh-gateway.config.type-temperature"></span><span id="mh-gw-thermozone-count"></span></b>
+    </div>
+    <div id="mh-gw-tab-thermozone">
+      <div class="form-row">
+        <input type="text" id="mh-gw-thermozone-search" style="width:100%" data-i18n="[placeholder]mh-gateway.config.points-search-placeholder">
+      </div>
+      <div class="form-row" style="width:100%">
+        <ol id="node-config-input-points-thermozone"></ol>
+      </div>
+    </div>
+
+    <div class="mh-gw-section-header" id="mh-gw-advanced-header">
+      <i class="fa fa-chevron-right mh-gw-section-chevron"></i>
+      <i class="fa fa-window-restore"></i>
+      <b><span data-i18n="mh-gateway.config.advBusTracking"></span></b>
+    </div>
+    <div id="mh-gw-tab-advanced">
       <span data-i18n="mh-gateway.config.advBusTracking-intro"></span>
 
       <h4><span data-i18n="mh-gateway.config.advBusTracking-incoming"></span></h4>
@@ -107,5 +725,7 @@
             <input type="checkbox" id="node-config-input-log_out_cmd" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/> <span data-i18n="mh-gateway.config.type-sent-checkbox">
           </label>
       </div>
+    </div>
+
   </div>
 </script>
