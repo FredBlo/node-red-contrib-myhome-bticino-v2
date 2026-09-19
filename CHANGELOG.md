@@ -1,6 +1,6 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v3.0.1  (latest available) - 09/2026
+### v3.0.1  (latest available) - 10/2026
 - **General**
   - ***Improvement*** : node configuration dialogs (and their related documentations) now support correctly the dark theme Node-RED introduced in v5.0.0.
 ### v3.0.0 - 09/2026
