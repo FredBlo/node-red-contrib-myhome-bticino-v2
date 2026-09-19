@@ -72,7 +72,7 @@
           injectedStyle.append(listSel + " .mh-point-summary-icon {flex-shrink:0; display:inline-flex;}");
           injectedStyle.append(listSel + " .mh-point-summary-text {flex:1 1 auto; margin-left:6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}");
           injectedStyle.append(listSel + " .mh-point-summary-row.mh-point-summary-expanded {font-weight:bold;}");
-          injectedStyle.append(listSel + " li.mh-point-row-expanded {background:#fafafa;}");
+          injectedStyle.append(listSel + " li.mh-point-row-expanded {background:var(--red-ui-secondary-background-selected, #fafafa);}");
           // Remove button is a sibling of the row content, not a descendant - needs its own override.
           injectedStyle.append(listSel + " li.mh-point-row-expanded > .red-ui-editableList-item-remove {background:transparent;}");
           injectedStyle.append(listSel + " .mh-point-detail-row {padding:6px 0 2px 26px;}");
@@ -84,24 +84,27 @@
         // Same 23px square as the row's own editable zones (see detailLine1/2/3 below), so the button lines up with them. The icon itself (see iconSvgHtml(..., 17) 
         // call sites) is sized just under the button rather than shrunk proportionally with it - halving the icon-to- button-edge margin (was 6px/side at 30px, 
         // now 3px/side at 23px) keeps it from looking undersized in the smaller button.
-        injectedStyle.append(".mh-icon-btn {display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; padding:0; border:1px solid #ccc; border-radius:4px; background:#fff; cursor:pointer;}");
+        injectedStyle.append(".mh-icon-btn {display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; padding:0; border:1px solid var(--red-ui-tertiary-border-color, #ccc); border-radius:4px; background:var(--red-ui-secondary-background, #fff); cursor:pointer;}");
         // Appended to <body> + position:fixed (see openIconPicker) so it can't be clipped by a small editableList's own overflow; also escapes Node-RED's dialog-scoped
-        //  CSS, so font/color are hardcoded here rather than inherited (a real v4/v5 rendering difference ruled out relying on Node-RED's own CSS variables for this).
-        injectedStyle.append("#mh-gw-icon-picker-popover {display:none; position:fixed; z-index:10000; box-sizing:border-box; overflow:hidden; flex-direction:column; background:#fff; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:#202020;}");
-        // Form controls don't inherit font-family from an ancestor the way plain text does (their
-        // browser default wins) - repeated explicitly here for the popover's own inputs/buttons.
-        injectedStyle.append("#mh-gw-icon-picker-popover input, #mh-gw-icon-picker-popover button {font-family:inherit; font-size:inherit; color:inherit;}");
+        //  CSS, so font is hardcoded here rather than inherited (background/text color use Node-RED's
+        //  own CSS variables - see CLAUDE.md for why this reuses different variables than the ones a
+        //  prior session found rendering inconsistently between Node-RED 4 and 5).
+        injectedStyle.append("#mh-gw-icon-picker-popover {display:none; position:fixed; z-index:10000; box-sizing:border-box; overflow:hidden; flex-direction:column; background:var(--red-ui-secondary-background, #fff); border:1px solid var(--red-ui-tertiary-border-color, #ccc); box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:var(--red-ui-header-text-color, #202020);}");
+        // Form controls don't inherit font-family (or background) from an ancestor the way plain text
+        // does (their browser default wins, including the browser's own auto-dark-mode form-control
+        // styling when no background is set) - repeated explicitly here for the popover's own inputs/buttons.
+        injectedStyle.append("#mh-gw-icon-picker-popover input, #mh-gw-icon-picker-popover button {font-family:inherit; font-size:inherit; color:inherit; background:inherit;}");
         injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-search {width:100%; height:30px; box-sizing:border-box; margin-bottom:4px; flex-shrink:0;}");
         injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-grid {overflow-y:auto; flex:1 1 auto;}");
-        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-category-header {font-weight:bold; font-size:12px; color:#4a4a4a; padding:6px 2px 2px 2px; border-top:1px solid #c5c5c5; margin-top:2px;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-category-header {font-weight:bold; font-size:12px; color:var(--red-ui-secondary-text-color, #4a4a4a); padding:6px 2px 2px 2px; border-top:1px solid var(--red-ui-tertiary-border-color, #c5c5c5); margin-top:2px;}");
         injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-category:first-child .mh-icon-picker-category-header {border-top:none; margin-top:0;}");
         injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-item {display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; margin:2px; padding:0; border:1px solid transparent; border-radius:4px; background:transparent; cursor:pointer;}");
-        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-item:hover {border-color:#ccc; background:#f4f4f4;}");
-        injectedStyle.append(".mh-gw-section-header {background:#EFEFEF; padding:6px 8px; margin:8px 0 4px 0; cursor:pointer; user-select:none;}");
+        injectedStyle.append("#mh-gw-icon-picker-popover .mh-icon-picker-item:hover {border-color:var(--red-ui-tertiary-border-color, #ccc); background:var(--red-ui-secondary-background-hover, #f4f4f4);}");
+        injectedStyle.append(".mh-gw-section-header {background:var(--red-ui-secondary-background-selected, #EFEFEF); padding:6px 8px; margin:8px 0 4px 0; cursor:pointer; user-select:none;}");
         injectedStyle.append(".mh-gw-section-header .mh-gw-section-chevron {width:14px; display:inline-block;}");
         // Moved (see setUpPointsList) inside the same bordered frame as its points list, so the two
         // read as one panel.
-        injectedStyle.append(".mh-gw-points-search-box {padding:2px 8px; border-bottom:1px solid #eee;}");
+        injectedStyle.append(".mh-gw-points-search-box {padding:2px 8px; border-bottom:1px solid var(--red-ui-tertiary-border-color, #eee);}");
         injectedStyle.append(".mh-gw-points-search-box i.fa-search {top:6px;}");
         injectedStyle.append(".mh-gw-points-search-box .red-ui-searchBox-clear {top:1px;}");
       }
@@ -598,7 +601,7 @@
     <input type="text" id="node-config-input-timeout" data-i18n="[placeholder]mh-gateway.config.keepalive-placeholder"/>
     &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.keepalive-info"></i>
   </div>
-  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: var(--red-ui-tertiary-border-color, #CCCCCC); height: 10px;"></div>
 
   <div class="form-row mh-gw-sections-row" style="width:100%">
 

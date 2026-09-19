@@ -1,6 +1,9 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v3.0.0  (latest available) - 09/2026
+### v3.0.1  (latest available) - 09/2026
+- **General**
+  - ***Improvement*** : node configuration dialogs (and their related documentations) now support correctly the dark theme Node-RED introduced in v5.0.0.
+### v3.0.0 - 09/2026
 - **General**
   - ***Improvement*** : many typo's, translations were corrected / improved to better fit within UI constraints
 - **MH Gateway**
@@ -11,7 +14,6 @@
 - **MH Light** / **MH Shutter** / **MH Temperature Zone** / **MH Energy**
   - ***Improvement*** : each point can be selected using the list of registered lights from the gateway or by typing a code manually as before. When point is registered at the gateway level, summary info is displayed for easier readings.
   - ***Improvement*** : `msg.mh_nodeConfigInfo` now also includes `.room` and `.description` (when a matching entry was found in the gateway's registry) and `.pointid_UI` (the human-readable A.PL address, e.g. `1.1` or `10.5` instead of `11` or `1005` for lights).
-
 ### v2.4.5 & 2.4.6 - 08/2026
 - **General**
   - ***Improvement*** : node set is now multilingual with 3 languages supported (for node configurations and help files):

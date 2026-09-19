@@ -128,7 +128,7 @@
 
       $("#node-input-rule-container").css('min-height','350px').css('min-width','450px').editableList({
         addButton: scope._('mh-scenario.config.add-outputs-btn-addnew'),
-        header: $("<div style='background:#EFEFEF; display:grid; grid-template-columns:135px 1fr 90px 30px'>"
+        header: $("<div style='background:var(--red-ui-secondary-background-selected, #EFEFEF); display:grid; grid-template-columns:135px 1fr 90px 30px'>"
           +"<div style='margin-left: 30px; display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-range') + "</div>"
           +"<div style='display: inline-grid; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-newflow') + "</div>"
           +"<div style='display: inline-grid; justify-self: end; margin-top: 5px; font-weight:bold'>" + scope._('mh-scenario.config.add-outputs-nr') + "</div>"
@@ -278,7 +278,7 @@
     <input type="text" id="node-input-gateway"/>
   </div>
 
-  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: var(--red-ui-tertiary-border-color, #CCCCCC); height: 10px;"></div>
 
   <div class="form-row">
     <label for="node-input-scenarioid"><i class="fa fa-magic"></i> <span data-i18n="mh-scenario.config.scenarioid"></span></label>
