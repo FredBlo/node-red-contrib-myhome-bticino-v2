@@ -1,6 +1,13 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
-### v3.0.1  (latest available) - 10/2026
+### v3.0.5 (latest available) - 11/2026
+- **MH Temperature Central Unit**
+  - ***Improvement*** : the main season mode can now be switched between **Heating (Winter)** and **Conditioning (Summer)** by sending `MODE_HEATING` or `MODE_CONDITIONING` as payload. This switch must be made before applying a heating (resp. conditioning) program or scenario.
+  - ***Improvement*** : new `PROTECT` command available, to put the central unit into protection mode regardless of the current running mode : when heating, Antifreeze is applied, and when conditioning, Thermal Protection is used.
+  - ***Improvement*** : returned payload now includes `.operationModeType`, indicating whether the central unit currently runs in `HEATING` or `CONDITIONING` mode. It can also be selected as content of the node's secondary output.
+- **MH Temperature Zone**
+  - ***Improvement*** : returned payload now includes `.operationModeType`, indicating whether the zone currently runs in `HEATING` or `CONDITIONING` mode. It can also be selected as content of the node's secondary output.
+### v3.0.1  - 10/2026
 - **General**
   - ***Improvement*** : node configuration dialogs (and their related documentations) now support correctly the dark theme Node-RED introduced in v5.0.0.
 ### v3.0.0 - 09/2026

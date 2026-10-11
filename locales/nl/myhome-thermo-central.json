@@ -58,6 +58,7 @@
 			"thermo-onconnect-refreshstate-info":"Elke keer de node wordt gedeployed (en dus ook bij het opstarten van Node-RED), wordt een statusupdate van de centrale opgevraagd. Dit activeert ook de bijhorende nieuwe flows.",
 			"secondary-output-content-text-state": ".state (tekst: zie documentatie)",
 			"secondary-output-content-mode": ".operationMode (tekst: zie documentatie)",
+			"secondary-output-content-mode-type": ".operationModeType (tekst: zie documentatie)",
 			"secondary-output-content-mode-ownvalue": ".operationMode_ownValue (tekst: zie documentatie)",
 			"secondary-output-content-mode-settemp": ".operationMode_setTemperature (getal: °C)",
 			"secondary-output-content-mode-curprg": ".operationMode_curProgram (tekst: 1-3)",
@@ -66,6 +67,8 @@
 		},
 		"node":
 		{
+			"status-opmode-mode-heating": "Verwarmingsmodus (Winter)",
+			"status-opmode-mode-conditioning": "Airco-modus (Zomer)",
 			"status-opmode-antifreeze": "Vorstbeveiliging",
 			"status-opmode-off-heating": "Verwarming uit",
 			"status-opmode-manual-heating": "Manuele verwarming",
@@ -76,6 +79,7 @@
 			"status-opmode-manual-conditioning": "Manuele airco",
 			"status-opmode-prog-conditioning": "Automatisch airco-programma",
 			"status-opmode-scen-conditioning": "Automatisch airco-scenario",
+			"status-opmode-protect-generic": "Generieke beveiliging",
 			"status-opmode-off-generic": "Generiek uit",
 			"status-opmode-manual-generic": "Generiek manueel",
 			"status-opmode-prog-generic": "Generiek automatisch programma",

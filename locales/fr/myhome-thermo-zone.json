@@ -67,6 +67,7 @@
 			"secondary-output-content-optype-ownvalue": ".operationType_ownValue (texte : voir doc)",
 			"secondary-output-content-optype": ".operationType (texte : voir doc)",
 			"secondary-output-content-opmode-ownvalue": ".operationMode_ownValue (texte : voir doc)",
+			"secondary-output-content-opmode-type": ".operationModeType (texte : voir doc)",
 			"secondary-output-content-opmode": ".operationMode (texte : voir doc)",
 			"secondary-output-content-offset-ownvalue": ".localOffset_ownValue (texte : voir doc)",
 			"secondary-output-content-offset": ".localOffset (texte/nombre : voir doc)",

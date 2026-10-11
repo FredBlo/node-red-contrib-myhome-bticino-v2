@@ -28,23 +28,29 @@
     <p>Een geldige <strong>opdracht voor de centrale eenheid</strong> is :</p>
     <table id="mh-tableinfo">
       <tr> <th>Geldige opdracht (.state)</th>  <th>.operationMode</th>             <th>_ownValue</th>  <th>Informatie</th>
-      <tr> <td>ANTIFREEZE</td>                <td>Antifreeze</td>                 <td>102</td>        <td>(1)</td>
-      <tr> <td>OFF_HEATING</td>               <td>Off Heating</td>                <td>103</td>        <td>(1)</td>
-      <tr> <td>MANUAL_HEATING:xxxx</td>       <td>Manual Heating</td>             <td>110</td>        <td>(1) xxxx : temperatuur in <strong>4 tekens</strong>-formaat : '06.5', '16.0',...</td>
-      <tr> <td>PROGRAM_HEATING:x</td>         <td>Auto Heating Program</td>       <td>110x</td>       <td>(1) x : programmanummer [1-3]</td>
-      <tr> <td>SCENARIO_HEATING:xx</td>       <td>Auto Heating Scenario</td>      <td>12xx</td>       <td>(1) xx : scenarionummer [01-16]</td>
-      <tr> <td>THERMAL_PROTECT</td>           <td>Thermal Protection</td>         <td>202</td>        <td>(2)</td>
-      <tr> <td>OFF_CONDITIONING</td>          <td>Off Conditioning</td>           <td>203</td>        <td>(2)</td>
-      <tr> <td>MANUAL_CONDITIONING:xxxx</td>  <td>Manual Conditioning</td>        <td>210</td>        <td>(2) xxxx : temperatuur in <strong>4 tekens</strong>-formaat : '06.5', '16.0',...</td>
-      <tr> <td>PROGRAM_CONDITIONING:x</td>    <td>Auto Conditioning Program</td>  <td>210x</td>       <td>(2) x : programmanummer [1-3]</td>
-      <tr> <td>SCENARIO_CONDITIONING:xx</td>  <td>Auto Conditioning Scenario</td> <td>22xx</td>       <td>(2) xx : scenarionummer [01-16]</td>
+      <tr> <td>MODE_HEATING</td>              <td>Heating mode (Winter)</td>      <td>1</td>          <td>(1)</td>
+      <tr> <td>MODE_CONDITIONING</td>         <td>Conditioning mode (Summer)</td> <td>0</td>          <td>(1)</td>
+      <tr> <td>ANTIFREEZE</td>                <td>Antifreeze</td>                 <td>102</td>        <td>(2)</td>
+      <tr> <td>OFF_HEATING</td>               <td>Off Heating</td>                <td>103</td>        <td>(2)</td>
+      <tr> <td>MANUAL_HEATING:xxxx</td>       <td>Manual Heating</td>             <td>110</td>        <td>(2) xxxx : temperatuur in <strong>4 tekens</strong>-formaat : '06.5', '16.0',...</td>
+      <tr> <td>PROGRAM_HEATING:x</td>         <td>Auto Heating Program</td>       <td>110x</td>       <td>(2) x : programmanummer [1-3]</td>
+      <tr> <td>SCENARIO_HEATING:xx</td>       <td>Auto Heating Scenario</td>      <td>12xx</td>       <td>(2) xx : scenarionummer [01-16]</td>
+      <tr> <td>THERMAL_PROTECT</td>           <td>Thermal Protection</td>         <td>202</td>        <td>(3)</td>
+      <tr> <td>OFF_CONDITIONING</td>          <td>Off Conditioning</td>           <td>203</td>        <td>(3)</td>
+      <tr> <td>MANUAL_CONDITIONING:xxxx</td>  <td>Manual Conditioning</td>        <td>210</td>        <td>(3) xxxx : temperatuur in <strong>4 tekens</strong>-formaat : '06.5', '16.0',...</td>
+      <tr> <td>PROGRAM_CONDITIONING:x</td>    <td>Auto Conditioning Program</td>  <td>210x</td>       <td>(3) x : programmanummer [1-3]</td>
+      <tr> <td>SCENARIO_CONDITIONING:xx</td>  <td>Auto Conditioning Scenario</td> <td>22xx</td>       <td>(3) xx : scenarionummer [01-16]</td>
+      <tr> <td>PROTECT</td>                   <td>Protection Generic</td>         <td>302</td>        <td></td>
       <tr> <td>OFF</td>                       <td>Off Generic</td>                <td>303</td>        <td></td>
       <tr> <td>MANUAL:xxxx</td>               <td>Manual Generic</td>             <td>310</td>        <td>xxxx : temperatuur in <strong>4 tekens</strong>-formaat : '06.5', '16.0',...</td>
       <tr> <td>PROGRAM:x</td>                 <td>Auto Generic Program</td>       <td>310x</td>       <td>x : programmanummer [1-3]</td>
       <tr> <td>SCENARIO:xx</td>               <td>Auto Generic Scenario</td>      <td>32xx</td>       <td>xx : scenarionummer [01-16]</td>
     </table>
-    <span><i> (1) enkel geldig in verwarmingsmodus</i></span>
-    <span><i> (2) enkel geldig in airco-modus</i></span>
+    <span><i> (1) Het overschakelen naar verwarmingsmodus (winter) (/airco-modus (zomer)) moet gebeuren vóór het toepassen van een overeenkomstig verwarmings- (/airco-)programma of -scenario</i></span>
+    <br>
+    <span><i> (2) enkel geldig in verwarmingsmodus</i></span>
+    <br>
+    <span><i> (3) enkel geldig in airco-modus</i></span>
   <p><code>msg.topic</code> is vereist op het ontvangen <code>msg</code> om de actie van de node te activeren: </p>
     <ul>
       <li>
@@ -62,6 +68,7 @@
     <ul>
       <li> <code>payload.state</code> <em>[tekst]</em> de waarde is dezelfde als een geldige opdracht voor de centrale eenheid (zie tabel 'ingangen' hierboven)</li>
       <li> <code>payload.remoteControl</code> <em>[boolean]</em> geeft aan of de afstandsbediening van de centrale eenheid ingeschakeld is of niet. Indien uitgeschakeld, worden alle verstuurde opdrachten geweigerd.</li>
+      <li> <code>payload.operationModeType</code> <em>[tekst]</em> het huidige type bedrijfsmodus ('HEATING' of 'CONDITIONING')</li>
       <li> <code>payload.operationMode</code> <em>[tekst]</em> de huidig ingestelde bedrijfsmodus (zie tabel 'ingangen' hierboven)</li>
       <li> <code>payload.operationMode_ownValue </code> <em>[tekst]</em> (technische referentie : de OpenWebNet-waarde voor de bedrijfsmodus)</li>
       <li> <code>payload.operationMode_setTemperature </code> <em>[tekst]</em> <i>(enkel in manuele modus)</i> de huidig ingestelde temperatuur als instelpunt </li>

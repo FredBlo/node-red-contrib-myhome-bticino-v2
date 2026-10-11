@@ -33,20 +33,23 @@ module.exports = function (RED) {
     // Function which returns all operation modes params / key info (used in both 'processReceivedBUSFrames' and 'processInput' functions)
     function operationModesParams () {
       let operationMode_Params = [];
-      operationMode_Params.push ({state:'ANTIFREEZE',                 own:'102',    mode:RED._('mh-thcentral.node.status-opmode-antifreeze'),           icon:['yellow','ring']});
-      operationMode_Params.push ({state:'OFF_HEATING',                own:'103',    mode:RED._('mh-thcentral.node.status-opmode-off-heating'),          icon:['grey','dot']});
-      operationMode_Params.push ({state:'MANUAL_HEATING:(....)',      own:'110',    mode:RED._('mh-thcentral.node.status-opmode-manual-heating'),       icon:['yellow','dot'], addField:'setTemperature'});
-      operationMode_Params.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-heating'),         icon:['yellow','dot'], addField:'curProgram'});
-      operationMode_Params.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-heating'),         icon:['yellow','dot'], addField:'curScenario'});
-      operationMode_Params.push ({state:'THERMAL_PROTECT',            own:'202',    mode:RED._('mh-thcentral.node.status-opmode-thermal-protect'),      icon:['blue','ring']});
-      operationMode_Params.push ({state:'OFF_CONDITIONING',           own:'203',    mode:RED._('mh-thcentral.node.status-opmode-off-conditioning'),     icon:['grey','dot']});
-      operationMode_Params.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    mode:RED._('mh-thcentral.node.status-opmode-manual-conditioning'),  icon:['blue','dot'],   addField:'setTemperature'});
-      operationMode_Params.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-conditioning'),    icon:['blue','dot'],   addField:'curProgram'});
-      operationMode_Params.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-conditioning'),    icon:['blue','dot'],   addField:'curScenario'});
-      operationMode_Params.push ({state:'OFF',                        own:'303',    mode:RED._('mh-thcentral.node.status-opmode-off-generic'),          icon:['grey','dot']});
-      operationMode_Params.push ({state:'MANUAL:(....)',              own:'310',    mode:RED._('mh-thcentral.node.status-opmode-manual-generic'),       icon:['yellow','dot'], addField:'setTemperature'});
-      operationMode_Params.push ({state:'PROGRAM:(.)',                own:'310(.)', mode:RED._('mh-thcentral.node.status-opmode-prog-generic'),         icon:['yellow','dot'], addField:'curProgram'});
-      operationMode_Params.push ({state:'SCENARIO:(..)',              own:'32(..)', mode:RED._('mh-thcentral.node.status-opmode-scen-generic'),         icon:['yellow','dot'], addField:'curScenario'});
+      operationMode_Params.push ({state:'MODE_HEATING',               own:'1',      modeType:'HEATING',      mode:RED._('mh-thcentral.node.status-opmode-mode-heating'),         icon:['yellow','dot']});
+      operationMode_Params.push ({state:'ANTIFREEZE',                 own:'102',    modeType:'HEATING',      mode:RED._('mh-thcentral.node.status-opmode-antifreeze'),           icon:['yellow','ring']});
+      operationMode_Params.push ({state:'OFF_HEATING',                own:'103',    modeType:'HEATING',      mode:RED._('mh-thcentral.node.status-opmode-off-heating'),          icon:['grey','dot']});
+      operationMode_Params.push ({state:'MANUAL_HEATING:(....)',      own:'110',    modeType:'HEATING',      mode:RED._('mh-thcentral.node.status-opmode-manual-heating'),       icon:['yellow','dot'], addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM_HEATING:(.)',        own:'110(.)', modeType:'HEATING',      mode:RED._('mh-thcentral.node.status-opmode-prog-heating'),         icon:['yellow','dot'], addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO_HEATING:(..)',      own:'12(..)', modeType:'HEATING',      mode:RED._('mh-thcentral.node.status-opmode-scen-heating'),         icon:['yellow','dot'], addField:'curScenario'});
+      operationMode_Params.push ({state:'MODE_CONDITIONING',          own:'0',      modeType:'CONDITIONING', mode:RED._('mh-thcentral.node.status-opmode-mode-conditioning'),    icon:['blue','dot']});
+      operationMode_Params.push ({state:'THERMAL_PROTECT',            own:'202',    modeType:'CONDITIONING', mode:RED._('mh-thcentral.node.status-opmode-thermal-protect'),      icon:['blue','ring']});
+      operationMode_Params.push ({state:'OFF_CONDITIONING',           own:'203',    modeType:'CONDITIONING', mode:RED._('mh-thcentral.node.status-opmode-off-conditioning'),     icon:['grey','dot']});
+      operationMode_Params.push ({state:'MANUAL_CONDITIONING:(....)', own:'210',    modeType:'CONDITIONING', mode:RED._('mh-thcentral.node.status-opmode-manual-conditioning'),  icon:['blue','dot'],   addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM_CONDITIONING:(.)',   own:'210(.)', modeType:'CONDITIONING', mode:RED._('mh-thcentral.node.status-opmode-prog-conditioning'),    icon:['blue','dot'],   addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO_CONDITIONING:(..)', own:'22(..)', modeType:'CONDITIONING', mode:RED._('mh-thcentral.node.status-opmode-scen-conditioning'),    icon:['blue','dot'],   addField:'curScenario'});
+      operationMode_Params.push ({state:'PROTECT',                    own:'302',    modeType:'GENERIC',      mode:RED._('mh-thcentral.node.status-opmode-protect-generic'),      icon:['grey','ring']});
+      operationMode_Params.push ({state:'OFF',                        own:'303',    modeType:'GENERIC',      mode:RED._('mh-thcentral.node.status-opmode-off-generic'),          icon:['grey','dot']});
+      operationMode_Params.push ({state:'MANUAL:(....)',              own:'310',    modeType:'GENERIC',      mode:RED._('mh-thcentral.node.status-opmode-manual-generic'),       icon:['yellow','dot'], addField:'setTemperature'});
+      operationMode_Params.push ({state:'PROGRAM:(.)',                own:'310(.)', modeType:'GENERIC',      mode:RED._('mh-thcentral.node.status-opmode-prog-generic'),         icon:['yellow','dot'], addField:'curProgram'});
+      operationMode_Params.push ({state:'SCENARIO:(..)',              own:'32(..)', modeType:'GENERIC',      mode:RED._('mh-thcentral.node.status-opmode-scen-generic'),         icon:['yellow','dot'], addField:'curScenario'});
       return operationMode_Params;
     }
     let operationModes_Params = operationModesParams ();
@@ -107,6 +110,7 @@ module.exports = function (RED) {
               // Use a regex to see if the current 'what' matches with this mode definition ('^' and '$' added to ensure it encloses start & end of string, partial match is nok)
               let ownMatch = payloadInfo.operationMode_ownValue.match('^' + operationModes_Params[i].own + '$');
               if (ownMatch !== null) {
+                payloadInfo.operationModeType = operationModes_Params[i].modeType;
                 payloadInfo.operationMode = operationModes_Params[i].mode;
                 node.status_icon = operationModes_Params[i].icon;
                 let addFieldInfo = '';
@@ -177,8 +181,9 @@ module.exports = function (RED) {
           // MSG1 : Add all current node stored values to payload
           payload.state = payloadInfo.state;
           payload.remoteControl = payloadInfo.remoteControl;
-          payload.operationMode = payloadInfo.operationMode;
           payload.operationMode_ownValue = payloadInfo.operationMode_ownValue;
+          payload.operationModeType = payloadInfo.operationModeType;
+          payload.operationMode = payloadInfo.operationMode;
           // MSG1 : Add all current node stored values to payload (but only if these were defined)
           if (payloadInfo.operationMode_setTemperature !== undefined) {
             payload.operationMode_setTemperature = payloadInfo.operationMode_setTemperature;
@@ -257,7 +262,7 @@ module.exports = function (RED) {
             break;
           }
         }
-        // After having parsed commands, apply final command : MANUAL mode a different one, while other are 'simply' a WHAT command
+        // After having parsed commands, apply final command : MANUAL mode is a different one, while other are 'simply' a WHAT command
         if (isManualTemp || parseFloat(payload.state)) {
           // Temperature to be set in MANUAL mode, command is *#4*where*#14*T*M##
           //  - where = [#1 - #99] Setup zone by Central Unit

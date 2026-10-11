@@ -58,6 +58,7 @@
 			"thermo-onconnect-refreshstate-info":"Each time the node is deployed (and thus also on node-RED start-up), ask for Central status refresh. This will also trigger new flows accordingly.",
 			"secondary-output-content-text-state": ".state (string: see doc)",
 			"secondary-output-content-mode": ".operationMode (string: see doc)",
+			"secondary-output-content-mode-type": ".operationModeType (string: see doc)",
 			"secondary-output-content-mode-ownvalue": ".operationMode_ownValue (string: see doc)",
 			"secondary-output-content-mode-settemp": ".operationMode_setTemperature (number: °C)",
 			"secondary-output-content-mode-curprg": ".operationMode_curProgram (string: 1-3)",
@@ -66,6 +67,8 @@
 		},
 		"node":
 		{
+			"status-opmode-mode-heating": "Heating mode (Winter)",
+			"status-opmode-mode-conditioning": "Conditioning mode (Summer)",
 			"status-opmode-antifreeze": "Antifreeze",
 			"status-opmode-off-heating": "Off Heating",
 			"status-opmode-manual-heating": "Manual Heating",
@@ -76,6 +79,7 @@
 			"status-opmode-manual-conditioning": "Manual Conditioning",
 			"status-opmode-prog-conditioning": "Auto Conditioning Program",
 			"status-opmode-scen-conditioning": "Auto Conditioning Scenario",
+			"status-opmode-protect-generic": "Protection Generic",
 			"status-opmode-off-generic": "Off Generic",
 			"status-opmode-manual-generic": "Manual Generic",
 			"status-opmode-prog-generic": "Auto Generic Program",

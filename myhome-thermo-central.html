@@ -16,20 +16,23 @@ central unit<script type="text/javascript">
     inputs: 1,
     inputLabels: function () {
       let inputLabel = this._("common.input-label-simple") + ":";
+      inputLabel += "\n - 'MODE_HEATING'                                        ";
       inputLabel += "\n - 'ANTIFREEZE'                                              ";
-      inputLabel += "\n - 'OFF_HEATING'                                           ";
-      inputLabel += "\n - 'MANUAL_HEATING:xxxx'                           ";
-      inputLabel += "\n - 'PROGRAM_HEATING:x'                            ";
-      inputLabel += "\n - 'SCENARIO_HEATING:xx'                          ";
-      inputLabel += "\n - 'THERMAL_PROTECT'                              ";
-      inputLabel += "\n - 'OFF_CONDITIONING'                              ";
-      inputLabel += "\n - 'MANUAL_CONDITIONING:xxxx'              ";
-      inputLabel += "\n - 'PROGRAM_CONDITIONING:x'               ";
-      inputLabel += "\n - 'SCENARIO_CONDITIONING:xx'             ";
+      inputLabel += "\n - 'OFF_HEATING'                                            ";
+      inputLabel += "\n - 'MANUAL_HEATING:xxxx'                            ";
+      inputLabel += "\n - 'PROGRAM_HEATING:x'                              ";
+      inputLabel += "\n - 'SCENARIO_HEATING:xx'                            ";
+      inputLabel += "\n - 'MODE_CONDITIONING'                             ";
+      inputLabel += "\n - 'THERMAL_PROTECT'                                 ";
+      inputLabel += "\n - 'OFF_CONDITIONING'                                 ";
+      inputLabel += "\n - 'MANUAL_CONDITIONING:xxxx'                 ";
+      inputLabel += "\n - 'PROGRAM_CONDITIONING:x'                   ";
+      inputLabel += "\n - 'SCENARIO_CONDITIONING:xx'                 ";
+      inputLabel += "\n - 'PROTECT'                                                    ";
       inputLabel += "\n - 'OFF'                                                              ";
       inputLabel += "\n - 'MANUAL:xxxx'                                              ";
-      inputLabel += "\n - 'PROGRAM:x'                                               ";
-      inputLabel += "\n - 'SCENARIO:xx'                                             ";
+      inputLabel += "\n - 'PROGRAM:x'                                                ";
+      inputLabel += "\n - 'SCENARIO:xx'                                              ";
       return inputLabel;
     },
     outputs: 2,
@@ -137,6 +140,7 @@ central unit<script type="text/javascript">
       <label for="node-input-output2_type" style="width:130px; margin-left:15px"><i class="fa fa-check-square-o"></i> <span data-i18n="common.secondary-output-content"></span></label>
       <select id="node-input-output2_type" style="width:55%">
         <option value="text_state" data-i18n="mh-thcentral.config.secondary-output-content-text-state">[.state (string: see doc)]</option>
+        <option value="operationModeType" data-i18n="mh-thcentral.config.secondary-output-content-mode-type">[.operationModeType (string: see doc)]</option>
         <option value="operationMode" data-i18n="mh-thcentral.config.secondary-output-content-mode">[.operationMode (string: see doc)]</option>
         <option value="operationMode_ownValue" data-i18n="mh-thcentral.config.secondary-output-content-mode-ownvalue">[.operationMode_ownValue (string: see doc)]</option>
         <option value="operationMode_setTemperature" data-i18n="mh-thcentral.config.secondary-output-content-mode-settemp">[.operationMode_setTemperature (number: °C)]</option>
