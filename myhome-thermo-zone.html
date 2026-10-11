@@ -89,7 +89,7 @@
     <input type="text" id="node-input-gateway"/>
   </div>
 
-  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: var(--red-ui-tertiary-border-color, #CCCCCC); height: 10px;"></div>
 
   <div class="form-row">
     <label for="node-input-zoneid"><i class="fa fa-thermometer-half"></i> <span data-i18n="mh-thzone.config.zoneid"></span></label>
@@ -102,19 +102,19 @@
       </div>
     </div>
   </div>
-  <div id="node-input-zoneid-browse-panel" style="display:none; position:fixed; z-index:10000; flex-direction:column; box-sizing:border-box; background:#fff; border:1px solid #ccc; box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:#202020;">
-    <input type="text" id="node-input-zoneid-browse-search" style="width:100%; box-sizing:border-box; height:30px; margin-bottom:4px; font-family:inherit; font-size:inherit; color:inherit;" data-i18n="[placeholder]mh-thzone.config.ap-browse-search-placeholder"/>
-    <div id="node-input-zoneid-browse-loading" style="display:none; padding:8px; color:#888;"><i class="fa fa-spinner fa-spin"></i> <span data-i18n="mh-thzone.config.ap-browse-loading"></span></div>
-    <div id="node-input-zoneid-browse-empty" style="display:none; padding:8px; color:#888;" data-i18n="mh-thzone.config.ap-browse-empty"></div>
+  <div id="node-input-zoneid-browse-panel" style="display:none; position:fixed; z-index:10000; flex-direction:column; box-sizing:border-box; background:var(--red-ui-secondary-background, #fff); border:1px solid var(--red-ui-tertiary-border-color, #ccc); box-shadow:0 2px 6px rgba(0,0,0,0.2); padding:6px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; color:var(--red-ui-header-text-color, #202020);">
+    <input type="text" id="node-input-zoneid-browse-search" style="width:100%; box-sizing:border-box; height:30px; margin-bottom:4px; font-family:inherit; font-size:inherit; color:inherit; background:inherit;" data-i18n="[placeholder]mh-thzone.config.ap-browse-search-placeholder"/>
+    <div id="node-input-zoneid-browse-loading" style="display:none; padding:8px; color:var(--red-ui-tertiary-text-color, #888);"><i class="fa fa-spinner fa-spin"></i> <span data-i18n="mh-thzone.config.ap-browse-loading"></span></div>
+    <div id="node-input-zoneid-browse-empty" style="display:none; padding:8px; color:var(--red-ui-tertiary-text-color, #888);" data-i18n="mh-thzone.config.ap-browse-empty"></div>
     <div id="node-input-zoneid-browse-tree" style="overflow-y:auto; flex:1 1 auto;"></div>
   </div>
   <div class="form-row">
     <label></label>
-    <div style="display:inline-block; width:70%; background:#EFEFEF; border:1px solid #d6d6d6; border-radius:4px; padding:2px 8px; box-sizing:border-box;">
-      <span id="node-input-zoneid-recap-icon" style="display:inline-flex; vertical-align:middle;"></span><span id="node-input-zoneid-recap-text" style="margin-left:6px; vertical-align:middle; color:#505050;"></span>
+    <div style="display:inline-block; width:70%; background:var(--red-ui-tertiary-background, #EFEFEF); border:1px solid var(--red-ui-tertiary-border-color, #d6d6d6); border-radius:4px; padding:2px 8px; box-sizing:border-box;">
+      <span id="node-input-zoneid-recap-icon" style="display:inline-flex; vertical-align:middle;"></span><span id="node-input-zoneid-recap-text" style="margin-left:6px; vertical-align:middle; color:var(--red-ui-secondary-text-color, #505050);"></span>
     </div>
   </div>
-  <div style="border-top-style: solid ;border-width: 1px; border-color: #CCCCCC; height: 10px;"></div>
+  <div style="border-top-style: solid ;border-width: 1px; border-color: var(--red-ui-tertiary-border-color, #CCCCCC); height: 10px;"></div>
   <div class="form-row">
     <label for="node-input-thermo_onconnect_refreshstate"><i class="fa fa-refresh"></i> <span data-i18n="mh-thzone.config.thermo-onconnect-refreshstate"></span></label>
     <label for="node-input-thermo_onconnect_refreshstate" style="width:70%">
@@ -144,7 +144,7 @@
     </label>
   </div>
 
-  <div class="form-tips form-row" style="max-width:none; background:#EFEFEF">
+  <div class="form-tips form-row" style="max-width:none; background:var(--red-ui-tertiary-background, #EFEFEF)">
     <i class="fa fa-sign-out"></i> <b><span data-i18n="common.secondary-output-title"></span></b>
     <br>
     <p style="max-width:450px" data-i18n="common.secondary-output-intro"></p>

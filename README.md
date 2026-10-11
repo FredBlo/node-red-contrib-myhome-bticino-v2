@@ -24,7 +24,10 @@ Control Bticino / Legrand MyHome&#8482; components from Node-RED : node-red-cont
 		- **`*#1*16##`** to ask for status about light **16**, receiving as a response **`*1*1*16##`** when is ON or **`*1*0*16##`** when is OFF
 
 ## 2. Version history
-### v3.0.0  (latest available) - 09/2026
+### v3.0.1  (latest available) - 10/2026
+- **General**
+  - ***Improvement*** : node configuration dialogs (and their related documentations) now support correctly the dark theme Node-RED introduced in v5.0.0.
+### v3.0.0 - 09/2026
 - **General**
   - ***Improvement*** : many typo's, translations were corrected / improved to better fit within UI constraints
 - **MH Gateway**
