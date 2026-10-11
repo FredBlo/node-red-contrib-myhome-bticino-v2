@@ -62,6 +62,14 @@ Entries describe **end-user visible impact**, not the internal/technical reason 
 
 Device addresses use MyHome's `A/PL` (address/point-light) scheme encoded as a single string (`A=1,PL=5` → `"15"`; 4-digit form when A or PL > 9). Zone/light groups are prefixed with `#`, and non-default bus levels append `#4#<level>`. This encoding/decoding logic lives inline in each device node (see `node.lightgroupid` construction in [myhome-light.js](myhome-light.js) for the canonical pattern).
 
+### Thermo operation mode types (`HEATING` / `CONDITIONING` / `GENERIC`)
+
+`myhome-thermo-central.js`'s `operationModesParams()` tags every operation mode with a `modeType`: `HEATING` (OWN `1`, `1xx`), `CONDITIONING` (`0`, `2xx`) or `GENERIC` (`3xx`: `PROTECT`, `OFF`, `MANUAL`, `PROGRAM`, `SCENARIO`). **`GENERIC` exists only on the command side.** Those commands are valid to send, but the central unit always reports its state back as the matching heating- or conditioning-specific mode. So `payload.operationModeType` in the output is only ever `HEATING` or `CONDITIONING`, never `GENERIC`, even though the code also has a `GENERIC` lookup entry for `3xx` values. `myhome-thermo-zone` uses the same `HEATING`/`CONDITIONING` pair, with no generic modes at all.
+
+The help files (`locales/*/myhome-thermo-central.html`) follow this split:
+- The **input commands table**'s `.operationModeType` column shows `GENERIC` for the `3xx` rows. That's deliberate: it documents which family a *command* belongs to, not just what can come back.
+- The **Outputs** description of `payload.operationModeType` lists only `'HEATING'`/`'CONDITIONING'`. Don't "fix" it by adding `GENERIC`.
+
 ### Gateway BUS points registry (v3.0.0+, Light + Shutter + Energy + ThermoZone share the multi-category UI)
 
 `myhome-gateway` carries a `points` array (config property) letting users maintain a friendly registry of known AP. Each entry is `{category, room, description, icon, pointid, isgroup, ...}`; `category` (`'light'`/`'shutter'`/`'energy'`/`'thermozone'`) lets one array serve every category, each as its own collapsible section, sharing an `editableList`-based UI (row = summary + expandable detail, same pattern as `myhome-scenario`'s `rules`). Started editor-only, but `myhome-gateway.js` now also copies it onto the runtime node (`node.points = config.points`) so device nodes' server-side `.js` can look it up too - `myhome-light.js`/`myhome-shutter.js`/`myhome-energy.js`/`myhome-thermo-zone.js` all `require('./resources/myhome-common-utils')` (the same isomorphic module their `.html` already uses) to call `findRegisteredPoint`/`buildAPL_Dotted` when building `msg.mh_nodeConfigInfo`'s `.room`/`.description`/`.pointid_UI`.
