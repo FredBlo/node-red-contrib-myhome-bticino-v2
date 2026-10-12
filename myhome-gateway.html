@@ -13,6 +13,7 @@
       timeout: { value: '600', required: false, validate: function(v){return (parseInt(v) == 0) || (parseInt(v) > 14)}},
       lights_onconnect_refreshloads: { value: true, required: false},
       shutters_onconnect_refreshstate: { value: false, required: false},
+      thermo_onconnect_refreshstate: { value: false, required: false},
       points: { value: [] },
       log_in_lights: { value: false, required: false},
       log_in_shutters: { value: false, required: false},
@@ -667,6 +668,13 @@
       <b><span data-i18n="mh-gateway.config.type-temperature"></span><span id="mh-gw-thermozone-count"></span></b>
     </div>
     <div id="mh-gw-tab-thermozone">
+      <div class="form-row">
+        <label for="node-config-input-thermo_onconnect_refreshstate" style="width:100%">
+          <img src="resources/node-red-contrib-myhome-bticino-v2/mh-thermo-centralunit_black.svg" width="18" height="16" style="margin-left:8px; vertical-align:middle;">
+          <input type="checkbox" id="node-config-input-thermo_onconnect_refreshstate" style="display:inline-block; margin-left:0px; width:22px; vertical-align:baseline;"/><span data-i18n="mh-gateway.config.thermo-onconnect-refreshstate-checkbox"></span>
+          &nbsp;<i class="fa fa-info-circle" data-i18n="[title]mh-gateway.config.thermo-onconnect-refreshstate-info"></i>
+        </label>
+      </div>
       <div class="form-row">
         <input type="text" id="mh-gw-thermozone-search" style="width:100%" data-i18n="[placeholder]mh-gateway.config.points-search-placeholder">
       </div>

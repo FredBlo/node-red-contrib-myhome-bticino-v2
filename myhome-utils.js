@@ -7,13 +7,16 @@ const START_MONITOR = '*99*1##';
 const SERVER_REQUIRES_HMAC1 = '*98*1##';
 const SERVER_REQUIRES_HMAC2 = '*98*2##';
 const INTER_COMMANDS_DELAY = 50; // ms
-// Refresh all states on (re)connect management : for lights and shutters only, by calling a state on GENERAL (WHERE=0)
-// Can be enabled per type in Gateway config. An object is built beforehand to manage parameters of both types
+// Refresh all states on (re)connect management : for lights and shutters by calling a state on GENERAL (WHERE=0),
+// and for the thermo central unit by calling its state (WHERE=#0)
+// Can be enabled per type in Gateway config. An object is built beforehand to manage parameters of all types
 const REFRESH_ALLLIGHTS = '*#1*0##';
 const REFRESH_ALLSHUTTERS = '*#2*0##';
+const REFRESH_THERMOCENTRAL = '*#4*#0##';
 const ONCONNECT_REFRESH_COMMANDS = [
   { confignode_refreshflag: 'lights_onconnect_refreshloads', command: REFRESH_ALLLIGHTS, label: 'lights' },
-  { confignode_refreshflag: 'shutters_onconnect_refreshstate', command: REFRESH_ALLSHUTTERS, label: 'shutters' }
+  { confignode_refreshflag: 'shutters_onconnect_refreshstate', command: REFRESH_ALLSHUTTERS, label: 'shutters' },
+  { confignode_refreshflag: 'thermo_onconnect_refreshstate', command: REFRESH_THERMOCENTRAL, label: 'thermo central unit' }
 ];
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

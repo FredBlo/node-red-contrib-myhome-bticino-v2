@@ -17,7 +17,6 @@
     </li>
     <li><strong>Keep alive</strong> can be used to force maintaining the monitoring activity for gateways automatically closing it after an interval without receiving any call from registered IP.
       <br><i>Note : the gateway node will automatically try reconnecting when connection is closed or lost, but having it always remains active is better to ensure all BUS messages are processed within Node-RED</i></li>
-    <li><strong>Reload</strong> : when the gateway connects successfully, the state of all loads connected on the BUS will be gathered. All deployed nodes will also get updated accordingly, and flows will be started.</li>
   </ul>
   <br>
   Based on previous authors comments and my own experience when testing/extending these nodes, these are the gateways it <strong>supports</strong> :
@@ -37,9 +36,25 @@
   <br> <i>[5] myHOMEServer1 does not allow switching a zone to manual heating (specifying a manual temperature set point)</i>
   <br> <i>[6] F455 returns -very- unstable/awkward results for hourly and daily calls. Nodes caching must be enabled to correct most of them when nodes are running for a while...</i>
 
-  <h3>Lights points registry</h3>
-    <p>The <strong>Lights</strong> tab lets you maintain a list of known light AP (private riser only for now), each with a room, an icon, a description and whether it is a group. This registry is meant to make picking an AP easier from the 'MH Light' node (browse by room instead of remembering a 2/4-digit code), and does not change how the 'MH Light' node itself behaves.</p>
-    <p>Any AP that responds on the BUS - whether from its own status changing during normal use, or from the existing 'Reload' on-(re)connect refresh above - is automatically added here too if not already present (new entries get room 'new' and an undefined description, ready for you to fill in). Existing entries are never overwritten this way, and nothing extra is sent to the BUS to make this happen.</p>
+  <h3>BUS points registry</h3>
+    <p>The gateway lets you maintain a list of known BUS points, so that they can be picked by room and name from device nodes instead of remembering their numeric code. It is available for 4 types, each managed in its own section :</p>
+    <ul>
+      <li><strong>Lights</strong> and <strong>Shutters</strong> : point (A/PL) or group, on the private riser or on a local bus</li>
+      <li><strong>Energy</strong> : meter or actuator ID</li>
+      <li><strong>Temperature</strong> : zone number</li>
+    </ul>
+    <p>Each point gets a room, an icon and a description. In the 'MH Light', 'MH Shutter', 'MH Energy' and 'MH Temperature Zone' nodes, a browse button lists the registered points by room, and a summary of the selected point is displayed below its code. Messages sent by these nodes also include the point's room and description in <code>msg.mh_nodeConfigInfo</code>. The registry does not change how these nodes behave.</p>
+    <p>Any point that responds on the BUS - whether from its own state changing during normal use, or from a refresh on (re)connect (see below) - is detected automatically. When opening a section, detected points not yet in the list are added with room '-new-' and an undefined description, ready for you to fill in, and are kept once you click 'Update'. Detection starts over each time Node-RED restarts. Existing entries are never overwritten this way, and nothing extra is sent to the BUS to make this happen.</p>
+
+  <h3>Refresh on (re)connect</h3>
+    <p>Each time the gateway connects successfully (on Node-RED start-up, or when reconnecting after the connection was lost), it can ask the BUS for current states. All deployed nodes will then get updated accordingly, and flows will be started. This is only available for 3 types, each enabled in its own section :</p>
+    <ul>
+      <li><strong>Lights</strong> : state of all lights (enabled by default)</li>
+      <li><strong>Shutters</strong> : state of all shutters</li>
+      <li><strong>Temperature</strong> : state of the central unit</li>
+    </ul>
+    <p>Since every light (resp. shutter) responds, the Lights and Shutters refreshes are also a quick way to fill in the points registry.</p>
+    <p><i>Note : the 'MH Temperature Central Unit' and 'MH Temperature Zone' nodes also have their own 'Reload' option, which asks for a refresh each time that specific node is deployed.</i></p>
 
   <h3>BUS logging options</h3>
     <p>To avoid overloading the Node-RED console (and logs), monitored MyHome BUS messages are not logged by default. It can be enabled per type when you need to.</p>

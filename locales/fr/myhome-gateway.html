@@ -17,7 +17,6 @@
     </li>
     <li><strong>Keep alive</strong> peut être utilisé pour maintenir automatiquement l'activité de surveillance pour les passerelles qui ferment la connexion après un intervalle sans appel depuis une IP enregistrée.
       <br><i>Note : le nœud de passerelle tentera automatiquement de se reconnecter lorsque la connexion est fermée ou perdue, mais il est préférable de la garder active pour s'assurer que tous les messages BUS sont traités dans Node-RED.</i></li>
-    <li><strong>Recharger</strong> : lorsque la passerelle se connecte avec succès, l'état de toutes les charges connectées au BUS est rassemblé. Tous les nœuds déployés sont également mis à jour en conséquence, et des flux sont déclenchés.</li>
   </ul>
   <br>
   D'après les commentaires d'auteurs précédents et ma propre expérience lors des tests/extensions de ces nœuds, voici les passerelles qu'il <strong>prend en charge</strong> :
@@ -37,9 +36,25 @@
   <br> <i>[5] myHOMEServer1 n'autorise pas le passage d'une zone en chauffage manuel (en spécifiant un point de consigne de température manuel)</i>
   <br> <i>[6] F455 renvoie des résultats très instables/incohérents pour les appels horaires et quotidiens. Le cache des nœuds doit être activé pour corriger la plupart d'entre eux lorsque les nœuds fonctionnent depuis un moment...</i>
 
-  <h3>Registre des points lumineux</h3>
-    <p>L'onglet <strong>Lumières</strong> permet de maintenir une liste des points lumineux (AP) connus (Bus principal uniquement pour l'instant), chacun avec une pièce, une icône, une description et une indication s'il s'agit d'un groupe. Ce registre vise à faciliter le choix d'un AP depuis le nœud 'MH Light' (parcourir par pièce plutôt que retenir un code à 2/4 chiffres), et ne change rien au comportement du nœud 'MH Light' lui-même.</p>
-    <p>Tout AP qui répond sur le BUS - que ce soit via son propre changement d'état en usage normal, ou via le rafraîchissement 'Recharger' au (re)connect déjà présent ci-dessus - est automatiquement ajouté ici aussi s'il n'y est pas déjà (les nouvelles entrées reçoivent la pièce 'nouveau' et une description non définie, à vous de les compléter). Les entrées existantes ne sont jamais écrasées de cette façon, et rien n'est envoyé en plus sur le BUS pour que cela se produise.</p>
+  <h3>Registre des points du BUS</h3>
+    <p>La passerelle permet de maintenir une liste des points du BUS connus, afin de pouvoir les choisir par pièce et par nom depuis les nœuds plutôt que de retenir leur code numérique. Il est disponible pour 4 types, chacun géré dans sa propre section :</p>
+    <ul>
+      <li><strong>Lumières</strong> et <strong>Volets</strong> : point (A/PL) ou groupe, sur le Bus principal ou sur un bus local</li>
+      <li><strong>Énergie</strong> : ID du compteur ou de l'actionneur</li>
+      <li><strong>Température</strong> : numéro de zone</li>
+    </ul>
+    <p>Chaque point reçoit une pièce, une icône et une description. Dans les nœuds 'MH Light', 'MH Shutter', 'MH Energy' et 'MH Temperature Zone', un bouton de parcours liste les points enregistrés par pièce, et un résumé du point sélectionné est affiché sous son code. Les messages envoyés par ces nœuds incluent également la pièce et la description du point dans <code>msg.mh_nodeConfigInfo</code>. Le registre ne change rien au comportement de ces nœuds.</p>
+    <p>Tout point qui répond sur le BUS - que ce soit via son propre changement d'état en usage normal, ou via un rafraîchissement au (re)connect (voir ci-dessous) - est détecté automatiquement. À l'ouverture d'une section, les points détectés qui ne sont pas encore dans la liste y sont ajoutés avec la pièce '-nouveau-' et une description non définie, à vous de les compléter, et sont conservés dès que vous cliquez sur 'Mettre à jour'. La détection repart de zéro à chaque redémarrage de Node-RED. Les entrées existantes ne sont jamais écrasées de cette façon, et rien n'est envoyé en plus sur le BUS pour que cela se produise.</p>
+
+  <h3>Rafraîchissement au (re)connect</h3>
+    <p>À chaque connexion réussie de la passerelle (au démarrage de Node-RED, ou lors d'une reconnexion après une perte de connexion), elle peut demander les états actuels au BUS. Tous les nœuds déployés sont alors mis à jour en conséquence, et des flux sont déclenchés. Ceci n'est disponible que pour 3 types, chacun activé dans sa propre section :</p>
+    <ul>
+      <li><strong>Lumières</strong> : état de toutes les lumières (activé par défaut)</li>
+      <li><strong>Volets</strong> : état de tous les volets</li>
+      <li><strong>Température</strong> : état de la centrale</li>
+    </ul>
+    <p>Comme chaque lumière (resp. volet) répond, les rafraîchissements des Lumières et des Volets sont aussi un moyen rapide de compléter le registre des points.</p>
+    <p><i>Note : les nœuds 'MH Temperature Central Unit' et 'MH Temperature Zone' ont également leur propre option 'Recharger', qui demande un rafraîchissement à chaque déploiement de ce nœud.</i></p>
 
   <h3>Options de journalisation du BUS</h3>
     <p>Pour éviter de surcharger la console Node-RED (et les logs), les messages MyHome BUS surveillés ne sont pas journalisés par défaut. Cela peut être activé par type lorsque nécessaire.</p>

@@ -17,7 +17,6 @@
     </li>
     <li><strong>Keep alive</strong> kan gebruikt worden om de monitoringactiviteit actief te houden voor gateways die deze automatisch sluiten na een periode zonder oproepen van het geregistreerde IP-adres.
       <br><i>Opmerking : de gatewaynode probeert automatisch opnieuw te verbinden wanneer de verbinding gesloten of verloren is, maar het is beter om de verbinding steeds actief te houden zodat alle BUS-berichten binnen Node-RED verwerkt worden</i></li>
-    <li><strong>Herladen</strong> : wanneer de gateway succesvol verbindt, wordt de status van alle op de BUS aangesloten belastingen opgehaald. Alle gedeployde nodes worden hierdoor bijgewerkt en de bijhorende flows worden gestart.</li>
   </ul>
   <br>
   Op basis van opmerkingen van eerdere auteurs en mijn eigen ervaring bij het testen/uitbreiden van deze nodes, zijn dit de gateways die <strong>ondersteund</strong> worden :
@@ -37,9 +36,25 @@
   <br> <i>[5] myHOMEServer1 laat niet toe een zone naar manuele verwarming te schakelen (met een manueel ingesteld temperatuurpunt)</i>
   <br> <i>[6] F455 geeft -zeer- onstabiele/vreemde resultaten terug voor uur- en dagaanvragen. Caching van nodes moet ingeschakeld worden om de meeste hiervan te corrigeren wanneer de nodes al een tijdje actief zijn...</i>
 
-  <h3>Register van lichtpunten</h3>
-    <p>Het tabblad <strong>Verlichting</strong> laat je een lijst bijhouden van gekende lichtpunten (AP) (voorlopig enkel Hoofdbus), elk met een kamer, een icoon, een omschrijving en of het een groep is. Dit register moet het kiezen van een AP vanuit de 'MH Light'-node makkelijker maken (bladeren per kamer in plaats van een code van 2/4 cijfers te onthouden), en verandert niets aan het gedrag van de 'MH Light'-node zelf.</p>
-    <p>Elk AP dat op de BUS antwoordt - via zijn eigen statuswijziging bij normaal gebruik, of via de bestaande 'Herladen'-vernieuwing bij (her)verbinding hierboven - wordt hier ook automatisch toegevoegd als het er nog niet in staat (nieuwe items krijgen de kamer 'nieuw' en een niet-bepaalde omschrijving, zodat je ze zelf kan aanvullen). Bestaande items worden hierdoor nooit overschreven, en er wordt niets extra naar de BUS verstuurd om dit te laten gebeuren.</p>
+  <h3>Register van BUS-punten</h3>
+    <p>De gateway laat je een lijst bijhouden van gekende BUS-punten, zodat je ze vanuit de nodes per kamer en naam kan kiezen in plaats van hun numerieke code te onthouden. Dit is beschikbaar voor 4 types, elk beheerd in een eigen sectie :</p>
+    <ul>
+      <li><strong>Verlichting</strong> en <strong>Rolluiken</strong> : punt (A/PL) of groep, op de Hoofdbus of op een lokale bus</li>
+      <li><strong>Energie</strong> : ID van de meter of de actuator</li>
+      <li><strong>Temperatuur</strong> : zonenummer</li>
+    </ul>
+    <p>Elk punt krijgt een kamer, een icoon en een omschrijving. In de nodes 'MH Light', 'MH Shutter', 'MH Energy' en 'MH Temperature Zone' toont een bladerknop de geregistreerde punten per kamer, en wordt een samenvatting van het gekozen punt onder zijn code weergegeven. Berichten van deze nodes bevatten ook de kamer en omschrijving van het punt in <code>msg.mh_nodeConfigInfo</code>. Het register verandert niets aan het gedrag van deze nodes.</p>
+    <p>Elk punt dat op de BUS antwoordt - via zijn eigen statuswijziging bij normaal gebruik, of via een vernieuwing bij (her)verbinding (zie hieronder) - wordt automatisch gedetecteerd. Bij het openen van een sectie worden gedetecteerde punten die nog niet in de lijst staan toegevoegd met de kamer '-nieuw-' en een niet-bepaalde omschrijving, zodat je ze zelf kan aanvullen, en ze blijven bewaard zodra je op 'Update' klikt. De detectie begint opnieuw bij elke herstart van Node-RED. Bestaande items worden hierdoor nooit overschreven, en er wordt niets extra naar de BUS verstuurd om dit te laten gebeuren.</p>
+
+  <h3>Vernieuwing bij (her)verbinding</h3>
+    <p>Telkens de gateway succesvol verbindt (bij het opstarten van Node-RED, of bij het herverbinden nadat de verbinding verloren ging), kan hij de huidige statussen opvragen op de BUS. Alle gedeployde nodes worden dan bijgewerkt en de bijhorende flows worden gestart. Dit is enkel beschikbaar voor 3 types, elk in te schakelen in een eigen sectie :</p>
+    <ul>
+      <li><strong>Verlichting</strong> : status van alle verlichting (standaard ingeschakeld)</li>
+      <li><strong>Rolluiken</strong> : status van alle rolluiken</li>
+      <li><strong>Temperatuur</strong> : status van de centrale</li>
+    </ul>
+    <p>Omdat elk lichtpunt (resp. rolluik) antwoordt, zijn de vernieuwingen voor Verlichting en Rolluiken ook een snelle manier om het puntenregister aan te vullen.</p>
+    <p><i>Opmerking : de nodes 'MH Temperature Central Unit' en 'MH Temperature Zone' hebben ook hun eigen 'Herladen'-optie, die een vernieuwing opvraagt telkens die specifieke node gedeployed wordt.</i></p>
 
   <h3>Logopties voor de BUS</h3>
     <p>Om de Node-RED-console (en logs) niet te overbelasten, worden gemonitorde MyHome BUS-berichten standaard niet gelogd. Dit kan per type ingeschakeld worden wanneer nodig.</p>

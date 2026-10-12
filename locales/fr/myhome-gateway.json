@@ -60,6 +60,8 @@
 			"lights-onconnect-refreshloads-info":"Quand la passerelle se connecte avec succès, l'état de toutes les charges connectées au BUS est récupéré. Tous les nœuds déployés sont également mis à jour en conséquence, et des flux sont déclenchés.",
 			"shutters-onconnect-refreshstate-checkbox":"Demander l'état de tous les volets au (re)connect",
 			"shutters-onconnect-refreshstate-info":"Quand la passerelle se connecte avec succès, l'état de tous les volets connectés au BUS est récupéré. Tous les nœuds déployés sont également mis à jour en conséquence, et des flux sont déclenchés.",
+			"thermo-onconnect-refreshstate-checkbox":"Demander l'état de la centrale au (re)connect",
+			"thermo-onconnect-refreshstate-info":"Quand la passerelle se connecte avec succès, l'état de la centrale de thermorégulation est demandé. Tous les nœuds Centrale déployés sont également mis à jour en conséquence, et des flux sont déclenchés.",
 			"advBusTracking": "Options avancées de journalisation du suivi du BUS",
 			"advBusTracking-intro": "Par défaut, toutes les commandes OpenWebNet reçues via le BUS MyHome ne sont pas journalisées.\nSi nécessaire pour des tests ou du suivi, vous pouvez en activer certaines. Sachez que le nombre de lignes journalisées peut croître assez vite, surtout quand des éléments de gestion d'énergie sont activés sur le BUS.\n\nQuand activé, le niveau de journalisation de cette sortie est réglé sur 'info'.",
 			"advBusTracking-incoming": "Commandes entrantes",

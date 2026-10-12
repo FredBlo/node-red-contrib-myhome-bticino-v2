@@ -61,6 +61,8 @@
 			"lights-onconnect-refreshloads-info":"Wanneer de gateway succesvol verbindt, wordt de status van alle op de BUS aangesloten belastingen opgehaald. Alle gedeployde nodes worden hierdoor bijgewerkt en de bijhorende flows worden gestart.",
 			"shutters-onconnect-refreshstate-checkbox":"Status van alle rolluiken opvragen bij (her)verbinding",
 			"shutters-onconnect-refreshstate-info":"Wanneer de gateway succesvol verbindt, wordt de status van alle op de BUS aangesloten rolluiken opgehaald. Alle gedeployde nodes worden hierdoor bijgewerkt en de bijhorende flows worden gestart.",
+			"thermo-onconnect-refreshstate-checkbox":"Status van de centrale opvragen bij (her)verbinding",
+			"thermo-onconnect-refreshstate-info":"Wanneer de gateway succesvol verbindt, wordt de status van de centrale opgevraagd. Alle gedeployde Centrale-nodes worden hierdoor bijgewerkt en de bijhorende flows worden gestart.",
 			"advBusTracking": "Geavanceerde logopties voor BUS-tracking",
 			"advBusTracking-intro": "Standaard worden alle OpenWebNet-opdrachten die via de MyHome BUS worden ontvangen, niet gelogd.\nIndien nodig voor test- of trackingdoeleinden, kan je dit voor bepaalde onderdelen inschakelen. Let op: het aantal gelogde regels kan snel oplopen, vooral wanneer er energiebeheerelementen actief zijn op de BUS.\n\nIndien ingeschakeld, wordt het logniveau van deze output ingesteld op 'info'.",
 			"advBusTracking-incoming": "Inkomende opdrachten",

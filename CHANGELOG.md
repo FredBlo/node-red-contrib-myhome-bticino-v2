@@ -1,6 +1,9 @@
 # node-red-contrib-myhome-bticino-v2
 ## Version history
 ### v3.0.5 (latest available) - 11/2026
+- **MH Gateway**
+  - ***Improvement*** : a new option was added to ask the temperature central unit for its current state on (re)connection, mirroring the existing lights and shutters options. All deployed Temperature Central Unit nodes get updated accordingly. This can be configured in the gateway's Temperature section, and is disabled by default.
+  - ***Improvement*** : BUS registry concept documentation was reviewed
 - **MH Temperature Central Unit**
   - ***Improvement*** : the main season mode can now be switched between **Heating (Winter)** and **Conditioning (Summer)** by sending `MODE_HEATING` or `MODE_CONDITIONING` as payload. This switch must be made before applying a heating (resp. conditioning) program or scenario.
   - ***Improvement*** : new `PROTECT` command available, to put the central unit into protection mode regardless of the current running mode : when heating, Antifreeze is applied, and when conditioning, Thermal Protection is used.

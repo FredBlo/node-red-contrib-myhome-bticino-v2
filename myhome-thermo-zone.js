@@ -76,15 +76,16 @@ module.exports = function (RED) {
           if (frameMatch !== null) {
             payloadInfo.operationType_ownValue = frameMatch[1];
             let operationType_List = [];
-            operationType_List.push (['0' ,   RED._('mh-thzone.node.status-optype-conditioning')]);
-            operationType_List.push (['1' ,   RED._('mh-thzone.node.status-optype-heating')]);
-            operationType_List.push (['102' , RED._('mh-thzone.node.status-optype-antifreeze')]);
-            operationType_List.push (['202' , RED._('mh-thzone.node.status-optype-thermalprotect')]);
-            operationType_List.push (['303' , RED._('mh-thzone.node.status-optype-genoff')]);
+            operationType_List.push (['0' ,   'HEATING',       RED._('mh-thzone.node.status-optype-conditioning')]);
+            operationType_List.push (['1' ,   'CONDITIONING',  RED._('mh-thzone.node.status-optype-heating')]);
+            operationType_List.push (['102' , 'HEATING',       RED._('mh-thzone.node.status-optype-antifreeze')]);
+            operationType_List.push (['202' , 'CONDITIONING',  RED._('mh-thzone.node.status-optype-thermalprotect')]);
+            operationType_List.push (['303' , 'GENERIC',       RED._('mh-thzone.node.status-optype-genoff')]);
 
             for (let i = 0; i < operationType_List.length; i++) {
               if (operationType_List[i][0] == payloadInfo.operationType_ownValue) {
-                payloadInfo.operationType = operationType_List[i][1];
+                payloadInfo.operationModeType = operationType_List[i][1];
+                payloadInfo.operationType = operationType_List[i][2];
                 break;
               }
             }
@@ -101,15 +102,15 @@ module.exports = function (RED) {
             curActuatorState.state_ownValue = frameMatch[2];
             let actuatorStates_List = [];
             actuatorStates_List.push (['0' , false , 'OFF']);
-            actuatorStates_List.push (['1' , true , 'ON']);
-            actuatorStates_List.push (['2' , true , 'Opened']);
+            actuatorStates_List.push (['1' , true  , 'ON']);
+            actuatorStates_List.push (['2' , true  , 'Opened']);
             actuatorStates_List.push (['3' , false , 'Closed']);
             actuatorStates_List.push (['4' , false , 'Stop']);
             actuatorStates_List.push (['5' , false , 'OFF Fan Coil']);
-            actuatorStates_List.push (['6' , true , 'ON Vel 1']);
-            actuatorStates_List.push (['7' , true , 'ON Vel 2']);
-            actuatorStates_List.push (['8' , true , 'ON Vel 3']);
-            actuatorStates_List.push (['9' , true , 'ON Fan Coil']);
+            actuatorStates_List.push (['6' , true  , 'ON Vel 1']);
+            actuatorStates_List.push (['7' , true  , 'ON Vel 2']);
+            actuatorStates_List.push (['8' , true  , 'ON Vel 3']);
+            actuatorStates_List.push (['9' , true  , 'ON Fan Coil']);
 
             for (let i = 0; i < actuatorStates_List.length; i++) {
               if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {

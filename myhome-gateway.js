@@ -11,10 +11,10 @@ module.exports = function (RED) {
   // WHO=4 passive discovery, one regex per frame shape myhome-thermo-zone.js itself reads
   const ZONE_DISCOVERY_REGEXES = [
     /^\*#4\*([1-9]\d?)\*(?:0|14)\*\d{4}(?:\*3)?##/, // master probe temperature / set-point temperature
-    /^\*4\*\d+\*([1-9]\d?)##/,                       // zone operation mode (master-probe WHERE)
-    /^\*#4\*([1-9]\d?)#\d\*20\*\d##/,                // actuator status for zone
-    /^\*#4\*([1-9]\d?)\*13\*\d{2}##/,                // local offset status
-    /^\*4\*\d{3}\*#([1-9]\d?)##/                     // zone operation mode via Central Unit
+    /^\*4\*\d+\*([1-9]\d?)##/,                      // zone operation mode (master-probe WHERE)
+    /^\*#4\*([1-9]\d?)#\d\*20\*\d##/,               // actuator status for zone
+    /^\*#4\*([1-9]\d?)\*13\*\d{2}##/,               // local offset status
+    /^\*4\*\d{3}\*#([1-9]\d?)##/                    // zone operation mode via Central Unit
   ];
 
   function MyHomeGatewayNode (config) {
@@ -31,6 +31,7 @@ module.exports = function (RED) {
     node.pass = config.pass || '';
     node.lights_onconnect_refreshloads = config.lights_onconnect_refreshloads;
     node.shutters_onconnect_refreshstate = config.shutters_onconnect_refreshstate;
+    node.thermo_onconnect_refreshstate = config.thermo_onconnect_refreshstate;
     node.points = Array.isArray (config.points) ? config.points : []; // BUS points registry (room/description/icon/... per category) - read by device nodes for msg.mh_nodeConfigInfo
     node.log_out_cmd = config.log_out_cmd || false;
     node.discoveredPoints = { light: {}, shutter: {}, energy: {}, thermozone: {} }; // all points for which something was seen on the BUS. Used by the gateway config editor for auto-discovered points
