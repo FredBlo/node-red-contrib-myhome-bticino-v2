@@ -76,16 +76,16 @@ module.exports = function (RED) {
           if (frameMatch !== null) {
             payloadInfo.operationType_ownValue = frameMatch[1];
             let operationType_List = [];
-            operationType_List.push (['0' ,   'HEATING',       RED._('mh-thzone.node.status-optype-conditioning')]);
-            operationType_List.push (['1' ,   'CONDITIONING',  RED._('mh-thzone.node.status-optype-heating')]);
-            operationType_List.push (['102' , 'HEATING',       RED._('mh-thzone.node.status-optype-antifreeze')]);
-            operationType_List.push (['202' , 'CONDITIONING',  RED._('mh-thzone.node.status-optype-thermalprotect')]);
-            operationType_List.push (['303' , 'GENERIC',       RED._('mh-thzone.node.status-optype-genoff')]);
+            operationType_List.push ({own:'0',   modeType:'CONDITIONING', operationType:RED._('mh-thzone.node.status-optype-conditioning')});
+            operationType_List.push ({own:'1',   modeType:'HEATING',      operationType:RED._('mh-thzone.node.status-optype-heating')});
+            operationType_List.push ({own:'102', modeType:'HEATING',      operationType:RED._('mh-thzone.node.status-optype-antifreeze')});
+            operationType_List.push ({own:'202', modeType:'CONDITIONING', operationType:RED._('mh-thzone.node.status-optype-thermalprotect')});
+            operationType_List.push ({own:'303', modeType:'GENERIC',      operationType:RED._('mh-thzone.node.status-optype-genoff')});
 
             for (let i = 0; i < operationType_List.length; i++) {
-              if (operationType_List[i][0] == payloadInfo.operationType_ownValue) {
-                payloadInfo.operationModeType = operationType_List[i][1];
-                payloadInfo.operationType = operationType_List[i][2];
+              if (operationType_List[i].own == payloadInfo.operationType_ownValue) {
+                payloadInfo.operationModeType = operationType_List[i].modeType;
+                payloadInfo.operationType = operationType_List[i].operationType;
                 break;
               }
             }
@@ -101,21 +101,21 @@ module.exports = function (RED) {
             let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
             curActuatorState.state_ownValue = frameMatch[2];
             let actuatorStates_List = [];
-            actuatorStates_List.push (['0' , false , 'OFF']);
-            actuatorStates_List.push (['1' , true  , 'ON']);
-            actuatorStates_List.push (['2' , true  , 'Opened']);
-            actuatorStates_List.push (['3' , false , 'Closed']);
-            actuatorStates_List.push (['4' , false , 'Stop']);
-            actuatorStates_List.push (['5' , false , 'OFF Fan Coil']);
-            actuatorStates_List.push (['6' , true  , 'ON Vel 1']);
-            actuatorStates_List.push (['7' , true  , 'ON Vel 2']);
-            actuatorStates_List.push (['8' , true  , 'ON Vel 3']);
-            actuatorStates_List.push (['9' , true  , 'ON Fan Coil']);
+            actuatorStates_List.push ({own:'0', on:false, state:'OFF'});
+            actuatorStates_List.push ({own:'1', on:true,  state:'ON'});
+            actuatorStates_List.push ({own:'2', on:true,  state:'Opened'});
+            actuatorStates_List.push ({own:'3', on:false, state:'Closed'});
+            actuatorStates_List.push ({own:'4', on:false, state:'Stop'});
+            actuatorStates_List.push ({own:'5', on:false, state:'OFF Fan Coil'});
+            actuatorStates_List.push ({own:'6', on:true,  state:'ON Vel 1'});
+            actuatorStates_List.push ({own:'7', on:true,  state:'ON Vel 2'});
+            actuatorStates_List.push ({own:'8', on:true,  state:'ON Vel 3'});
+            actuatorStates_List.push ({own:'9', on:true,  state:'ON Fan Coil'});
 
             for (let i = 0; i < actuatorStates_List.length; i++) {
-              if (actuatorStates_List[i][0] == curActuatorState.state_ownValue) {
-                curActuatorState.On = actuatorStates_List[i][1];
-                curActuatorState.state = actuatorStates_List[i][2];
+              if (actuatorStates_List[i].own == curActuatorState.state_ownValue) {
+                curActuatorState.On = actuatorStates_List[i].on;
+                curActuatorState.state = actuatorStates_List[i].state;
                 payloadInfo.actuatorStates.On = curActuatorState.On; // Easy way (but not 100% correct : the global state in taken from the last read actuator)
                 break;
               }
@@ -129,19 +129,19 @@ module.exports = function (RED) {
           if (frameMatch !== null) {
             payloadInfo.localOffset_ownValue = frameMatch[1];
             let localOffset_List = [];
-            localOffset_List.push (['00' , 0]);  // +0°C
-            localOffset_List.push (['01' , 1]);  // +1°C
-            localOffset_List.push (['02' , 2]);  // +2°C
-            localOffset_List.push (['03' , 3]);  // +3°C
-            localOffset_List.push (['11' , -1]); // -1°C
-            localOffset_List.push (['12' , -2]); // -2°C
-            localOffset_List.push (['13' , -3]); // -3°C
-            localOffset_List.push (['04' , RED._('mh-thzone.node.status-localoffset-off')]);
-            localOffset_List.push (['05' , RED._('mh-thzone.node.status-localoffset-protect')]);
+            localOffset_List.push ({own:'00', localOffset:0});
+            localOffset_List.push ({own:'01', localOffset:1});
+            localOffset_List.push ({own:'02', localOffset:2});
+            localOffset_List.push ({own:'03', localOffset:3});
+            localOffset_List.push ({own:'11', localOffset:-1});
+            localOffset_List.push ({own:'12', localOffset:-2});
+            localOffset_List.push ({own:'13', localOffset:-3});
+            localOffset_List.push ({own:'04', localOffset:RED._('mh-thzone.node.status-localoffset-off')});
+            localOffset_List.push ({own:'05', localOffset:RED._('mh-thzone.node.status-localoffset-protect')});
 
             for (let i = 0; i < localOffset_List.length; i++) {
-              if (localOffset_List[i][0] == payloadInfo.localOffset_ownValue) {
-                payloadInfo.localOffset = localOffset_List[i][1];
+              if (localOffset_List[i].own == payloadInfo.localOffset_ownValue) {
+                payloadInfo.localOffset = localOffset_List[i].localOffset;
                 break;
               }
             }
@@ -155,7 +155,7 @@ module.exports = function (RED) {
           if (frameMatch !== null) {
             payloadInfo.operationMode_ownValue = frameMatch[1];
             let operationMode_List = [];
-	          operationMode_List.push ({own:'102', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-antifreeze'),          icon:['yellow','ring'], needTempInfo:false});
+            operationMode_List.push ({own:'102', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-antifreeze'),          icon:['yellow','ring'], needTempInfo:false});
             operationMode_List.push ({own:'103', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-off-heating'),         icon:['grey','dot'],    needTempInfo:false});
             operationMode_List.push ({own:'110', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-manual-heating'),      icon:['yellow','dot'],  needTempInfo:true});
             operationMode_List.push ({own:'111', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-auto-heating'),        icon:['yellow','dot'],  needTempInfo:true});
