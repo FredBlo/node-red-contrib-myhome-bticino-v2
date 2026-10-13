@@ -26,11 +26,7 @@ function logNodeEvent (callingNode, logType, riseLevel, logMsg) {
   // logType can be : debug / log / warn / error
 
   // Compute current level based on type provided. Defaults to debug.
-  let logLevels = [];
-  logLevels[0] = 'debug';
-  logLevels[1] = 'log';
-  logLevels[2] = 'warn';
-  logLevels[3] = 'error';
+  const logLevels = ['debug', 'log', 'warn', 'error'];
   let curLogLevel = Math.max (0 , logLevels.indexOf (logType));
 
   // When the function is called is 'Rise level' mode, apply it now to index
@@ -39,7 +35,7 @@ function logNodeEvent (callingNode, logType, riseLevel, logMsg) {
   }
 
   // ensure index remains in boundaries
-  curLogLevel = Math.min (curLogLevel , logLevels.length);
+  curLogLevel = Math.min (curLogLevel , logLevels.length - 1);
 
   // Apply log now
   callingNode[logLevels[curLogLevel]] (logMsg);

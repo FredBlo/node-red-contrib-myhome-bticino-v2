@@ -75,17 +75,18 @@ module.exports = function (RED) {
           frameMatch = curFrame.match ('^\\*4\\*(\\d+)\\*' + config.zoneid + '##');
           if (frameMatch !== null) {
             payloadInfo.operationType_ownValue = frameMatch[1];
-            let operationType_List = [];
-            operationType_List.push ({own:'0',   modeType:'CONDITIONING', operationType:RED._('mh-thzone.node.status-optype-conditioning')});
-            operationType_List.push ({own:'1',   modeType:'HEATING',      operationType:RED._('mh-thzone.node.status-optype-heating')});
-            operationType_List.push ({own:'102', modeType:'HEATING',      operationType:RED._('mh-thzone.node.status-optype-antifreeze')});
-            operationType_List.push ({own:'202', modeType:'CONDITIONING', operationType:RED._('mh-thzone.node.status-optype-thermalprotect')});
-            operationType_List.push ({own:'303', modeType:'GENERIC',      operationType:RED._('mh-thzone.node.status-optype-genoff')});
+            const operationType_List = [
+              {own:'0',   modeType:'CONDITIONING', operationTypeKey:'mh-thzone.node.status-optype-conditioning'},
+              {own:'1',   modeType:'HEATING',      operationTypeKey:'mh-thzone.node.status-optype-heating'},
+              {own:'102', modeType:'HEATING',      operationTypeKey:'mh-thzone.node.status-optype-antifreeze'},
+              {own:'202', modeType:'CONDITIONING', operationTypeKey:'mh-thzone.node.status-optype-thermalprotect'},
+              {own:'303', modeType:'GENERIC',      operationTypeKey:'mh-thzone.node.status-optype-genoff'}
+            ];
 
             for (let i = 0; i < operationType_List.length; i++) {
               if (operationType_List[i].own == payloadInfo.operationType_ownValue) {
                 payloadInfo.operationModeType = operationType_List[i].modeType;
-                payloadInfo.operationType = operationType_List[i].operationType;
+                payloadInfo.operationType = RED._(operationType_List[i].operationTypeKey);
                 break;
               }
             }
@@ -100,17 +101,18 @@ module.exports = function (RED) {
             let curActuatorid = frameMatch[1];
             let curActuatorState = payloadInfo.actuatorStates['actuator_' + curActuatorid] = {};
             curActuatorState.state_ownValue = frameMatch[2];
-            let actuatorStates_List = [];
-            actuatorStates_List.push ({own:'0', on:false, state:'OFF'});
-            actuatorStates_List.push ({own:'1', on:true,  state:'ON'});
-            actuatorStates_List.push ({own:'2', on:true,  state:'Opened'});
-            actuatorStates_List.push ({own:'3', on:false, state:'Closed'});
-            actuatorStates_List.push ({own:'4', on:false, state:'Stop'});
-            actuatorStates_List.push ({own:'5', on:false, state:'OFF Fan Coil'});
-            actuatorStates_List.push ({own:'6', on:true,  state:'ON Vel 1'});
-            actuatorStates_List.push ({own:'7', on:true,  state:'ON Vel 2'});
-            actuatorStates_List.push ({own:'8', on:true,  state:'ON Vel 3'});
-            actuatorStates_List.push ({own:'9', on:true,  state:'ON Fan Coil'});
+            const actuatorStates_List = [
+              {own:'0', on:false, state:'OFF'},
+              {own:'1', on:true,  state:'ON'},
+              {own:'2', on:true,  state:'Opened'},
+              {own:'3', on:false, state:'Closed'},
+              {own:'4', on:false, state:'Stop'},
+              {own:'5', on:false, state:'OFF Fan Coil'},
+              {own:'6', on:true,  state:'ON Vel 1'},
+              {own:'7', on:true,  state:'ON Vel 2'},
+              {own:'8', on:true,  state:'ON Vel 3'},
+              {own:'9', on:true,  state:'ON Fan Coil'}
+            ];
 
             for (let i = 0; i < actuatorStates_List.length; i++) {
               if (actuatorStates_List[i].own == curActuatorState.state_ownValue) {
@@ -128,20 +130,21 @@ module.exports = function (RED) {
           frameMatch = curFrame.match ('^\\*\\#4\\*' + config.zoneid + '\\*13\\*(\\d{2})##');
           if (frameMatch !== null) {
             payloadInfo.localOffset_ownValue = frameMatch[1];
-            let localOffset_List = [];
-            localOffset_List.push ({own:'00', localOffset:0});
-            localOffset_List.push ({own:'01', localOffset:1});
-            localOffset_List.push ({own:'02', localOffset:2});
-            localOffset_List.push ({own:'03', localOffset:3});
-            localOffset_List.push ({own:'11', localOffset:-1});
-            localOffset_List.push ({own:'12', localOffset:-2});
-            localOffset_List.push ({own:'13', localOffset:-3});
-            localOffset_List.push ({own:'04', localOffset:RED._('mh-thzone.node.status-localoffset-off')});
-            localOffset_List.push ({own:'05', localOffset:RED._('mh-thzone.node.status-localoffset-protect')});
+            const localOffset_List = [
+              {own:'00', localOffset:0},
+              {own:'01', localOffset:1},
+              {own:'02', localOffset:2},
+              {own:'03', localOffset:3},
+              {own:'11', localOffset:-1},
+              {own:'12', localOffset:-2},
+              {own:'13', localOffset:-3},
+              {own:'04', localOffsetKey:'mh-thzone.node.status-localoffset-off'},
+              {own:'05', localOffsetKey:'mh-thzone.node.status-localoffset-protect'}
+            ];
 
             for (let i = 0; i < localOffset_List.length; i++) {
               if (localOffset_List[i].own == payloadInfo.localOffset_ownValue) {
-                payloadInfo.localOffset = localOffset_List[i].localOffset;
+                payloadInfo.localOffset = (localOffset_List[i].localOffsetKey !== undefined) ? RED._(localOffset_List[i].localOffsetKey) : localOffset_List[i].localOffset;
                 break;
               }
             }
@@ -154,21 +157,22 @@ module.exports = function (RED) {
           frameMatch = curFrame.match ('^\\*4\\*(\\d{3})\\*\\#' + config.zoneid + '##');
           if (frameMatch !== null) {
             payloadInfo.operationMode_ownValue = frameMatch[1];
-            let operationMode_List = [];
-            operationMode_List.push ({own:'102', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-antifreeze'),          icon:['yellow','ring'], needTempInfo:false});
-            operationMode_List.push ({own:'103', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-off-heating'),         icon:['grey','dot'],    needTempInfo:false});
-            operationMode_List.push ({own:'110', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-manual-heating'),      icon:['yellow','dot'],  needTempInfo:true});
-            operationMode_List.push ({own:'111', modeType:'HEATING',      mode:RED._('mh-thzone.node.status-opmode-auto-heating'),        icon:['yellow','dot'],  needTempInfo:true});
-            operationMode_List.push ({own:'202', modeType:'CONDITIONING', mode:RED._('mh-thzone.node.status-opmode-thermal-protect'),     icon:['blue','ring'],   needTempInfo:false});
-            operationMode_List.push ({own:'203', modeType:'CONDITIONING', mode:RED._('mh-thzone.node.status-opmode-off-conditioning'),    icon:['grey','dot'],    needTempInfo:false});
-            operationMode_List.push ({own:'210', modeType:'CONDITIONING', mode:RED._('mh-thzone.node.status-opmode-manual-conditioning'), icon:['blue','dot'],    needTempInfo:true});
-            operationMode_List.push ({own:'211', modeType:'CONDITIONING', mode:RED._('mh-thzone.node.status-opmode-auto-conditioning'),   icon:['blue','dot'],    needTempInfo:true});
+            const operationMode_List = [
+              {own:'102', modeType:'HEATING',      modeKey:'mh-thzone.node.status-opmode-antifreeze',          icon:['yellow','ring'], needTempInfo:false},
+              {own:'103', modeType:'HEATING',      modeKey:'mh-thzone.node.status-opmode-off-heating',         icon:['grey','dot'],    needTempInfo:false},
+              {own:'110', modeType:'HEATING',      modeKey:'mh-thzone.node.status-opmode-manual-heating',      icon:['yellow','dot'],  needTempInfo:true},
+              {own:'111', modeType:'HEATING',      modeKey:'mh-thzone.node.status-opmode-auto-heating',        icon:['yellow','dot'],  needTempInfo:true},
+              {own:'202', modeType:'CONDITIONING', modeKey:'mh-thzone.node.status-opmode-thermal-protect',     icon:['blue','ring'],   needTempInfo:false},
+              {own:'203', modeType:'CONDITIONING', modeKey:'mh-thzone.node.status-opmode-off-conditioning',    icon:['grey','dot'],    needTempInfo:false},
+              {own:'210', modeType:'CONDITIONING', modeKey:'mh-thzone.node.status-opmode-manual-conditioning', icon:['blue','dot'],    needTempInfo:true},
+              {own:'211', modeType:'CONDITIONING', modeKey:'mh-thzone.node.status-opmode-auto-conditioning',   icon:['blue','dot'],    needTempInfo:true}
+            ];
 
             // Add main & associated sub info if any
             for (let i = 0; i < operationMode_List.length; i++) {
               if (operationMode_List[i].own == payloadInfo.operationMode_ownValue) {
                 payloadInfo.operationModeType = operationMode_List[i].modeType;
-                payloadInfo.operationMode = operationMode_List[i].mode;
+                payloadInfo.operationMode = RED._(operationMode_List[i].modeKey);
                 node.status_icon = operationMode_List[i].icon;
                 node.status_needTempInfo = operationMode_List[i].needTempInfo;
                 break;
